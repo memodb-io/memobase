@@ -34,18 +34,19 @@ class Base:
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP, server_default=func.now(), onupdate=func.now(), init=False
     )
-    addional_fields: Mapped[Optional[dict]] = mapped_column(
-        JSONB, nullable=True, default=None, init=False
-    )
 
 
 @REG.mapped_as_dataclass
 class User(Base):
     __tablename__ = "users"
-
     # Relationships
-    general_blobs: Mapped[list["GeneralBlob"]] = relationship(
+    related_general_blobs: Mapped[list["GeneralBlob"]] = relationship(
         "GeneralBlob", back_populates="user", init=False
+    )
+
+    # Default columns
+    addional_fields: Mapped[Optional[dict]] = mapped_column(
+        JSONB, nullable=True, default=None
     )
 
 
@@ -61,8 +62,18 @@ class GeneralBlob(Base):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    user: Mapped[User] = relationship("User", back_populates="chat_blobs", init=False)
+    user: Mapped[User] = relationship(
+        "User", back_populates="related_general_blobs", init=False
+    )
+
+    # Default columns
+    addional_fields: Mapped[Optional[dict]] = mapped_column(
+        JSONB, nullable=True, default=None
+    )
 
     # validate
     def __post_init__(self):
-        assert self.type in BlobType, f"Invalid blob type: {self.type}"
+        assert isinstance(
+            self.blob_type, BlobType
+        ), f"Invalid blob type: {self.blob_type}"
+        self.blob_type = self.blob_type.value

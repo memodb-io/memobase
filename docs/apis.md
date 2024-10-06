@@ -65,7 +65,7 @@ client.delete_user(user_id)
 
 ## Memory management
 
-### Upsert
+### Insert
 
 #### `Blob`
 
@@ -77,7 +77,7 @@ MemoBase serparates multiple sources of user data in order to achieve better per
 - `ImageBlob`:  🚧
 
 ```python
-client.user(user_id).upsert(blob)
+client.user(user_id).insert(blob)
 ```
 
 ### Query
