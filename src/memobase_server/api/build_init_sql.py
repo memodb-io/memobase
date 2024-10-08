@@ -3,7 +3,7 @@ import dotenv
 dotenv.load_dotenv()
 from datetime import datetime
 from sqlalchemy.schema import CreateTable
-from memobase_server.connector import DB_ENGINE
+from memobase_server.connectors import DB_ENGINE
 from memobase_server.models.database import User, GeneralBlob
 
 

@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from sqlalchemy import (
-    CHAR,
+    VARCHAR,
     Integer,
     ForeignKey,
     TIMESTAMP,
@@ -55,7 +55,7 @@ class GeneralBlob(Base):
     __tablename__ = "general_blobs"
 
     # Specific columns
-    blob_type: Mapped[str] = mapped_column(CHAR(255), nullable=False)
+    blob_type: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     blob_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     # Relationships

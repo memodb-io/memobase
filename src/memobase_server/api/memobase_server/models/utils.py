@@ -1,27 +1,35 @@
 from dataclasses import dataclass
-from typing import TypeVar, Optional, Type
+from typing import TypeVar, Optional, Type, Generic
 from pydantic import ValidationError
 from .response import CODE, BaseResponse
 from ..utils import LOG
 
 
+D = TypeVar("D")
 T = TypeVar("T", bound=BaseResponse)
 
 
 @dataclass
-class Promise:
-    __data: Optional[dict]
+class Promise(Generic[D]):
+    __data: Optional[D]
     __errcode: CODE = CODE.SUCCESS
     __errmsg: str = ""
 
     @classmethod
-    def from_error(cls, errcode: CODE, errmsg: str):
+    def resolve(cls, data: D) -> "Promise[D]":
+        return cls(data)
+
+    @classmethod
+    def reject(cls, errcode: CODE, errmsg: str) -> "Promise":
         assert errmsg is not None, "Error Message can't be None!"
         assert errcode in CODE, f"Invalid Error Code: {errcode}"
         return cls(None, errcode, errmsg)
 
     def ok(self) -> bool:
         return self.__errcode == CODE.SUCCESS
+
+    def data(self) -> Optional[D]:
+        return self.__data
 
     def to_response(self, ResponseModel: Type[T]) -> T:
         try:

@@ -12,7 +12,9 @@ REDIS_URL = os.getenv("REDIS_URL")
 LOG.info(f"Database URL: {DATABASE_URL}")
 LOG.info(f"Redis URL: {REDIS_URL}")
 # Create an engine
-DB_ENGINE = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
+DB_ENGINE = create_engine(
+    DATABASE_URL, pool_size=20, pool_recycle=3600, pool_pre_ping=True
+)
 REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL)
 
 Session = sessionmaker(bind=DB_ENGINE)

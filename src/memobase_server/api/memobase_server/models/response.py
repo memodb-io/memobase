@@ -1,6 +1,9 @@
+from datetime import datetime
 from enum import IntEnum
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
+from .blob import BlobType
+from . import blob as blob_models
 
 
 class CODE(IntEnum):
@@ -28,6 +31,30 @@ class IdData(BaseModel):
     id: int
 
 
+class UserData(BaseModel):
+    data: Optional[dict] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class BlobData(BaseModel):
+    blob_type: BlobType
+    blob_data: dict  # messages/doc/images...
+    fields: Optional[dict] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def to_blob(self) -> blob_models.Blob:
+        if self.blob_type == BlobType.chat:
+            return blob_models.ChatBlob(**self.blob_data, fields=self.fields)
+        elif self.blob_type == BlobType.doc:
+            return blob_models.DocBlob(**self.blob_data, fields=self.fields)
+        elif self.blob_type == BlobType.image:
+            raise NotImplementedError("ImageBlob not implemented yet.")
+        elif self.blob_type == BlobType.transcript:
+            raise NotImplementedError("TranscriptBlob not implemented yet.")
+
+
 class BaseResponse(BaseModel):
     data: Optional[dict] = None
     errno: CODE = CODE.SUCCESS
@@ -36,3 +63,11 @@ class BaseResponse(BaseModel):
 
 class IdResponse(BaseResponse):
     data: Optional[IdData] = None
+
+
+class UserDataResponse(BaseResponse):
+    data: Optional[UserData] = None
+
+
+class BlobDataResponse(BaseResponse):
+    data: Optional[BlobData] = None

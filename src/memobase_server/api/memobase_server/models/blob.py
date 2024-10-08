@@ -1,6 +1,6 @@
 from enum import StrEnum
 from typing import Literal, Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 
 class OpenAICompatibleMessage(BaseModel):
@@ -8,10 +8,18 @@ class OpenAICompatibleMessage(BaseModel):
     content: str
 
 
+class TranscriptStamp(BaseModel):
+    content: str
+    start_timestamp_in_seconds: float
+    end_time_timestamp_in_seconds: Optional[float] = None
+    speaker: Optional[str] = None
+
+
 class BlobType(StrEnum):
     chat = "chat"
     doc = "doc"
     image = "image"
+    code = "code"
     transcript = "transcript"
 
 
@@ -31,3 +39,20 @@ class ChatBlob(Blob):
 class DocBlob(Blob):
     content: str
     type: Literal[BlobType.doc] = BlobType.doc
+
+
+class CodeBlob(Blob):
+    content: str
+    language: Optional[str] = None
+    type: Literal[BlobType.code] = BlobType.code
+
+
+class ImageBlob(Blob):
+    url: Optional[str] = None
+    base64: Optional[str] = None
+    type: Literal[BlobType.image] = BlobType.image
+
+
+class TranscriptBlob(Blob):
+    transcripts: list[TranscriptStamp]
+    type: Literal[BlobType.transcript] = BlobType.transcript

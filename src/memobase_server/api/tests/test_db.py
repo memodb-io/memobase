@@ -1,26 +1,19 @@
 import pytest
 from sqlalchemy.inspection import inspect
 from memobase_server.models.database import User, GeneralBlob
-from memobase_server.connector import (
+from memobase_server.connectors import (
     Session,
     DB_ENGINE,
-    db_health_check,
-    redis_health_check,
 )
 
 
-def test_db_connection():
-    assert db_health_check()
-    assert redis_health_check()
-
-
-def test_correct_tables():
+def test_correct_tables(db_env):
     db_inspector = inspect(DB_ENGINE)
     assert "users" in db_inspector.get_table_names()
     assert "general_blobs" in db_inspector.get_table_names()
 
 
-def test_user_model():
+def test_user_model(db_env):
     with Session() as session:
         user = User(addional_fields={"name": "Gus"})
         session.add(user)
@@ -42,7 +35,7 @@ def test_user_model():
         assert session.query(User).filter_by(id=user.id).first() is None
 
 
-def test_general_blob_model():
+def test_general_blob_model(db_env):
     with Session() as session:
         user = User(addional_fields={"name": "blob_user"})
         session.add(user)
