@@ -12,7 +12,7 @@ async def create_user(data: UserData) -> Promise[IdData]:
         return Promise.resolve(IdData(id=db_user.id))
 
 
-async def get_user(user_id: int) -> Promise[UserData]:
+async def get_user(user_id: str) -> Promise[UserData]:
     with Session() as session:
         db_user = session.query(User).filter_by(id=user_id).first()
         if db_user is None:
@@ -26,7 +26,7 @@ async def get_user(user_id: int) -> Promise[UserData]:
         )
 
 
-async def update_user(user_id: int, data: UserData) -> Promise[IdData]:
+async def update_user(user_id: str, data: UserData) -> Promise[IdData]:
     with Session() as session:
         db_user = session.query(User).filter_by(id=user_id).first()
         if db_user is None:
@@ -36,7 +36,7 @@ async def update_user(user_id: int, data: UserData) -> Promise[IdData]:
         return Promise.resolve(IdData(id=db_user.id))
 
 
-async def delete_user(user_id: int) -> Promise[None]:
+async def delete_user(user_id: str) -> Promise[None]:
     with Session() as session:
         db_user = session.query(User).filter_by(id=user_id).first()
         if db_user is None:

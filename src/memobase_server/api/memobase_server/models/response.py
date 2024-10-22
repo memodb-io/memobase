@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import IntEnum
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from .blob import BlobType
 from . import blob as blob_models
 
@@ -28,7 +28,7 @@ class CODE(IntEnum):
 
 
 class IdData(BaseModel):
-    id: int
+    id: UUID4
 
 
 class UserData(BaseModel):

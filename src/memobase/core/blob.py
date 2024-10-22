@@ -1,4 +1,4 @@
-# Synced from memobase_server.models.blob on Tue Oct  8 22:48:51 CST 2024
+# Synced from memobase_server.models.blob on Tue Oct 22 14:54:18 CST 2024
 from enum import StrEnum
 from typing import Literal, Optional
 from pydantic import BaseModel

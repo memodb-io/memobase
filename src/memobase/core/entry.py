@@ -1,21 +1,74 @@
 import os
-from typing import Optional, Annotated
+import httpx
+from typing import Optional
 from pydantic import BaseModel, Field, field_validator, HttpUrl
+from dataclasses import dataclass
 from .blob import BlobType, Blob
-from ..network import api_request
+from .type import BaseResponse
+from ..network import unpack_response
 from ..error import ServerError
 
 
-class User(BaseModel):
-    project_url: HttpUrl = Field(description="Endpoint URL of the memobase project")
-    api_key: str
-    user_id: int
+@dataclass
+class MemoBaseClient:
+    project_url: str
+    api_key: Optional[str] = None
+    api_version: str = "api/v1"
+
+    def __post_init__(self):
+        self.api_key = self.api_key or os.getenv("MEMOBASE_API_KEY")
+        assert (
+            self.api_key is not None
+        ), "api_key of memobase client is required, pass it as argument or set it as environment variable(MEMOBASE_API_KEY)"
+        self.base_url = str(HttpUrl(self.project_url)) + self.api_version.strip("/")
+
+        self._client = httpx.Client(
+            base_url=self.base_url,
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            timeout=60,
+        )
+
+    def healthcheck(self) -> bool:
+        r = unpack_response(self._client.get("/healthcheck"))
+        return r.errno == 0
+
+    def add_user(self, data: dict = None) -> str:
+        r = unpack_response(self._client.post("/users", json={"data": data}))
+        r.raise_for_status()
+        return r.data["id"]
+
+    def update_user(self, user_id: str, data: dict = None) -> str:
+        r = unpack_response(self._client.put(f"/users/{user_id}", json={"data": data}))
+        r.raise_for_status()
+        return r.data["id"]
+
+    def get_user(self, user_id: str) -> "User":
+        r = unpack_response(self._client.get(f"/users/{user_id}"))
+        r.raise_for_status()
+        return User(
+            user_id=user_id,
+            project_client=self,
+            fields=r.data,
+        )
+
+    def delete_user(self, user_id: str) -> bool:
+        r = unpack_response(self._client.delete(f"/users/{user_id}"))
+        r.raise_for_status()
+        return True
+
+
+@dataclass
+class User:
+    user_id: str
+    project_client: MemoBaseClient
     fields: Optional[dict] = None
 
-    def insert(self, blob_data: Blob) -> int:
+    def insert(self, blob_data: Blob) -> str:
         pass
 
-    def get(self, blob_id: int) -> Blob:
+    def get(self, blob_id: str) -> Blob:
         pass
 
     def query(self, query: str) -> list[Blob]:
@@ -25,84 +78,8 @@ class User(BaseModel):
         raise NotImplementedError("persona_claims not yet ready")
 
 
-class MemoBaseClient(BaseModel):
-    project_url: Annotated[
-        HttpUrl, Field(description="Endpoint URL of the memobase project")
-    ]
-    api_key: Annotated[Optional[str], Field(validate_default=True)] = None
-
-    @field_validator("api_key")
-    @classmethod
-    def validate_api_key(cls, v):
-        v = v or os.getenv("MEMOBASE_API_KEY")
-        assert (
-            v is not None
-        ), "api_key of memobase client is required, pass it as argument or set it as environment variable(MEMOBASE_API_KEY)"
-        return v
-
-    def healthcheck(self) -> bool:
-        result = api_request(
-            str(self.project_url),
-            "/healthcheck",
-            "get",
-            headers={"Authorization": f"Bearer {self.api_key}"},
-        )
-        return result.errno == 0
-
-    def add_user(self, data: dict = None) -> int:
-        result = api_request(
-            str(self.project_url),
-            "/users",
-            "post",
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            json={"data": data},
-        )
-        if result.errno != 0:
-            raise ServerError(result.errmsg)
-        return result.data["id"]
-
-    def update_user(self, user_id: int, data: dict = None) -> int:
-        result = api_request(
-            str(self.project_url),
-            f"/users/{user_id}",
-            "put",
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            json={"data": data},
-        )
-        if result.errno != 0:
-            raise ServerError(result.errmsg)
-        return result.data["id"]
-
-    def get_user(self, user_id: int) -> User:
-        result = api_request(
-            str(self.project_url),
-            f"/users/{user_id}",
-            "get",
-            headers={"Authorization": f"Bearer {self.api_key}"},
-        )
-        if result.errno != 0:
-            raise ServerError(result.errmsg)
-        return User(
-            project_url=self.project_url,
-            api_key=self.api_key,
-            user_id=user_id,
-            fields=result.data,
-        )
-
-    def delete_user(self, user_id: int) -> bool:
-        result = api_request(
-            str(self.project_url),
-            f"/users/{user_id}",
-            "delete",
-            headers={"Authorization": f"Bearer {self.api_key}"},
-        )
-        if result.errno != 0:
-            raise ServerError(result.errmsg)
-        return True
-
-
 a = MemoBaseClient(
-    project_url="http://localhost:8000",
+    project_url="http://localhost:8000/",
     api_key="secret",
 )
 print(a)

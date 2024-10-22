@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 from datetime import datetime
 from sqlalchemy import (
@@ -7,7 +8,7 @@ from sqlalchemy import (
     TIMESTAMP,
 )
 from dataclasses import dataclass
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import (
     relationship,
     Mapped,
@@ -25,8 +26,11 @@ class Base:
     __abstract__ = True  # 这个属性表示这是一个抽象基类，不会创建对应的表
 
     # Common columns
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True, init=False
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default_factory=uuid.uuid4,
+        init=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP, server_default=func.now(), init=False
@@ -59,8 +63,8 @@ class GeneralBlob(Base):
     blob_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     # Relationships
-    user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     user: Mapped[User] = relationship(
         "User", back_populates="related_general_blobs", init=False

@@ -6,7 +6,7 @@ from ..models.blob import ChatBlob, DocBlob, BlobType
 from ..connectors import Session
 
 
-async def insert_blob(user_id: int, blob: BlobData) -> Promise[IdData]:
+async def insert_blob(user_id: str, blob: BlobData) -> Promise[IdData]:
     try:
         blob_parsed = blob.to_blob()
     except pydantic.ValidationError as e:
@@ -23,7 +23,7 @@ async def insert_blob(user_id: int, blob: BlobData) -> Promise[IdData]:
         return Promise.resolve(IdData(id=blob_db.id))
 
 
-async def get_blob(user_id: int, blob_id: int) -> Promise[BlobData]:
+async def get_blob(user_id: str, blob_id: str) -> Promise[BlobData]:
     with Session() as session:
         blob_db = (
             session.query(GeneralBlob).filter_by(id=blob_id, user_id=user_id).first()
@@ -42,7 +42,7 @@ async def get_blob(user_id: int, blob_id: int) -> Promise[BlobData]:
         return Promise.resolve(rt_blob)
 
 
-async def remove_blob(user_id: int, blob_id: int) -> Promise[None]:
+async def remove_blob(user_id: str, blob_id: str) -> Promise[None]:
     with Session() as session:
         blob_db = (
             session.query(GeneralBlob).filter_by(id=blob_id, user_id=user_id).first()
