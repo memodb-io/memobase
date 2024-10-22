@@ -1,4 +1,5 @@
 import setuptools
+from setuptools import find_packages
 
 with open("readme.md", "r") as fh:
     long_description = fh.read()
@@ -6,7 +7,7 @@ with open("readme.md", "r") as fh:
 
 vars2find = ["__author__", "__version__", "__url__", "__license__"]
 vars2readme = {}
-with open("./src/memobase/__init__.py") as f:
+with open("./src/client/memobase/__init__.py") as f:
     for line in f.readlines():
         for v in vars2find:
             if line.startswith(v):
@@ -29,8 +30,8 @@ setuptools.setup(
     description="Client library of MemoBase: manage user memory for your LLM applications",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    package_dir={"": "src"},
-    packages=["memobase"],
+    package_dir={"": "src/client"},
+    packages=find_packages(where="src/client"),
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.11",

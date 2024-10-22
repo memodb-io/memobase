@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import IntEnum
 from typing import Optional
 from pydantic import BaseModel, UUID4
-from .blob import BlobType
+from .blob import BlobData
 from . import blob as blob_models
 
 
@@ -31,28 +31,14 @@ class IdData(BaseModel):
     id: UUID4
 
 
+class IdsData(BaseModel):
+    ids: list[UUID4]
+
+
 class UserData(BaseModel):
     data: Optional[dict] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-
-
-class BlobData(BaseModel):
-    blob_type: BlobType
-    blob_data: dict  # messages/doc/images...
-    fields: Optional[dict] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-
-    def to_blob(self) -> blob_models.Blob:
-        if self.blob_type == BlobType.chat:
-            return blob_models.ChatBlob(**self.blob_data, fields=self.fields)
-        elif self.blob_type == BlobType.doc:
-            return blob_models.DocBlob(**self.blob_data, fields=self.fields)
-        elif self.blob_type == BlobType.image:
-            raise NotImplementedError("ImageBlob not implemented yet.")
-        elif self.blob_type == BlobType.transcript:
-            raise NotImplementedError("TranscriptBlob not implemented yet.")
 
 
 class BaseResponse(BaseModel):

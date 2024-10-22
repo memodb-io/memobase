@@ -1,4 +1,5 @@
 from enum import StrEnum
+from datetime import datetime
 from typing import Literal, Optional
 from pydantic import BaseModel
 
@@ -30,6 +31,13 @@ class Blob(BaseModel):
     def get_blob_data(self):
         return self.model_dump(exclude={"type", "fields"})
 
+    def to_request(self):
+        return {
+            "blob_type": self.type,
+            "fields": self.fields,
+            "blob_data": self.get_blob_data(),
+        }
+
 
 class ChatBlob(Blob):
     messages: list[OpenAICompatibleMessage]
@@ -56,3 +64,21 @@ class ImageBlob(Blob):
 class TranscriptBlob(Blob):
     transcripts: list[TranscriptStamp]
     type: Literal[BlobType.transcript] = BlobType.transcript
+
+
+class BlobData(BaseModel):
+    blob_type: BlobType
+    blob_data: dict  # messages/doc/images...
+    fields: Optional[dict] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def to_blob(self) -> Blob:
+        if self.blob_type == BlobType.chat:
+            return ChatBlob(**self.blob_data, fields=self.fields)
+        elif self.blob_type == BlobType.doc:
+            return DocBlob(**self.blob_data, fields=self.fields)
+        elif self.blob_type == BlobType.image:
+            raise NotImplementedError("ImageBlob not implemented yet.")
+        elif self.blob_type == BlobType.transcript:
+            raise NotImplementedError("TranscriptBlob not implemented yet.")

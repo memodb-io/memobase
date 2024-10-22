@@ -23,7 +23,7 @@ REG = registry()
 
 @dataclass
 class Base:
-    __abstract__ = True  # 这个属性表示这是一个抽象基类，不会创建对应的表
+    __abstract__ = True
 
     # Common columns
     id: Mapped[str] = mapped_column(
@@ -45,7 +45,7 @@ class User(Base):
     __tablename__ = "users"
     # Relationships
     related_general_blobs: Mapped[list["GeneralBlob"]] = relationship(
-        "GeneralBlob", back_populates="user", init=False
+        "GeneralBlob", back_populates="user", cascade="all, delete-orphan", init=False
     )
 
     # Default columns

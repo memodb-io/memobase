@@ -55,3 +55,43 @@ async def test_blob_curd(db_env):
     assert p.ok()
     p = await controllers.blob.get_blob(u_id, b_id)
     assert not p.ok()
+
+
+@pytest.mark.asyncio
+async def test_user_blob_curd(db_env):
+    p = await controllers.user.create_user(res.UserData())
+    assert p.ok()
+    u_id = p.data().id
+
+    p = await controllers.blob.insert_blob(
+        u_id,
+        res.BlobData(
+            blob_type=BlobType.doc,
+            blob_data={"content": "Hello world"},
+            fields={"from": "happy"},
+        ),
+    )
+    assert p.ok()
+    b_id = p.data().id
+    p = await controllers.blob.insert_blob(
+        u_id,
+        res.BlobData(
+            blob_type=BlobType.doc,
+            blob_data={"content": "Hello world"},
+            fields={"from": "happy"},
+        ),
+    )
+    assert p.ok()
+    b_id2 = p.data().id
+
+    p = await controllers.user.get_user_all_blobs(u_id)
+    assert p.ok()
+    assert len(p.data().ids) == 2
+
+    p = await controllers.user.delete_user(u_id)
+    assert p.ok()
+
+    p = await controllers.blob.get_blob(u_id, b_id)
+    assert not p.ok()
+    p = await controllers.blob.get_blob(u_id, b_id2)
+    assert not p.ok()

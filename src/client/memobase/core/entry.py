@@ -1,12 +1,12 @@
 import os
 import httpx
 from typing import Optional
-from pydantic import BaseModel, Field, field_validator, HttpUrl
+from pydantic import HttpUrl
 from dataclasses import dataclass
-from .blob import BlobType, Blob
-from .type import BaseResponse
+from .blob import BlobData, Blob
 from ..network import unpack_response
 from ..error import ServerError
+from ..utils import LOG
 
 
 @dataclass
@@ -30,23 +30,31 @@ class MemoBaseClient:
             timeout=60,
         )
 
-    def healthcheck(self) -> bool:
-        r = unpack_response(self._client.get("/healthcheck"))
-        return r.errno == 0
+    @property
+    def client(self) -> httpx.Client:
+        return self._client
+
+    def ping(self) -> bool:
+        try:
+            unpack_response(self._client.get("/healthcheck"))
+        except httpx.HTTPStatusError as e:
+            LOG.error(f"Healthcheck failed: {e}")
+            return False
+        except ServerError as e:
+            LOG.error(f"Healthcheck failed: {e}")
+            return False
+        return True
 
     def add_user(self, data: dict = None) -> str:
         r = unpack_response(self._client.post("/users", json={"data": data}))
-        r.raise_for_status()
         return r.data["id"]
 
     def update_user(self, user_id: str, data: dict = None) -> str:
         r = unpack_response(self._client.put(f"/users/{user_id}", json={"data": data}))
-        r.raise_for_status()
         return r.data["id"]
 
     def get_user(self, user_id: str) -> "User":
         r = unpack_response(self._client.get(f"/users/{user_id}"))
-        r.raise_for_status()
         return User(
             user_id=user_id,
             project_client=self,
@@ -55,7 +63,6 @@ class MemoBaseClient:
 
     def delete_user(self, user_id: str) -> bool:
         r = unpack_response(self._client.delete(f"/users/{user_id}"))
-        r.raise_for_status()
         return True
 
 
@@ -66,28 +73,28 @@ class User:
     fields: Optional[dict] = None
 
     def insert(self, blob_data: Blob) -> str:
-        pass
+        r = unpack_response(
+            self.project_client.client.post(
+                f"/blobs/insert/{self.user_id}",
+                json=blob_data.to_request(),
+            )
+        )
+        return r.data["id"]
 
     def get(self, blob_id: str) -> Blob:
-        pass
+        r = unpack_response(
+            self.project_client.client.get(f"/blobs/{self.user_id}/{blob_id}")
+        )
+        return BlobData.model_validate(r.data).to_blob()
+
+    def delete(self, blob_id: str) -> bool:
+        r = unpack_response(
+            self.project_client.client.delete(f"/blobs/{self.user_id}/{blob_id}")
+        )
+        return True
 
     def query(self, query: str) -> list[Blob]:
         raise NotImplementedError("Query not yet ready")
 
     def persona_claims(self) -> list:
         raise NotImplementedError("persona_claims not yet ready")
-
-
-a = MemoBaseClient(
-    project_url="http://localhost:8000/",
-    api_key="secret",
-)
-print(a)
-print(a.healthcheck())
-u = a.add_user()
-print(u)
-print(a.get_user(u))
-print(a.update_user(u, {"test": 111}))
-print(a.get_user(u).fields)
-print(a.delete_user(u))
-print(a.get_user(u))

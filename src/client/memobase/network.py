@@ -8,4 +8,6 @@ PREFIX = "/api/v1"
 
 def unpack_response(response: Response) -> BaseResponse:
     response.raise_for_status()  # This will raise an HTTPError if the status is 4xx, 5xx
-    return BaseResponse.model_validate(response.json())
+    r = BaseResponse.model_validate(response.json())
+    r.raise_for_status()
+    return r

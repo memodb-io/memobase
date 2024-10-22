@@ -1,6 +1,6 @@
 from ..models.utils import Promise
-from ..models.database import User
-from ..models.response import CODE, UserData, IdData
+from ..models.database import User, GeneralBlob
+from ..models.response import CODE, UserData, IdData, IdsData
 from ..connectors import Session
 
 
@@ -44,3 +44,11 @@ async def delete_user(user_id: str) -> Promise[None]:
         session.delete(db_user)
         session.commit()
         return Promise.resolve(None)
+
+
+async def get_user_all_blobs(user_id: str) -> Promise[IdsData]:
+    with Session() as session:
+        user_blobs = session.query(GeneralBlob.id).filter_by(user_id=user_id).all()
+        if user_blobs is None:
+            return Promise.reject(CODE.NOT_FOUND, f"User {user_id} not found")
+        return Promise.resolve(IdsData(ids=[blob.id for blob in user_blobs]))

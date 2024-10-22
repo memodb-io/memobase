@@ -8,10 +8,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-src/memobase_server/db/dev_data
-src/memobase_server/db/dev_redis
-src/memobase_server/db/data
-src/memobase_server/db/redis/data
 # C extensions
 *.so
 
