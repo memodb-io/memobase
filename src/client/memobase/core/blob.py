@@ -1,4 +1,4 @@
-# Synced from memobase_server.models.blob on Tue Oct 22 22:26:51 CST 2024
+# Synced from memobase_server.models.blob on Tue Oct 22 23:48:53 CST 2024
 from enum import StrEnum
 from datetime import datetime
 from typing import Literal, Optional
