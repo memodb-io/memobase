@@ -1,6 +1,6 @@
 services:
   memobase-server-db:
-    image: postgres
+    image: pgvector/pgvector:pg17
     restart: unless-stopped
     container_name: memobase-server-db
     environment:
@@ -14,7 +14,7 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
   
   memobase-server-redis:
-    image: redis:latest
+    image: redis:7.4
     restart: unless-stopped
     container_name: memobase-server-redis
     ports:
@@ -30,6 +30,8 @@ services:
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@memobase-server-db:5432/${DATABASE_NAME}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@memobase-server-redis:6379/0
       - ACCESS_TOKEN=${ACCESS_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL}
     depends_on:
       - memobase-server-db
       - memobase-server-redis

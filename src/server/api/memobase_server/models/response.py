@@ -3,7 +3,8 @@ from enum import IntEnum
 from typing import Optional
 from pydantic import BaseModel, UUID4
 from .blob import BlobData
-from . import blob as blob_models
+from .claim import ClaimData
+from .action import ActionData
 
 
 class CODE(IntEnum):
@@ -27,6 +28,7 @@ class CODE(IntEnum):
     GATEWAY_TIMEOUT = 504  # The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server.
 
 
+# Return data format
 class IdData(BaseModel):
     id: UUID4
 
@@ -41,6 +43,12 @@ class UserData(BaseModel):
     updated_at: Optional[datetime] = None
 
 
+class QueryData(BaseModel):
+    claims: list[ClaimData]
+    actions: list[ActionData]
+
+
+# API response format
 class BaseResponse(BaseModel):
     data: Optional[dict] = None
     errno: CODE = CODE.SUCCESS
@@ -57,3 +65,7 @@ class UserDataResponse(BaseResponse):
 
 class BlobDataResponse(BaseResponse):
     data: Optional[BlobData] = None
+
+
+class QueryDataResponse(BaseResponse):
+    data: Optional[QueryData] = None

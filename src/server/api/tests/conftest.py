@@ -13,5 +13,5 @@ def db_connection():
 def db_env():
     if db_connection():
         yield
-        print("Tearing down the environment...")
+        return
     return pytest.skip("Database not available")

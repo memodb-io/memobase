@@ -1,2 +1,2 @@
 pydantic
-requests
+httpx

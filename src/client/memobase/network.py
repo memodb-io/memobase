@@ -1,6 +1,4 @@
-import requests
-from typing import Optional, Dict, Any
-from requests.models import Response
+from httpx import Response
 from .core.type import BaseResponse
 
 PREFIX = "/api/v1"
