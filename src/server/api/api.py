@@ -1,21 +1,11 @@
-import os
-import logging
 from dotenv import load_dotenv
-from memobase_server.utils import LOG
 
 load_dotenv()
+from memobase_server.env import LOG
 
-LOG.setLevel(logging.INFO)
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(
-    logging.Formatter(
-        "%(levelname)s:    %(asctime)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-)
-LOG.addHandler(console_handler)
 # Done setting up env
 
+import os
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware

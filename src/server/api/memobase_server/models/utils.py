@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import TypeVar, Optional, Type, Generic
 from pydantic import ValidationError
 from .response import CODE, BaseResponse
-from ..utils import LOG
+from ..env import LOG
 
 
 D = TypeVar("D")

@@ -4,6 +4,7 @@ from ..models.database import GeneralBlob
 from ..models.response import CODE, BlobData, IdData
 from ..models.blob import ChatBlob, DocBlob, BlobType
 from ..connectors import Session
+from .buffer import insert_blob_to_buffer
 
 
 async def insert_blob(user_id: str, blob: BlobData) -> Promise[IdData]:
@@ -20,7 +21,11 @@ async def insert_blob(user_id: str, blob: BlobData) -> Promise[IdData]:
         )
         session.add(blob_db)
         session.commit()
-        return Promise.resolve(IdData(id=blob_db.id))
+        b_id = blob_db.id
+    p = await insert_blob_to_buffer(user_id, b_id, blob_parsed)
+    if not p.ok():
+        return p
+    return Promise.resolve(IdData(id=b_id))
 
 
 async def get_blob(user_id: str, blob_id: str) -> Promise[BlobData]:
@@ -48,9 +53,8 @@ async def remove_blob(user_id: str, blob_id: str) -> Promise[None]:
             session.query(GeneralBlob).filter_by(id=blob_id, user_id=user_id).first()
         )
         if not blob_db:
-            return Promise.reject(
-                CODE.NOT_FOUND, f"Blob with id {blob_id} of user {user_id} not found"
-            )
-        session.delete(blob_db)
-        session.commit()
-        return Promise.resolve(None)
+            return Promise.resolve(None)
+        else:
+            session.delete(blob_db)
+            session.commit()
+    return Promise.resolve(None)

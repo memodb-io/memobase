@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import (
     VARCHAR,
     Integer,
+    ARRAY,
     ForeignKey,
     TIMESTAMP,
 )
@@ -47,6 +48,9 @@ class User(Base):
     related_general_blobs: Mapped[list["GeneralBlob"]] = relationship(
         "GeneralBlob", back_populates="user", cascade="all, delete-orphan", init=False
     )
+    related_buffers: Mapped[list["BufferZone"]] = relationship(
+        "BufferZone", back_populates="user", cascade="all, delete-orphan", init=False
+    )
 
     # Default columns
     addional_fields: Mapped[Optional[dict]] = mapped_column(
@@ -70,9 +74,46 @@ class GeneralBlob(Base):
         "User", back_populates="related_general_blobs", init=False
     )
 
+    related_buffers: Mapped[list["BufferZone"]] = relationship(
+        "BufferZone", back_populates="blob", cascade="all, delete-orphan", init=False
+    )
+
     # Default columns
     addional_fields: Mapped[Optional[dict]] = mapped_column(
         JSONB, nullable=True, default=None
+    )
+
+    # validate
+    def __post_init__(self):
+        assert isinstance(
+            self.blob_type, BlobType
+        ), f"Invalid blob type: {self.blob_type}"
+        self.blob_type = self.blob_type.value
+
+
+@REG.mapped_as_dataclass
+class BufferZone(Base):
+    __tablename__ = "buffer_zones"
+
+    # Specific columns
+    blob_type: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    token_size: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # Relationships
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    user: Mapped[User] = relationship(
+        "User", back_populates="related_buffers", init=False
+    )
+
+    blob_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("general_blobs.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    blob: Mapped[GeneralBlob] = relationship(
+        "GeneralBlob", back_populates="related_buffers", init=False
     )
 
     # validate

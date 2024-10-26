@@ -17,3 +17,15 @@ CREATE TABLE general_blobs (
 	PRIMARY KEY (id), 
 	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
 );
+CREATE TABLE buffer_zones (
+	blob_type VARCHAR(255) NOT NULL, 
+	token_size INTEGER NOT NULL, 
+	user_id UUID NOT NULL, 
+	blob_id UUID NOT NULL, 
+	id UUID NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	FOREIGN KEY(blob_id) REFERENCES general_blobs (id) ON DELETE CASCADE
+);

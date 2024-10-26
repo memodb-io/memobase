@@ -77,7 +77,7 @@ async def test_user_blob_curd(db_env):
         u_id,
         res.BlobData(
             blob_type=BlobType.doc,
-            blob_data={"content": "Hello world"},
+            blob_data={"content": "Fool"},
             fields={"from": "happy"},
         ),
     )
@@ -95,3 +95,6 @@ async def test_user_blob_curd(db_env):
     assert not p.ok()
     p = await controllers.blob.get_blob(u_id, b_id2)
     assert not p.ok()
+
+    p = await controllers.user.get_user_all_blobs(u_id)
+    assert len(p.data().ids) == 0
