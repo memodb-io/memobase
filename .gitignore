@@ -1,8 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
-### Python ###
-# Byte-compiled / optimized / DLL files
+
+config.yaml
 .vscode
 .DS_Store
 __pycache__/

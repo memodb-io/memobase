@@ -7,7 +7,15 @@
   </a>
   <p><strong>The server-side of MemoBase</strong></p>
   <p>
-    <img src="https://img.shields.io/badge/python->=3.11-blue">
+    <img src="https://img.shields.io/badge/docker-blue">
   </p>
 </div>
+
+
+
+## Get started
+1. Make sure you have [docker-compose](https://docs.docker.com/compose/install/) installed.
+2. Copy the `.env.example` file to `.env` and set the environment variables.
+3. Copy the `./api/config.yaml.example` file to `./api/config.yaml` and set the configuration.
+4. Run `docker-compose build && docker-compose up` to start the services.
 

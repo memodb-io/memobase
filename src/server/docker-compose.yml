@@ -30,8 +30,6 @@ services:
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@memobase-server-db:5432/${DATABASE_NAME}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@memobase-server-redis:6379/0
       - ACCESS_TOKEN=${ACCESS_TOKEN}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL}
     depends_on:
       - memobase-server-db
       - memobase-server-redis

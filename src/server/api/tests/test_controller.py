@@ -66,8 +66,19 @@ async def test_user_blob_curd(db_env):
     p = await controllers.blob.insert_blob(
         u_id,
         res.BlobData(
-            blob_type=BlobType.doc,
-            blob_data={"content": "Hello world"},
+            blob_type=BlobType.chat,
+            blob_data={
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Hello world",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "Hi",
+                    },
+                ]
+            },
             fields={"from": "happy"},
         ),
     )
@@ -76,8 +87,19 @@ async def test_user_blob_curd(db_env):
     p = await controllers.blob.insert_blob(
         u_id,
         res.BlobData(
-            blob_type=BlobType.doc,
-            blob_data={"content": "Fool"},
+            blob_type=BlobType.chat,
+            blob_data={
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Hello world",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "Hi",
+                    },
+                ]
+            },
             fields={"from": "happy"},
         ),
     )
@@ -87,6 +109,8 @@ async def test_user_blob_curd(db_env):
     p = await controllers.user.get_user_all_blobs(u_id)
     assert p.ok()
     assert len(p.data().ids) == 2
+
+    await controllers.buffer.flush_buffer(u_id, BlobType.chat)
 
     p = await controllers.user.delete_user(u_id)
     assert p.ok()

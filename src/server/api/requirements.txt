@@ -6,3 +6,4 @@ python-dotenv
 redis
 pgvector
 tiktoken
+tenacity

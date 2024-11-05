@@ -1,0 +1,4 @@
+max_chat_blob_buffer_token_size: 2048
+
+OPENAI_API_KEY: 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
+OPENAI_API_BASE_URL: https://api.openai.com/v1/

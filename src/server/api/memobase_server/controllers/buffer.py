@@ -1,8 +1,8 @@
 from sqlalchemy import func
 from ..env import CONFIG, LOG
-from ..utils import get_blob_token_size
+from ..utils import get_blob_token_size, pack_blob_from_db, get_blob_str
 from ..models.utils import Promise
-from ..models.database import BufferZone
+from ..models.database import BufferZone, GeneralBlob
 from ..models.response import CODE, BlobData, IdData
 from ..models.blob import ChatBlob, DocBlob, BlobType, Blob
 from ..connectors import Session
@@ -45,4 +45,32 @@ async def insert_blob_to_buffer(
 
 
 async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
-    print("FLUSH")
+    with Session() as session:
+        # 1. locate all blobs in buffer
+        blob_buffers = (
+            session.query(BufferZone)
+            .filter_by(user_id=user_id, blob_type=str(blob_type))
+            .all()
+        )
+        # 1.1
+        if not blob_buffers:
+            LOG.info(f"No {blob_type} buffer to flush for user {user_id}")
+            return Promise.resolve(None)
+
+        # 2. get all blobs data, convert it to string repr
+        blob_ids = [b.blob_id for b in blob_buffers]
+        blob_data = (
+            session.query(GeneralBlob.blob_data)
+            .filter(GeneralBlob.id.in_(blob_ids))
+            .all()
+        )
+        blobs = [pack_blob_from_db(bd.blob_data, blob_type) for bd in blob_data]
+        blob_strs = [get_blob_str(bd) for bd in blobs]
+        # 3. process blobs reprs with memory
+
+        for buffer in blob_buffers:
+            session.delete(buffer)
+        LOG.info(
+            f"Flush {blob_type} buffer(size: {len(blob_buffers)}) for user {user_id}"
+        )
+        session.commit()
