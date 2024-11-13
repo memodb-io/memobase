@@ -1,4 +1,5 @@
 max_chat_blob_buffer_token_size: 2048
+buffer_flush_interval: 3600
 
 openai_api_key: sk-YOUR-TOKEN
 openai_base_url: https://api.openai.com/v1/
