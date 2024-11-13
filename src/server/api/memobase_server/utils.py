@@ -1,3 +1,4 @@
+from datetime import timezone, datetime
 from .env import ENCODER
 from .models.blob import Blob, BlobType, ChatBlob, DocBlob
 from typing import cast
@@ -25,7 +26,10 @@ def get_blob_str(blob: Blob):
     match blob.type:
         case BlobType.chat:
             return "\n".join(
-                [f"{m.role}: {m.content}" for m in cast(ChatBlob, blob).messages]
+                [
+                    f"{m.alias or m.role}: {m.content}"
+                    for m in cast(ChatBlob, blob).messages
+                ]
             )
         case BlobType.doc:
             return cast(DocBlob, blob).content
@@ -35,3 +39,7 @@ def get_blob_str(blob: Blob):
 
 def get_blob_token_size(blob: Blob):
     return len(get_encoded_tokens(get_blob_str(blob)))
+
+
+def seconds_from_now(dt: datetime):
+    return (datetime.now(tz=timezone.utc) - dt.replace(tzinfo=timezone.utc)).seconds

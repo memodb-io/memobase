@@ -1,21 +1,29 @@
-from dataclasses import dataclass
+from openai import APIConnectionError, RateLimitError, AsyncOpenAI
+
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
+from ..env import CONFIG
+
+_global_openai_async_client = None
 
 
-@dataclass
-class EmbeddingFunc:
-    embedding_dim: int
-    max_token_size: int
-    func: callable
-
-    async def __call__(self, *args, **kwargs) -> np.ndarray:
-        return await self.func(*args, **kwargs)
+def get_openai_retry_decorator():
+    return retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
+    )
 
 
-def wrap_embedding_func_with_attrs(**kwargs):
-    """Wrap a function with attributes"""
-
-    def final_decro(func) -> EmbeddingFunc:
-        new_func = EmbeddingFunc(**kwargs, func=func)
-        return new_func
-
-    return final_decro
+def get_openai_async_client_instance():
+    global _global_openai_async_client
+    if _global_openai_async_client is None:
+        _global_openai_async_client = AsyncOpenAI(
+            base_url=CONFIG.openai_base_url,
+            api_key=CONFIG.openai_api_key,
+        )
+    return _global_openai_async_client

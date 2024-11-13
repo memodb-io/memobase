@@ -56,6 +56,9 @@ async def test_blob_curd(db_env):
     p = await controllers.blob.get_blob(u_id, b_id)
     assert not p.ok()
 
+    p = await controllers.user.delete_user(u_id)
+    assert p.ok()
+
 
 @pytest.mark.asyncio
 async def test_user_blob_curd(db_env):
@@ -109,8 +112,6 @@ async def test_user_blob_curd(db_env):
     p = await controllers.user.get_user_all_blobs(u_id)
     assert p.ok()
     assert len(p.data().ids) == 2
-
-    await controllers.buffer.flush_buffer(u_id, BlobType.chat)
 
     p = await controllers.user.delete_user(u_id)
     assert p.ok()

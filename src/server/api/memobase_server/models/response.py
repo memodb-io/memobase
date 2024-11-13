@@ -37,10 +37,20 @@ class IdsData(BaseModel):
     ids: list[UUID4]
 
 
+class ProfileData(BaseModel):
+    id: UUID4
+    content: str
+    related_blobs: list[UUID4]
+
+
 class UserData(BaseModel):
     data: Optional[dict] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+
+class UserProfilesData(BaseModel):
+    profiles: list[ProfileData]
 
 
 class QueryData(BaseModel):

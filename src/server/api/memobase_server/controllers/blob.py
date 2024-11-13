@@ -16,7 +16,7 @@ async def insert_blob(user_id: str, blob: BlobData) -> Promise[IdData]:
         blob_db = GeneralBlob(
             blob_type=blob_parsed.type,
             blob_data=blob_parsed.get_blob_data(),
-            addional_fields=blob_parsed.fields,
+            additional_fields=blob_parsed.fields,
             user_id=user_id,
         )
         session.add(blob_db)
@@ -31,7 +31,9 @@ async def insert_blob(user_id: str, blob: BlobData) -> Promise[IdData]:
 async def get_blob(user_id: str, blob_id: str) -> Promise[BlobData]:
     with Session() as session:
         blob_db = (
-            session.query(GeneralBlob).filter_by(id=blob_id, user_id=user_id).first()
+            session.query(GeneralBlob)
+            .filter_by(id=blob_id, user_id=user_id)
+            .one_or_none()
         )
         if not blob_db:
             return Promise.reject(
@@ -40,7 +42,7 @@ async def get_blob(user_id: str, blob_id: str) -> Promise[BlobData]:
         rt_blob = BlobData(
             blob_type=BlobType(blob_db.blob_type),
             blob_data=blob_db.blob_data,
-            fields=blob_db.addional_fields,
+            fields=blob_db.additional_fields,
             created_at=blob_db.created_at,
             updated_at=blob_db.updated_at,
         )
@@ -50,7 +52,9 @@ async def get_blob(user_id: str, blob_id: str) -> Promise[BlobData]:
 async def remove_blob(user_id: str, blob_id: str) -> Promise[None]:
     with Session() as session:
         blob_db = (
-            session.query(GeneralBlob).filter_by(id=blob_id, user_id=user_id).first()
+            session.query(GeneralBlob)
+            .filter_by(id=blob_id, user_id=user_id)
+            .one_or_none()
         )
         if not blob_db:
             return Promise.resolve(None)

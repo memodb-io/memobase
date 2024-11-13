@@ -1,6 +1,6 @@
 -- Synced from backend 0.1.0.dev1
 CREATE TABLE users (
-	addional_fields JSONB, 
+	additional_fields JSONB, 
 	id UUID NOT NULL, 
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
 	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
@@ -10,7 +10,7 @@ CREATE TABLE general_blobs (
 	blob_type VARCHAR(255) NOT NULL, 
 	blob_data JSONB NOT NULL, 
 	user_id UUID NOT NULL, 
-	addional_fields JSONB, 
+	additional_fields JSONB, 
 	id UUID NOT NULL, 
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
 	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
@@ -27,5 +27,21 @@ CREATE TABLE buffer_zones (
 	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
 	PRIMARY KEY (id), 
 	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	FOREIGN KEY(blob_id) REFERENCES general_blobs (id) ON DELETE CASCADE
+);
+CREATE TABLE user_profiles (
+	content VARCHAR(4096) NOT NULL, 
+	user_id UUID NOT NULL, 
+	id UUID NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+CREATE TABLE user_profile_blobs (
+	user_profile_id UUID NOT NULL, 
+	blob_id UUID NOT NULL, 
+	PRIMARY KEY (user_profile_id, blob_id), 
+	FOREIGN KEY(user_profile_id) REFERENCES user_profiles (id) ON DELETE CASCADE, 
 	FOREIGN KEY(blob_id) REFERENCES general_blobs (id) ON DELETE CASCADE
 );

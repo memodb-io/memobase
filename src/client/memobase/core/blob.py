@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class OpenAICompatibleMessage(BaseModel):
     role: Literal["user", "assistant"]
     content: str
+    alias: Optional[str] = None
 
 
 class TranscriptStamp(BaseModel):

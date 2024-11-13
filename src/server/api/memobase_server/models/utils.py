@@ -5,6 +5,10 @@ from .response import CODE, BaseResponse
 from ..env import LOG
 
 
+class PromiseUnpackError(Exception):
+    pass
+
+
 D = TypeVar("D")
 T = TypeVar("T", bound=BaseResponse)
 
@@ -29,6 +33,10 @@ class Promise(Generic[D]):
         return self.__errcode == CODE.SUCCESS
 
     def data(self) -> Optional[D]:
+        if not self.ok():
+            raise PromiseUnpackError(
+                f"Promise contains error: CODE {self.__errcode}; MSG {self.__errmsg}"
+            )
         return self.__data
 
     def to_response(self, ResponseModel: Type[T]) -> T:

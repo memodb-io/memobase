@@ -4,9 +4,10 @@ from datetime import datetime
 from sqlalchemy import (
     VARCHAR,
     Integer,
-    ARRAY,
     ForeignKey,
     TIMESTAMP,
+    Table,
+    Column,
 )
 from dataclasses import dataclass
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -51,9 +52,12 @@ class User(Base):
     related_buffers: Mapped[list["BufferZone"]] = relationship(
         "BufferZone", back_populates="user", cascade="all, delete-orphan", init=False
     )
+    related_user_profiles: Mapped[list["UserProfile"]] = relationship(
+        "UserProfile", back_populates="user", cascade="all, delete-orphan", init=False
+    )
 
     # Default columns
-    addional_fields: Mapped[Optional[dict]] = mapped_column(
+    additional_fields: Mapped[Optional[dict]] = mapped_column(
         JSONB, nullable=True, default=None
     )
 
@@ -78,8 +82,16 @@ class GeneralBlob(Base):
         "BufferZone", back_populates="blob", cascade="all, delete-orphan", init=False
     )
 
+    # In GeneralBlob class, add this relationship
+    related_profiles: Mapped[list["UserProfile"]] = relationship(
+        "UserProfile",
+        secondary="user_profile_blobs",
+        back_populates="related_blobs",
+        init=False,
+    )
+
     # Default columns
-    addional_fields: Mapped[Optional[dict]] = mapped_column(
+    additional_fields: Mapped[Optional[dict]] = mapped_column(
         JSONB, nullable=True, default=None
     )
 
@@ -122,3 +134,45 @@ class BufferZone(Base):
             self.blob_type, BlobType
         ), f"Invalid blob type: {self.blob_type}"
         self.blob_type = self.blob_type.value
+
+
+@REG.mapped_as_dataclass
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    # Specific columns
+    content: Mapped[str] = mapped_column(VARCHAR(4096), nullable=False)
+
+    # Relationships
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    user: Mapped[User] = relationship(
+        "User", back_populates="related_user_profiles", init=False
+    )
+    # Relationships with blobs
+    related_blobs: Mapped[list[GeneralBlob]] = relationship(
+        "GeneralBlob",
+        secondary="user_profile_blobs",
+        back_populates="related_profiles",
+        init=False,
+    )
+
+
+# Add this association table before the class definitions
+user_profile_blobs = Table(
+    "user_profile_blobs",
+    REG.metadata,
+    Column(
+        "user_profile_id",
+        UUID(as_uuid=True),
+        ForeignKey("user_profiles.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "blob_id",
+        UUID(as_uuid=True),
+        ForeignKey("general_blobs.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)

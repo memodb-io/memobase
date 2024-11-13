@@ -93,3 +93,8 @@ def test_blob_api_curd(client, db_env):
     assert response.status_code == 200
     assert d["errno"] != 0
     print(d)
+
+    response = client.delete(f"{PREFIX}/users/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0

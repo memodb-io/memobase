@@ -1,7 +1,4 @@
-from dotenv import load_dotenv
-
-load_dotenv()
-from memobase_server.env import LOG
+import memobase_server.env
 
 # Done setting up env
 
@@ -13,6 +10,7 @@ from memobase_server.connectors import db_health_check, redis_health_check
 from memobase_server.models.response import BaseResponse, CODE
 from memobase_server.models import response as res
 from memobase_server import controllers
+from memobase_server.env import LOG
 
 app = FastAPI()
 router = APIRouter(prefix="/api/v1")

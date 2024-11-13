@@ -7,3 +7,5 @@ redis
 pgvector
 tiktoken
 tenacity
+numpy
+rich
