@@ -13,19 +13,19 @@
     </a>
   </p>
 </div>
+🌬️ **Does your AI forget your users?** 
 
-> **Does your AI forget your users？** 🌬️
->
+
 > MemoBase maintains long-term memory of your users, for your product.
 
-> **Do you understand the customers that using your AI?** 🖼️ 
-> 
+🖼️ **Do you understand the customers that using your AI?** 
+
 > MemoBase have a real-time updated user profile, involoving many aspects of your users: Age, Education, Interests, Options. 
->
+> 
 > [Customize](./src/server/readme.md/#Customization) the aspects you want MemoBase to collect.
 
-> **Do you want users spend more time on your Apps?** ⌛️
->
+⌛️ **Do you want users spend more time on your Apps?** 
+
 > MemoBase is working with some AI companion startups. They have observated increased chatting turns after adopting MemoBase, leading to higher user retention and subscription rate.
 
 
