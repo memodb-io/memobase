@@ -15,15 +15,17 @@
 </div>
 
 > **Does your AI forget your users？** 🌬️
+>
 > MemoBase maintains long-term memory of your users, for your product.
 
 > **Do you understand the customers that using your AI?** 🖼️ 
-> MemoBase have a real-time updated user profile, involoving many aspects of your users:
-> Age, Education, Interests, Options. 
+> 
+> MemoBase have a real-time updated user profile, involoving many aspects of your users: Age, Education, Interests, Options. 
 >
-> Or, [Customize](./src/server/readme.md/#Customization) the aspects you want MemoBase to collect.
+> [Customize](./src/server/readme.md/#Customization) the aspects you want MemoBase to collect.
 
 > **Do you want users spend more time on your Apps?** ⌛️
+>
 > MemoBase is working with some AI companion startups. They have observated increased chatting turns after adopting MemoBase, leading to higher user retention and subscription rate.
 
 
@@ -83,11 +85,6 @@ print(u.get(bid))
 
 #### "Flush it moment"
 
-> In MemoBase, we don't memoize users in [hot path](https://langchain-ai.github.io/langgraph/concepts/memory/#writing-memories-in-the-hot-path). We use buffer zones for the inserted blobs.
->
-> For example, chats. When the chat buffer zone is too large (*e.g.* 1024 tokens) or idle for a long time (*e.g.* 1 hour), MemoBase will flush the whole buffer into the memory
-> Or you can just manually decide when to flush (*e.g.* A chat session is closed in your App)
-
 ```python
 u.flush()
 ```
@@ -101,6 +98,15 @@ print(u.profile())
 
 `u.profile()` will return a list of profiles that are learned from this user, including `topic`, `sub_topic` and `content`. As you insert more blobs, the profiles will become better.
 
+<details>
+<summary> Why need a flush?</summary>
+
+In MemoBase, we don't memoize users in [hot path](https://langchain-ai.github.io/langgraph/concepts/memory/#writing-memories-in-the-hot-path). We use buffer zones for the recent inserted blobs.
+
+When the buffer zone is too large (*e.g.* 1024 tokens) or idle for a long time (*e.g.* 1 hour), MemoBase will flush the whole buffer into the memory. 
+Or you can just manually decide when to flush (*e.g.* A chat session is closed in your App)
+</details>
+
 
 
 ## Why/Where should I use MemoBase?
@@ -111,9 +117,9 @@ print(u.profile())
    PROFILES = "\n".join([p.describe for p in u.profile()])
    
    print(PROFILES)
-   #	basic_info: name - Gus
+   # basic_info: name - Gus
    # basic_info: age - 25
-   #	...
+   # ...
    # interest: foods - Mexican cuisine
    # psychological: goals - Build something that maybe useful
    # ...
