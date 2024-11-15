@@ -1,16 +1,19 @@
+import asyncio
 from typing import TypedDict
 from ...env import LOG, pprint
 from ...utils import get_blob_str
 from ...models.utils import Promise
 from ...models.blob import Blob, BlobType
+from ...models.response import ProfileData
 from ...llms import llm_complete
-from ...prompts import extract_fact
-from ...prompts import merge_fact
+from ...prompts import extract_profile, merge_profile
 from ...prompts.utils import tag_strings_in_order_xml
 from ..user import add_user_profiles, get_user_profiles, update_user_profile
 
-FactResponse = TypedDict("Facts", {"memo": str, "cites": list[int]})
-UpdateResponse = TypedDict("Facts", {"old_index": int, "new_index": int, "memo": str})
+FactResponse = TypedDict(
+    "Facts", {"topic": str, "sub_topic": str, "memo": str, "cites": list[int]}
+)
+UpdateResponse = TypedDict("Facts", {"action": str, "memo": str})
 
 
 async def process_blobs(
@@ -23,7 +26,10 @@ async def process_blobs(
         [get_blob_str(b) for b in blobs], tag_name="chat"
     )
     p = await llm_complete(
-        blob_strs, system_prompt=extract_fact.get_prompt(), json_mode=True
+        blob_strs,
+        system_prompt=extract_profile.get_prompt(),
+        json_mode=True,
+        temperature=0.2,  # precise
     )
     if not p.ok():
         return p
@@ -32,68 +38,123 @@ async def process_blobs(
 
     related_blob_ids = []
     fact_contents = []
+    fact_attributes = []
     for nf in new_facts:
-        related_blob_ids.append([blob_ids[i] for i in nf["cites"] if i < len(blob_ids)])
         fact_contents.append(nf["memo"])
+        fact_attributes.append(
+            {
+                "topic": nf["topic"].lower().strip(),
+                "sub_topic": nf["sub_topic"].lower().strip(),
+            }
+        )
+        related_blob_ids.append([blob_ids[i] for i in nf["cites"] if i < len(blob_ids)])
+    p = await merge_or_add_new_memos(
+        user_id, fact_contents, fact_attributes, related_blob_ids
+    )
+    if not p.ok():
+        return p
+    return Promise.resolve(None)
 
+
+async def merge_or_add_new_memos(
+    user_id: str,
+    fact_contents: list[str],
+    fact_attributes: list[dict],
+    related_blob_ids: list[list[str]],
+) -> Promise[None]:
     p = await get_user_profiles(user_id)
     if not p.ok():
         return p
     profiles = p.data().profiles
 
     if not len(profiles):
-        p = await add_user_profiles(user_id, fact_contents, related_blob_ids)
-        if not p.ok():
-            return p
-    else:
-        old_new_memos = "\n".join(
-            [
-                tag_strings_in_order_xml(
-                    [p.content for p in profiles], tag_name="old_memo"
-                ),
-                tag_strings_in_order_xml(fact_contents, tag_name="new_memo"),
-            ]
-        )
-        print("!!!", old_new_memos)
-        p = await llm_complete(
-            old_new_memos, system_prompt=merge_fact.get_prompt(), json_mode=True
-        )
-        if not p.ok():
-            return p
-
-        add_update_op = p.data()
-        add_index = [
-            p["new_index"]
-            for p in add_update_op["ADD"]
-            if p["new_index"] < len(fact_contents)
-        ]
         p = await add_user_profiles(
-            user_id,
-            [fact_contents[i] for i in add_index],
-            [related_blob_ids[i] for i in add_index],
+            user_id, fact_contents, fact_attributes, related_blob_ids
         )
         if not p.ok():
             return p
+        return Promise.resolve(None)
 
-        update_op: list[UpdateResponse] = add_update_op["UPDATE"]
+    new_facts_to_add = []
+    facts_to_update = []
+    for f_c, f_a, r_b in zip(fact_contents, fact_attributes, related_blob_ids):
+        new_p = {"content": f_c, "attributes": f_a, "related_blobs": r_b}
+        same_topic_p = [
+            p
+            for p in profiles
+            if (
+                p.attributes["topic"] == f_a["topic"]
+                and p.attributes["sub_topic"] == f_a["sub_topic"]
+            )
+        ]
+        # 1 if not same topics exist, directly add this
+        if not len(same_topic_p):
+            new_facts_to_add.append(new_p)
+            continue
+        same_topic_p = same_topic_p[0]
+        # 2 if exist, continue to merge/replace
+        facts_to_update.append(
+            {
+                "old_profile": same_topic_p,
+                "new_profile": new_p,
+            }
+        )
+    p = await add_user_profiles(
+        user_id,
+        [p["content"] for p in new_facts_to_add],
+        [p["attributes"] for p in new_facts_to_add],
+        [p["related_blobs"] for p in new_facts_to_add],
+    )
+    if not p.ok():
+        return p
+    merge_tasks = []
+    for dp in facts_to_update:
+        old_p: ProfileData = dp["old_profile"]
+        task = llm_complete(
+            merge_profile.get_input(
+                old_p.attributes["topic"],
+                old_p.attributes["sub_topic"],
+                old_p.content,
+                dp["new_profile"]["content"],
+            ),
+            system_prompt=merge_profile.get_prompt(),
+            json_mode=True,
+            temperature=0.2,  # precise
+        )
+        merge_tasks.append(task)
 
-        for dp in update_op:
-            # ignore illegal index
-            if dp["old_index"] >= len(profiles) or dp["new_index"] >= len(
-                fact_contents
-            ):
-                continue
+    success_update_profile_count = 0
+    merge_results: list[Promise] = await asyncio.gather(*merge_tasks)
+    for p, old_new_profile in zip(merge_results, facts_to_update):
+        if not p.ok():
+            LOG.warning(f"Failed to merge profiles: {p.msg()}")
+            continue
+        old_p: ProfileData = old_new_profile["old_profile"]
+        update_response: UpdateResponse = p.data()
+        if update_response["action"] == "REPLACE":
             p = await update_user_profile(
                 user_id,
-                profiles[dp["old_index"]].id,
-                dp["memo"],
-                profiles[dp["old_index"]].related_blobs
-                + related_blob_ids[dp["new_index"]],
+                old_p.id,
+                old_p.attributes,
+                update_response["memo"],
+                old_new_profile["new_profile"]["related_blobs"],
             )
-
-            if not p.ok():
-                return p
-        LOG.info(
-            f"ADD {len(add_index)} new memo, UPDATE {len(update_op)} old memo for user {user_id}"
-        )
+        elif update_response["action"] == "MERGE":
+            p = await update_user_profile(
+                user_id,
+                old_p.id,
+                old_p.attributes,
+                update_response["memo"],
+                old_p.related_blobs + old_new_profile["new_profile"]["related_blobs"],
+            )
+        else:
+            LOG.warning(f"Invalid action: {update_response['action']}")
+            continue
+        if not p.ok():
+            LOG.warning(f"Failed to update profiles: {p.msg()}")
+            continue
+        success_update_profile_count += 1
+    LOG.info(
+        f"ADD {len(new_facts_to_add)} new profiles, update {success_update_profile_count}/{len(facts_to_update)} existing profiles"
+    )
     return Promise.resolve(None)

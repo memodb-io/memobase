@@ -41,6 +41,7 @@ class ProfileData(BaseModel):
     id: UUID4
     content: str
     related_blobs: list[UUID4]
+    attributes: Optional[dict] = None
 
 
 class UserData(BaseModel):

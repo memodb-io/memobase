@@ -73,6 +73,7 @@ async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
                 {
                     "id": up.id,
                     "content": up.content,
+                    "attributes": up.attributes,
                     "related_blobs": [blob.id for blob in up.related_blobs],
                 }
             )
@@ -80,14 +81,18 @@ async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
 
 
 async def add_user_profiles(
-    user_id: str, profiles: list[str], related_blobs: list[list[str]]
+    user_id: str,
+    profiles: list[str],
+    attributes: list[dict],
+    related_blobs: list[list[str]],
 ) -> Promise[IdsData]:
     assert len(profiles) == len(
         related_blobs
     ), "Length of profiles and related_blobs must be equal"
     with Session() as session:
         db_profiles = [
-            UserProfile(user_id=user_id, content=content) for content in profiles
+            UserProfile(user_id=user_id, content=content, attributes=attr)
+            for content, attr in zip(profiles, attributes)
         ]
         session.add_all(db_profiles)
         for dp, rb_ids in zip(db_profiles, related_blobs):
@@ -102,7 +107,11 @@ async def add_user_profiles(
 
 
 async def update_user_profile(
-    user_id: str, profile_id: str, content: str, related_blobs: list[str]
+    user_id: str,
+    profile_id: str,
+    attributes: dict,
+    content: str,
+    related_blobs: list[str],
 ):
     with Session() as session:
         db_profile = (
@@ -115,6 +124,7 @@ async def update_user_profile(
                 CODE.NOT_FOUND, f"Profile {profile_id} not found for user {user_id}"
             )
         db_profile.content = content
+        db_profile.attributes = attributes
         db_profile.related_blobs = (
             session.query(GeneralBlob).filter(GeneralBlob.id.in_(related_blobs)).all()
         )

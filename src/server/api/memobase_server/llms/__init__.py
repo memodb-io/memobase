@@ -7,6 +7,7 @@ from ..models.response import CODE
 from .openai import openai_complete
 
 
+# TODO: add TPM/Rate limiter
 async def llm_complete(
     prompt, system_prompt=None, history_messages=[], json_mode=False, **kwargs
 ) -> Promise[str | dict]:

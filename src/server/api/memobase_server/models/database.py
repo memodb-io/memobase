@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     TIMESTAMP,
     Table,
+    TEXT,
     Column,
 )
 from dataclasses import dataclass
@@ -141,7 +142,7 @@ class UserProfile(Base):
     __tablename__ = "user_profiles"
 
     # Specific columns
-    content: Mapped[str] = mapped_column(VARCHAR(4096), nullable=False)
+    content: Mapped[str] = mapped_column(TEXT, nullable=False)
 
     # Relationships
     user_id: Mapped[UUID] = mapped_column(
@@ -157,6 +158,8 @@ class UserProfile(Base):
         back_populates="related_profiles",
         init=False,
     )
+
+    attributes: Mapped[dict] = mapped_column(JSONB, nullable=True, default=None)
 
 
 # Add this association table before the class definitions

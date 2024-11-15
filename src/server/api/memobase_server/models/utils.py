@@ -39,6 +39,11 @@ class Promise(Generic[D]):
             )
         return self.__data
 
+    def msg(self) -> str:
+        if not self.ok():
+            return f"Promise contains error: CODE {self.__errcode}; MSG {self.__errmsg}"
+        return ""
+
     def to_response(self, ResponseModel: Type[T]) -> T:
         try:
             return ResponseModel(

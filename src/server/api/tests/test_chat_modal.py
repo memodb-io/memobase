@@ -8,13 +8,23 @@ from memobase_server.models.utils import Promise
 
 GD_FACTS = {
     "facts": [
-        {"memo": "MOCK user is called Gus", "cites": [0]},
+        {"topic": "basic_info", "sub_topic": "Name", "memo": "Gus", "cites": [0, 1]},
         {
-            "memo": "MOCK user really likes Chinese food",
+            "topic": "interest",
+            "sub_topic": "foods",
+            "memo": "Chinese food",
             "cites": [1],
         },
         {
-            "memo": "MOCK user is in high school and finds it boring",
+            "topic": "education",
+            "sub_topic": "level",
+            "memo": "High School",
+            "cites": [1],
+        },
+        {
+            "topic": "psychological",
+            "sub_topic": "emotional_state",
+            "memo": "Feels bored with high school",
             "cites": [1],
         },
     ]
@@ -22,20 +32,22 @@ GD_FACTS = {
 PROFILES = [
     "user likes to play basketball",
     "user is a junior school student",
-    "user likes chinese food",
+    "user likes japanese food",
     "user is 23 years old",
 ]
-MERGE_FACTS = {
-    "ADD": [{"new_index": 0}],
-    "UPDATE": [
-        {"old_index": 3, "new_index": 1, "memo": "User is 25 years old"},
-        {
-            "old_index": 1,
-            "new_index": 2,
-            "memo": "User is in high school and finds it boring",
-        },
-    ],
-}
+
+PROFILE_ATTRS = [
+    {"topic": "interest", "sub_topic": "sports"},
+    {"topic": "education", "sub_topic": "level"},
+    {"topic": "interest", "sub_topic": "foods"},
+    {"topic": "basic_info", "sub_topic": "age"},
+]
+
+
+MERGE_FACTS = [
+    {"action": "MERGE", "memo": "user likes Chinese and Japanese food"},
+    {"action": "REPLACE", "memo": "High School"},
+]
 
 
 @pytest.fixture
@@ -47,9 +59,13 @@ def mock_llm_complete():
 
         mock_client2 = AsyncMock()
         mock_client2.ok = Mock(return_value=True)
-        mock_client2.data = Mock(return_value=MERGE_FACTS)
+        mock_client2.data = Mock(return_value=MERGE_FACTS[0])
 
-        mock_llm.side_effect = [mock_client1, mock_client2]
+        mock_client3 = AsyncMock()
+        mock_client3.ok = Mock(return_value=True)
+        mock_client3.data = Mock(return_value=MERGE_FACTS[1])
+
+        mock_llm.side_effect = [mock_client1, mock_client2, mock_client3]
         yield mock_llm
 
 
@@ -79,6 +95,11 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
             blob_type=BlobType.chat,
             blob_data={
                 "messages": [
+                    {"role": "user", "content": "Hi, nice to meet you, I am Gus"},
+                    {
+                        "role": "assistant",
+                        "content": "Great! I'm MemoBase Assistant, how can I help you?",
+                    },
                     {"role": "user", "content": "I really dig into Chinese food"},
                     {"role": "assistant", "content": "Got it, Gus!"},
                     {
@@ -97,7 +118,6 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
     assert p.ok() and p.data() == 2
 
     await controllers.buffer.flush_buffer(u_id, BlobType.chat)
-    mock_llm_complete.assert_awaited_once()
 
     p = await controllers.user.get_user_profiles(u_id)
     assert p.ok()
@@ -107,6 +127,8 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
 
     p = await controllers.user.delete_user(u_id)
     assert p.ok()
+
+    mock_llm_complete.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -153,14 +175,23 @@ async def test_chat_merge_modal(db_env, mock_llm_complete):
     p = await controllers.user.add_user_profiles(
         u_id,
         PROFILES,
+        PROFILE_ATTRS,
         [[] for _ in range(len(PROFILES))],
     )
     assert p.ok()
     await controllers.buffer.flush_buffer(u_id, BlobType.chat)
-    assert mock_llm_complete.await_count == 2
 
     p = await controllers.user.get_user_profiles(u_id)
-    assert p.ok() and len(p.data().profiles) == len(PROFILES) + 1
+    assert p.ok() and len(p.data().profiles) == len(PROFILES) + 2
+    profiles = p.data().profiles
+    assert profiles[-2].attributes == {"topic": "interest", "sub_topic": "foods"}
+    assert profiles[-2].content == "user likes Chinese and Japanese food"
+    assert profiles[-2].related_blobs == [b_id2]
+    assert profiles[-1].attributes == {"topic": "education", "sub_topic": "level"}
+    assert profiles[-1].content == "High School"
+    assert profiles[-1].related_blobs == [b_id2]
 
     p = await controllers.user.delete_user(u_id)
     assert p.ok()
+
+    assert mock_llm_complete.await_count == 3

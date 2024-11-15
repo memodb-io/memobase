@@ -30,8 +30,9 @@ CREATE TABLE buffer_zones (
 	FOREIGN KEY(blob_id) REFERENCES general_blobs (id) ON DELETE CASCADE
 );
 CREATE TABLE user_profiles (
-	content VARCHAR(4096) NOT NULL, 
+	content TEXT NOT NULL, 
 	user_id UUID NOT NULL, 
+	attributes JSONB, 
 	id UUID NOT NULL, 
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
 	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL, 
