@@ -80,3 +80,7 @@ class BlobDataResponse(BaseResponse):
 
 class QueryDataResponse(BaseResponse):
     data: Optional[QueryData] = None
+
+
+class UserProfileResponse(BaseResponse):
+    data: Optional[UserProfilesData] = None

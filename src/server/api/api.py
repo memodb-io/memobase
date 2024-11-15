@@ -62,6 +62,12 @@ async def delete_user(user_id: str) -> BaseResponse:
     return p.to_response(BaseResponse)
 
 
+@router.get("/users/profile/{user_id}")
+async def get_user_profile(user_id: str) -> res.UserProfileResponse:
+    p = await controllers.user.get_user_profiles(user_id)
+    return p.to_response(res.UserProfileResponse)
+
+
 @router.post("/blobs/insert/{user_id}")
 async def insert_blob(user_id: str, blob_data: res.BlobData) -> res.IdResponse:
     p = await controllers.blob.insert_blob(user_id, blob_data)

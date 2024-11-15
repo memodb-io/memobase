@@ -2,6 +2,7 @@ import os
 import pytest
 from api import app
 from fastapi.testclient import TestClient
+from memobase_server import controllers
 
 PREFIX = "/api/v1"
 TOKEN = os.getenv("ACCESS_TOKEN")
@@ -93,6 +94,41 @@ def test_blob_api_curd(client, db_env):
     assert response.status_code == 200
     assert d["errno"] != 0
     print(d)
+
+    response = client.delete(f"{PREFIX}/users/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+
+@pytest.mark.asyncio
+async def test_api_user_profile(client, db_env):
+    response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    u_id = d["data"]["id"]
+
+    _profiles = ["user likes to play basketball", "user is a junior school student"]
+    _attributes = [
+        {"topic": "interest", "sub_topic": "sports"},
+        {"topic": "education", "sub_topic": "level"},
+    ]
+    p = await controllers.user.add_user_profiles(
+        u_id,
+        _profiles,
+        _attributes,
+        [[] for _ in range(len(_attributes))],
+    )
+    assert p.ok()
+
+    response = client.get(f"{PREFIX}/users/profile/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["profiles"]) == 2
+    assert [dp["content"] for dp in d["data"]["profiles"]] == _profiles
+    assert [dp["attributes"] for dp in d["data"]["profiles"]] == _attributes
 
     response = client.delete(f"{PREFIX}/users/{u_id}")
     d = response.json()
