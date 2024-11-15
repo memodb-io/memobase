@@ -113,7 +113,9 @@ Or you can just manually decide when to flush (*e.g.* A chat session is closed i
 
 ## Why/Where should I use MemoBase?
 
-**Remember the users** by placing profiles into your AI (*e.g.* system prompt).
+### Remember the users 
+
+By placing profiles into your AI (*e.g.* system prompt).
 
 <details>
 <summary>Demo</summary>
@@ -133,11 +135,9 @@ print(PROFILES)
 
 </details>
 
-One chat session only need query once, just remember `flush` it after this session.
+### User analysis and tracking
 
----
-
-As a **user analysis and  tracking method**. Too much information is hidden in the conversations between users and AI, that's why you need a new data tracking method to record user preference and behavior.
+Too much information is hidden in the conversations between users and AI, that's why you need a new data tracking method to record user preference and behavior.
 
 <details>
 <summary>Demo</summary>
@@ -162,9 +162,9 @@ is_user_love_cat = (
 ```
 </details>
 
----
+### Sell something to your customers.  
 
-**Sell something** to your customers. Not everyone is looking for Grammarly, it's always nice to sell something your users might want. 
+Not everyone is looking for Grammarly, it's always nice to sell something your users might want. 
 
 <details>
 <summary>Demo</summary>
