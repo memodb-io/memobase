@@ -75,6 +75,8 @@ async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
                     "content": up.content,
                     "attributes": up.attributes,
                     "related_blobs": [blob.id for blob in up.related_blobs],
+                    "created_at": up.created_at,
+                    "updated_at": up.updated_at,
                 }
             )
         return Promise.resolve(UserProfilesData(profiles=results))

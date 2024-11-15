@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from memobase_server.connectors import db_health_check, redis_health_check
 from memobase_server.models.response import BaseResponse, CODE
+from memobase_server.models.blob import BlobType
 from memobase_server.models import response as res
 from memobase_server import controllers
 from memobase_server.env import LOG
@@ -67,6 +68,13 @@ async def get_user_profile(user_id: str) -> res.UserProfileResponse:
     """Get the real-time user profiles for long term memory"""
     p = await controllers.user.get_user_profiles(user_id)
     return p.to_response(res.UserProfileResponse)
+
+
+@router.post("/users/buffer/{user_id}/{buffer_type}", tags=["user"])
+async def flush_buffer(user_id: str, buffer_type: BlobType) -> res.BaseResponse:
+    """Get the real-time user profiles for long term memory"""
+    p = await controllers.buffer.flush_buffer(user_id, buffer_type)
+    return p.to_response(res.BaseResponse)
 
 
 @router.post("/blobs/insert/{user_id}", tags=["user"])

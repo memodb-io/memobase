@@ -76,6 +76,7 @@ async def detect_buffer_flush_or_not(
 
 
 async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
+    # FIXME: parallel calling will cause duplicated flush
     with Session() as session:
         # 1. locate all blobs in buffer
         blob_buffers = (
@@ -84,28 +85,32 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
             .order_by(BufferZone.created_at)
             .all()
         )
-        # 1.1
-        if not blob_buffers:
-            LOG.info(f"No {blob_type} buffer to flush for user {user_id}")
-            return Promise.resolve(None)
+        try:
+            # 1.1
+            if not blob_buffers:
+                LOG.info(f"No {blob_type} buffer to flush for user {user_id}")
+                return Promise.resolve(None)
 
-        # 2. get all blobs data, convert it to string repr
-        blob_ids = [b.blob_id for b in blob_buffers]
-        blob_data = (
-            session.query(GeneralBlob.blob_data)
-            .filter(GeneralBlob.id.in_(blob_ids))
-            .all()
-        )
-        blobs = [pack_blob_from_db(bd.blob_data, blob_type) for bd in blob_data]
-        # 3. convert blobs to facts
-        p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
-        # FIXME: decide when failed, should we keep the buffer or not.s
-        if not p.ok():
-            return p
-        # final: delete waiting blobs in buffer
-        for buffer in blob_buffers:
-            session.delete(buffer)
-        LOG.info(
-            f"Flush {blob_type} buffer(size: {len(blob_buffers)}) for user {user_id}"
-        )
-        session.commit()
+            # 2. get all blobs data, convert it to string repr
+            blob_ids = [b.blob_id for b in blob_buffers]
+            blob_data = (
+                session.query(GeneralBlob.blob_data)
+                .filter(GeneralBlob.id.in_(blob_ids))
+                .all()
+            )
+            blobs = [pack_blob_from_db(bd.blob_data, blob_type) for bd in blob_data]
+            # 3. convert blobs to facts
+            p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
+            # FIXME: decide when failed, should we keep the buffer or not.s
+            if not p.ok():
+                return p
+            LOG.info(
+                f"Flush {blob_type} buffer(size: {len(blob_buffers)}) for user {user_id}"
+            )
+        finally:
+            # final: delete waiting blobs in buffer
+            for buffer in blob_buffers:
+                session.delete(buffer)
+            session.commit()
+
+    return Promise.resolve(None)

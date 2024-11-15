@@ -41,6 +41,8 @@ class ProfileData(BaseModel):
     id: UUID4
     content: str
     related_blobs: list[UUID4]
+    created_at: datetime = None
+    updated_at: datetime = None
     attributes: Optional[dict] = None
 
 

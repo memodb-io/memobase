@@ -1,4 +1,4 @@
-from .core.entry import MemoBaseClient, User
+from .core.entry import MemoBaseClient, User, ChatBlob
 
 __author__ = "memobase.io"
 __version__ = "0.0.1.dev1"

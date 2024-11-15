@@ -8,8 +8,10 @@
   <p><strong>The server-side of MemoBase</strong></p>
   <p>
     <img src="https://img.shields.io/badge/docker-blue">
+    <img src="https://img.shields.io/badge/version-0.0.1.dev-green">
   </p>
 </div>
+
 
 
 
@@ -19,3 +21,15 @@
 3. Copy the `./api/config.yaml.example` file to `./api/config.yaml` and set the configuration.
 4. Run `docker-compose build && docker-compose up` to start the services.
 
+You can check docs in `docs.memobase.io` or your localhost `localhost:8000/API_EXPORT_PORT` (8019 if `env` not changed)
+
+
+
+## Customization
+
+- TODO
+
+## SDKs
+
+- **Python**: `pip install memobase`
+- **Node.js**: coming soon

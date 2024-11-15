@@ -3,7 +3,8 @@ import httpx
 from typing import Optional
 from pydantic import HttpUrl
 from dataclasses import dataclass
-from .blob import BlobData, Blob
+from .blob import BlobData, Blob, BlobType, ChatBlob
+from .user import UserProfile, UserProfileData
 from ..network import unpack_response
 from ..error import ServerError
 from ..utils import LOG
@@ -53,13 +54,15 @@ class MemoBaseClient:
         r = unpack_response(self._client.put(f"/users/{user_id}", json={"data": data}))
         return r.data["id"]
 
-    def get_user(self, user_id: str) -> "User":
-        r = unpack_response(self._client.get(f"/users/{user_id}"))
-        return User(
-            user_id=user_id,
-            project_client=self,
-            fields=r.data,
-        )
+    def get_user(self, user_id: str, no_get=False) -> "User":
+        if not no_get:
+            r = unpack_response(self._client.get(f"/users/{user_id}"))
+            return User(
+                user_id=user_id,
+                project_client=self,
+                fields=r.data,
+            )
+        return User(user_id=user_id, project_client=self)
 
     def delete_user(self, user_id: str) -> bool:
         r = unpack_response(self._client.delete(f"/users/{user_id}"))
@@ -93,8 +96,42 @@ class User:
         )
         return True
 
-    def query(self, query: str) -> list[Blob]:
-        raise NotImplementedError("Query not yet ready")
+    def flush(self, blob_type: BlobType = BlobType.chat) -> bool:
+        r = unpack_response(
+            self.project_client.client.post(f"/users/buffer/{self.user_id}/{blob_type}")
+        )
+        return True
 
-    def persona_claims(self) -> list:
-        raise NotImplementedError("persona_claims not yet ready")
+    def profile(self) -> list[UserProfile]:
+        r = unpack_response(
+            self.project_client.client.get(f"/users/profile/{self.user_id}")
+        )
+        data = r.data["profiles"]
+        return [UserProfileData.model_validate(p).to_ds() for p in data]
+
+
+if __name__ == "__main__":
+    mb = MemoBaseClient("http://localhost:8000", "secret")
+    assert mb.ping()
+    uid = mb.add_user({"me": "test"})
+    u = mb.get_user(uid)
+    print(u.profile())
+    u.insert(
+        ChatBlob(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Hello, I'm Gus",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Hi, nice to meet you, Gus!",
+                },
+            ]
+        )
+    )
+    u.flush()
+    ps = u.profile()
+    print([p.describe for p in ps])
+    mb.delete_user(uid)
+    print("Deleted user")
