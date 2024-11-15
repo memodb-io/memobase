@@ -12,12 +12,17 @@ from memobase_server.models import response as res
 from memobase_server import controllers
 from memobase_server.env import LOG
 
-app = FastAPI()
+app = FastAPI(
+    summary="APIs for MemoBase, a user memory system for LLM Apps",
+    version=memobase_server.__version__,
+    title="MemoBase API",
+)
 router = APIRouter(prefix="/api/v1")
 
 
-@router.get("/healthcheck")
+@router.get("/healthcheck", tags=["chore"])
 async def healthcheck() -> BaseResponse:
+    """Check if your memobase is set up correctly"""
     LOG.info("Healthcheck requested")
     if not db_health_check():
         raise HTTPException(
@@ -32,55 +37,51 @@ async def healthcheck() -> BaseResponse:
     return BaseResponse()
 
 
-@router.post("/users")
+@router.post("/users", tags=["user"])
 async def create_user(user_data: res.UserData) -> res.IdResponse:
+    """Create a new user with additional data"""
     p = await controllers.user.create_user(user_data)
     return p.to_response(res.IdResponse)
 
 
-@router.get("/users/{user_id}")
+@router.get("/users/{user_id}", tags=["user"])
 async def get_user(user_id: str) -> res.UserDataResponse:
     p = await controllers.user.get_user(user_id)
     return p.to_response(res.UserDataResponse)
 
 
-@router.get("/users/{user_id}")
-async def get_user(user_id: str) -> res.UserDataResponse:
-    p = await controllers.user.get_user(user_id)
-    return p.to_response(res.UserDataResponse)
-
-
-@router.put("/users/{user_id}")
+@router.put("/users/{user_id}", tags=["user"])
 async def update_user(user_id: str, user_data: res.UserData) -> res.IdResponse:
     p = await controllers.user.update_user(user_id, user_data)
     return p.to_response(res.IdResponse)
 
 
-@router.delete("/users/{user_id}")
+@router.delete("/users/{user_id}", tags=["user"])
 async def delete_user(user_id: str) -> BaseResponse:
     p = await controllers.user.delete_user(user_id)
     return p.to_response(BaseResponse)
 
 
-@router.get("/users/profile/{user_id}")
+@router.get("/users/profile/{user_id}", tags=["user"])
 async def get_user_profile(user_id: str) -> res.UserProfileResponse:
+    """Get the real-time user profiles for long term memory"""
     p = await controllers.user.get_user_profiles(user_id)
     return p.to_response(res.UserProfileResponse)
 
 
-@router.post("/blobs/insert/{user_id}")
+@router.post("/blobs/insert/{user_id}", tags=["user"])
 async def insert_blob(user_id: str, blob_data: res.BlobData) -> res.IdResponse:
     p = await controllers.blob.insert_blob(user_id, blob_data)
     return p.to_response(res.IdResponse)
 
 
-@router.get("/blobs/{user_id}/{blob_id}")
+@router.get("/blobs/{user_id}/{blob_id}", tags=["user"])
 async def get_blob(user_id: str, blob_id: str) -> res.BlobDataResponse:
     p = await controllers.blob.get_blob(user_id, blob_id)
     return p.to_response(res.BlobDataResponse)
 
 
-@router.delete("/blobs/{user_id}/{blob_id}")
+@router.delete("/blobs/{user_id}/{blob_id}", tags=["user"])
 async def delete_blob(user_id: str, blob_id: str) -> res.BaseResponse:
     p = await controllers.blob.remove_blob(user_id, blob_id)
     return p.to_response(res.BaseResponse)
@@ -88,6 +89,8 @@ async def delete_blob(user_id: str, blob_id: str) -> res.BaseResponse:
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        if not request.url.path.startswith("/api"):
+            return await call_next(request)
         auth_token = request.headers.get("Authorization")
         if not auth_token or not self.is_valid_token(auth_token):
             return JSONResponse(
