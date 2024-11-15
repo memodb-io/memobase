@@ -108,30 +108,3 @@ class User:
         )
         data = r.data["profiles"]
         return [UserProfileData.model_validate(p).to_ds() for p in data]
-
-
-if __name__ == "__main__":
-    mb = MemoBaseClient("http://localhost:8000", "secret")
-    assert mb.ping()
-    uid = mb.add_user({"me": "test"})
-    u = mb.get_user(uid)
-    print(u.profile())
-    u.insert(
-        ChatBlob(
-            messages=[
-                {
-                    "role": "user",
-                    "content": "Hello, I'm Gus",
-                },
-                {
-                    "role": "assistant",
-                    "content": "Hi, nice to meet you, Gus!",
-                },
-            ]
-        )
-    )
-    u.flush()
-    ps = u.profile()
-    print([p.describe for p in ps])
-    mb.delete_user(uid)
-    print("Deleted user")

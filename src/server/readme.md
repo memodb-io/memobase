@@ -27,7 +27,7 @@ You can check docs in `docs.memobase.io` or your localhost `localhost:8000/API_E
 
 ## Customization
 
-- TODO
+- TODO add user topic customize
 
 ## SDKs
 
