@@ -43,7 +43,7 @@
 
 3. Get ready to remember your customers now:
 
-#### Make sure you're connected
+### Make sure you're connected
 
  ```python
  from memobase import MemoBaseClient, ChatBlob
@@ -52,7 +52,7 @@
  assert mb.ping()
  ```
 
-#### User CURD   
+### User CURD
 
 ```python
 uid = mb.add_user({"any_key": "any_value"})
@@ -64,7 +64,7 @@ print(u)
 
 *Delete*: `mb.delete(uid)`
 
-#### Single User Data
+### Single User Data
 
 > In MemoBase, all types of data are blobs to a user that can insert, get and delete:
 
@@ -85,7 +85,7 @@ print(u.get(bid))
 
 *Delete*: `u.delete(bid)`. Delete a blob will cause forgetting memories that only related to this blob.
 
-#### "Flush it moment"
+### "Flush it moment"
 
 ```python
 u.flush()
@@ -113,55 +113,73 @@ Or you can just manually decide when to flush (*e.g.* A chat session is closed i
 
 ## Why/Where should I use MemoBase?
 
-1. **Remember the users** by placing profiles into your AI (*e.g.* system prompt), to 
+**Remember the users** by placing profiles into your AI (*e.g.* system prompt).
 
-   ```python
-   PROFILES = "\n".join([p.describe for p in u.profile()])
-   
-   print(PROFILES)
-   # basic_info: name - Gus
-   # basic_info: age - 25
-   # ...
-   # interest: foods - Mexican cuisine
-   # psychological: goals - Build something that maybe useful
-   # ...
-   ```
+<details>
+<summary>Demo</summary>
 
-   One chat session only need query once, just remember `flush` it after this session.
 
-2. As a **user analysis and  tracking method**. Too much information is hidden in the conversations between users and AI, that's why you need a new data tracking method to record user preference and behavior:
-   ```python
-   PROFILES = u.profile()
-   
-   def under_age_30(p):
-     return p.sub_topic == "age" and int(p.content) < 30
-   
-   def love_cat(p):
-     return p.topic == "interest" and p.sub_topic == "pets" and "cat" in p.content
-   
-   is_user_under_30 = (
-       len([p for p in profiles if under_age_30(p)]) > 0
-   )
-   is_user_love_cat = (
-     len([p for p in profiles if love_cat(p)]) > 0
-   )                       
-   ...
-   ```
+```python
+PROFILES = "\n".join([p.describe for p in u.profile()])
 
-3. **Sell something** to your customers. Not everyone is looking for Grammarly, it's always nice to sell something your users might want. 
+print(PROFILES)
+# basic_info: name - Gus
+# basic_info: age - 25
+# ...
+# interest: foods - Mexican cuisine
+# psychological: goals - Build something that maybe useful
+# ...
+```
 
-   ```python
-   def pick_an_ad(profiles):
-     work_titles = [p for p in profiles if p.topic=="work" and p.sub_topic=="title"]
-     if not len(work_titles):
-       return None
-     wt = work_titles[0].content
-     if wt == "Software Engineer":
-       return "Deep Learning Stuff"
-     elif wt == "some job":
-       return "some ads"
-     ...
-   ```
+</details>
 
-   
+One chat session only need query once, just remember `flush` it after this session.
 
+---
+
+As a **user analysis and  tracking method**. Too much information is hidden in the conversations between users and AI, that's why you need a new data tracking method to record user preference and behavior.
+
+<details>
+<summary>Demo</summary>
+
+
+```python
+PROFILES = u.profile()
+
+def under_age_30(p):
+  return p.sub_topic == "age" and int(p.content) < 30
+
+def love_cat(p):
+  return p.topic == "interest" and p.sub_topic == "pets" and "cat" in p.content
+
+is_user_under_30 = (
+    len([p for p in profiles if under_age_30(p)]) > 0
+)
+is_user_love_cat = (
+  len([p for p in profiles if love_cat(p)]) > 0
+)                       
+...
+```
+</details>
+
+---
+
+**Sell something** to your customers. Not everyone is looking for Grammarly, it's always nice to sell something your users might want. 
+
+<details>
+<summary>Demo</summary>
+
+
+```python
+def pick_an_ad(profiles):
+  work_titles = [p for p in profiles if p.topic=="work" and p.sub_topic=="title"]
+  if not len(work_titles):
+    return None
+  wt = work_titles[0].content
+  if wt == "Software Engineer":
+    return "Deep Learning Stuff"
+  elif wt == "some job":
+    return "some ads"
+  ...
+```
+</details>
