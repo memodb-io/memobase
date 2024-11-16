@@ -15,10 +15,10 @@
 - We use tiktoken to count tokens (model `gpt-4o`)
 - Number of Raw Messages' tokens is 63736 
 - MemoBase will cost (in one test, may diff from your tests):
-  - **#Input token: 202217**, ~3.3:1 to the raw input tokens
+  - **#Input token: 202217**, ~3.3:1 to the raw input tokens. (<< mem0)
   - **#Output token: 7517**
 - Based on the latest [pricing](https://openai.com/api/pricing/) of OpenAI, a user of 900 turns of chat will cost you 0.6$~. (*No counting Cached input or Batch API*)
-- The whole insertion will spend 125 - 150  seconds (3 tests)
+- The whole insertion will spend 125 - 150  seconds (3 tests) (<< mem0)
 
 
 
@@ -57,14 +57,16 @@ Take a look at a more structured profiles:
 
 Wait, MemoBase said the user is married, **but the words married or marry never occur in the dataset**. let's find out if MemoBase is hallucinating. We can output this profiles' related blobs, below is the three related blobs' messages:
 
-```
-user: 1 / 1You can do well from now on, right?
-assistant: <div><p>As an AI language model, I don't have feelings, but I'm always ready to assist you with your questions and concerns. If you have any further questions, please feel free to ask!</p></div>
-user: 1 / 1[check this sentences]
-<i></i>
-assistant: <div><p>As an AI language model, I cannot know your wife's personal preferences. You would know better than anyone else whether or not your wife would enjoy the special decoration for her birthday party. However, it's a thoughtful gesture to arrange for a special decoration to make her birthday celebration more memorable.</p></div>
-user: 1 / 1[check my sentence]
-assistant: <div><p>The sentence is grammatically correct.</p></div>
-```
+---
+
+- user: 1 / 1You can do well from now on, right?
+- assistant: <div><p>As an AI language model, I don't have feelings, but I'm always ready to assist you with your questions and concerns. If you have any further questions, please feel free to ask!</p></div>
+- user: 1 / 1[check this sentences]
+  <i></i>
+- assistant: <div><p>**As an AI language model, I cannot know your wife's personal preferences.** You would know better than anyone else whether or not your wife would enjoy the special decoration for her birthday party. However, it's a thoughtful gesture to arrange for a special decoration to make her birthday celebration more memorable.</p></div>
+- user: 1 / 1[check my sentence]
+- assistant: <div><p>The sentence is grammatically correct.</p></div>
+
+---
 
 Sseem like this guy has a wife😂

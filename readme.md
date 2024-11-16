@@ -22,7 +22,7 @@
 
 🖼️ **Do you understand the customers that using your AI?** 
 
-> MemoBase offers accurate user profile, involoving many aspects of your users: Age, Education, Interests, Opinions...
+> MemoBase offers accurate user profile, involving many aspects of your users: Age, Education, Interests, Opinions...
 > 
 > [Customize](./src/server/readme.md/#Customization) the aspects you want MemoBase to collect.
 
