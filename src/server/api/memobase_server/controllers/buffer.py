@@ -16,9 +16,6 @@ from .modal import BLOBS_PROCESS
 async def insert_blob_to_buffer(
     user_id: str, blob_id: str, blob_data: Blob
 ) -> Promise[None]:
-    p = await detect_buffer_flush_or_not(user_id, blob_data.type)
-    if not p.ok():
-        return p
     with Session() as session:
         buffer = BufferZone(
             user_id=user_id,
@@ -28,6 +25,9 @@ async def insert_blob_to_buffer(
         )
         session.add(buffer)
         session.commit()
+    p = await detect_buffer_flush_or_not(user_id, blob_data.type)
+    if not p.ok():
+        return p
     return Promise.resolve(None)
 
 

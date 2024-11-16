@@ -1,5 +1,4 @@
 import os
-import redis
 import redis.exceptions
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker

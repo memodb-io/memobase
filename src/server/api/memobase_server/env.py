@@ -24,7 +24,6 @@ class Config:
     openai_base_url: str = None
     openai_api_key: str = None
     best_llm_model: str = "gpt-4o"
-    cheap_llm_model: str = "gpt-4o-mini"
     embedding_model: str = "text-embedding-3-small"
     embedding_dim: int = 1536
     embedding_max_token_size: int = 8192

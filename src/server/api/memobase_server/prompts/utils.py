@@ -5,3 +5,7 @@ def tag_strings_in_order_xml(
         f"<{tag_name} data_index={i+index_offset}>\n{s}\n</{tag_name}>"
         for i, s in enumerate(strings)
     )
+
+
+def attribute_unify(attr: str):
+    return attr.lower().strip().replace(" ", "_")

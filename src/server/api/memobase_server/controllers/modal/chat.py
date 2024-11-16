@@ -7,7 +7,7 @@ from ...models.blob import Blob, BlobType
 from ...models.response import ProfileData
 from ...llms import llm_complete
 from ...prompts import extract_profile, merge_profile
-from ...prompts.utils import tag_strings_in_order_xml
+from ...prompts.utils import tag_strings_in_order_xml, attribute_unify
 from ..user import add_user_profiles, get_user_profiles, update_user_profile
 
 FactResponse = TypedDict(
@@ -22,12 +22,33 @@ async def process_blobs(
     assert len(blob_ids) == len(blobs), "Length of blob_ids and blobs must be equal"
     assert all(b.type == BlobType.chat for b in blobs), "All blobs must be chat blobs"
 
+    p = await get_user_profiles(user_id)
+    if not p.ok():
+        return p
+    profiles = p.data().profiles
+
+    if len(profiles):
+        already_topics_subtopics = sorted(
+            set([(p.attributes["topic"], p.attributes["sub_topic"]) for p in profiles])
+        )
+        already_topics_prompt = "- " + "\n- ".join(
+            [
+                f"topic: {topic}, sub_topic: {sub_topic}"
+                for topic, sub_topic in already_topics_subtopics
+            ]
+        )
+        LOG.info(
+            f"User {user_id} already have {len(profiles)} profiles, {len(already_topics_subtopics)} topics"
+        )
+    else:
+        already_topics_prompt = ""
+
     blob_strs = tag_strings_in_order_xml(
         [get_blob_str(b) for b in blobs], tag_name="chat"
     )
     p = await llm_complete(
         blob_strs,
-        system_prompt=extract_profile.get_prompt(),
+        system_prompt=extract_profile.get_prompt(already_topics=already_topics_prompt),
         json_mode=True,
         temperature=0.2,  # precise
     )
@@ -43,13 +64,13 @@ async def process_blobs(
         fact_contents.append(nf["memo"])
         fact_attributes.append(
             {
-                "topic": nf["topic"].lower().strip(),
-                "sub_topic": nf["sub_topic"].lower().strip(),
+                "topic": attribute_unify(nf["topic"]),
+                "sub_topic": attribute_unify(nf["sub_topic"]),
             }
         )
         related_blob_ids.append([blob_ids[i] for i in nf["cites"] if i < len(blob_ids)])
     p = await merge_or_add_new_memos(
-        user_id, fact_contents, fact_attributes, related_blob_ids
+        user_id, fact_contents, fact_attributes, related_blob_ids, profiles
     )
     if not p.ok():
         return p
@@ -61,12 +82,8 @@ async def merge_or_add_new_memos(
     fact_contents: list[str],
     fact_attributes: list[dict],
     related_blob_ids: list[list[str]],
+    profiles: list[ProfileData],
 ) -> Promise[None]:
-    p = await get_user_profiles(user_id)
-    if not p.ok():
-        return p
-    profiles = p.data().profiles
-
     if not len(profiles):
         p = await add_user_profiles(
             user_id, fact_contents, fact_attributes, related_blob_ids
@@ -124,6 +141,8 @@ async def merge_or_add_new_memos(
         merge_tasks.append(task)
 
     success_update_profile_count = 0
+    update_merge_profile_count = 0
+    update_replace_profile_count = 0
     merge_results: list[Promise] = await asyncio.gather(*merge_tasks)
     for p, old_new_profile in zip(merge_results, facts_to_update):
         if not p.ok():
@@ -139,6 +158,7 @@ async def merge_or_add_new_memos(
                 update_response["memo"],
                 old_new_profile["new_profile"]["related_blobs"],
             )
+            update_replace_profile_count += 1
         elif update_response["action"] == "MERGE":
             p = await update_user_profile(
                 user_id,
@@ -147,6 +167,7 @@ async def merge_or_add_new_memos(
                 update_response["memo"],
                 old_p.related_blobs + old_new_profile["new_profile"]["related_blobs"],
             )
+            update_merge_profile_count += 1
         else:
             LOG.warning(f"Invalid action: {update_response['action']}")
             continue
@@ -155,6 +176,10 @@ async def merge_or_add_new_memos(
             continue
         success_update_profile_count += 1
     LOG.info(
-        f"ADD {len(new_facts_to_add)} new profiles, update {success_update_profile_count}/{len(facts_to_update)} existing profiles"
+        (
+            f"TOTAL {len(fact_contents)} profiles, ADD {len(new_facts_to_add)} new profiles, "
+            f"update {success_update_profile_count}/{len(facts_to_update)} existing profiles, "
+            f"REPLACE:MERGE = {update_replace_profile_count}:{update_merge_profile_count}"
+        )
     )
     return Promise.resolve(None)

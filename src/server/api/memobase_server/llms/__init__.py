@@ -1,10 +1,12 @@
 import json
-from dataclasses import dataclass
+import asyncio
 from typing import Callable, Optional, List, Dict, Any, Awaitable
+from ..utils import get_encoded_tokens
 from ..env import CONFIG, LOG
 from ..models.utils import Promise
 from ..models.response import CODE
 from .openai import openai_complete
+from ..dashboard.capture_key import capture_int_key
 
 
 # TODO: add TPM/Rate limiter
@@ -24,6 +26,16 @@ async def llm_complete(
     except Exception as e:
         LOG.error(f"Error in llm_complete: {e}")
         return Promise.reject(CODE.SERVICE_UNAVAILABLE, f"Error in llm_complete: {e}")
+
+    in_tokens = len(
+        get_encoded_tokens(
+            prompt + system_prompt + "\n".join([m["content"] for m in history_messages])
+        )
+    )
+    out_tokens = len(get_encoded_tokens(results))
+
+    capture_int_key("openai_llm_input_tokens", in_tokens)
+    capture_int_key("openai_llm_output_tokens", out_tokens)
 
     if not json_mode:
         return Promise.resolve(results)

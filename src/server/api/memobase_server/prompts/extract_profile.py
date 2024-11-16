@@ -21,7 +21,7 @@ EXAMPLES = [
             "facts": [
                 {
                     "topic": "demographics",
-                    "sub_topic": "Marital Status",
+                    "sub_topic": "marital_status",
                     "memo": "user is married to SiLei",
                     "cites": [0],
                 },
@@ -44,7 +44,7 @@ EXAMPLES = [
             "facts": [
                 {
                     "topic": "contact_info",
-                    "sub_topic": "City",
+                    "sub_topic": "city",
                     "memo": "San Francisco",
                     "cites": [0],
                 }
@@ -142,7 +142,7 @@ EXAMPLES = [
                 },
                 {
                     "topic": "interest",
-                    "sub_topic": "Movie Director",
+                    "sub_topic": "movie_director",
                     "memo": "user seems to be a Big fan of director Christopher Nolan",
                     "cites": [1],
                 },
@@ -158,11 +158,10 @@ You will not only extract the information that's explicitly stated, but also inf
 
 
 ## Topics you should be aware of
-Below are some example topics you can refer to:
+Below are some example topics/sub_topics you can refer to:
 {user_profile_topics}
+You can create your own topics/sub_topics if you find it necessary, Anything valuable to evaluate the user's state is welcomed.
 
-If you find the infos from the conversation that are not in the above topics, but important to evaluate the user's state, 
-you can still extract them and add them to the list of facts.
 
 ## Cite the sources
 For each piece of information, you should cite the conversation index `data_index` where the information was shared.
@@ -202,18 +201,25 @@ Remember the following:
 - For each fact/preference you extracted, make sure you cite the right and relevant data_indexs where the information was shared.
 - You should infer what's implied from the conversation, not just what's explicitly stated.
 
+
+## User Before topics
+Below are the topics and subtopics that the user has already shared with the assistant:
+{before_topics}
+consider use the same topic/subtopic if it's mentioned in the conversation again.
+
 Following is a conversation between the user and the assistant. You have to extract/infer the relevant facts and preferences from the conversation and return them in the json format as shown above.
 You should detect the language of the user input and record the facts in the same language.
 If you do not find anything relevant facts, user memories, and preferences in the below conversation, you can return an empty list corresponding to the "facts" key.
 """
 
 
-def get_prompt() -> str:
+def get_prompt(already_topics: str) -> str:
     today = datetime.now().strftime("%Y-%m-%d")
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     examples = "\n\n".join([f"Input: {p[0]}Output: {p[1]}" for p in EXAMPLES])
     examples = examples.replace("$$TODAY$$", today).replace("$$YESTERDAY$$", yesterday)
     return FACT_RETRIEVAL_PROMPT.format(
+        before_topics=already_topics,
         today=today,
         examples=examples,
         user_profile_topics=user_profile_topics.get_prompt(),

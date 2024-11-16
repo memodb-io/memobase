@@ -1,0 +1,28 @@
+* basic_info: language_spoken - User uses both English and Korean.
+* basic_info: name - 오*영
+* contact_info: email - s****2@cafe24corp.com
+* demographics: marital_status - user is married
+* education:  - User had an English teacher who emphasized capitalization rules during school days.
+* education: major - 국어국문학과 (Korean Language and Literature)
+* interest:  - User has an interest in the concept of the 'MZ Generation' and its cultural implications in Korea.
+* interest: cultural_differences - User is interested in cultural differences in communication, such as the use of emoticons
+* interest: games - User is interested in Cyberpunk 2077 and wants to create a game better than it
+* interest: korean_culture - User is interested in Korean cultural songs like '처용가'.
+* interest: language_learning - User is interested in learning English vocabulary and phrases, is studying English, seeks to improve their English skills, and is interested in improving English grammar, spelling, and clarity. Additionally, the user is interested in understanding the concept of 'syntax' in both English and Korean. User is learning English and seeks advice on improving their English skills. User is also learning or interested in Korean to English translation. User is interested in studying English reading and is looking for helpful content for English students.
+* interest: movies - Watched 'Harry Potter and the Chamber of Secrets' and is familiar with the Harry Potter series, specifically 'Deathly Hallows'.
+* interest: music - User is interested in using rock music in English to improve their English skills, loves the song 'Brighton Rock' by Queen, is familiar with 'Johnny B. Goode' by Chuck Berry and seeks its lyrics in both English and Korean, likes the song 'Home Sweet Home' by Mötley Crüe, is interested in the song 'Purple Rain' by Prince, is interested in Cyberpunk 2077 soundtracks, is interested in the song 'Goodbye Yellow Brick Road' by Elton John, and is interested in the song 'Never, Never Gonna Give Ya Up' by Barry White.
+* interest: photography - User is interested in full-frame cameras and is considering models such as Canon EOS R6, Sony A7 III, Nikon Z6 II, Panasonic Lumix S1, and Sony A7R IV.
+* interest: science - Interested in quantum realm and understanding complex scientific concepts like dimensions, black holes, event horizons, the firewall paradox, and their mysteries, including the concept of hidden dimensions in physics.
+* interest: youtube_channels - Kurzgesagt
+* life_event:  - User made a reservation for a fine dining experience in Hanoi for his wife's birthday with special decoration on March 22nd.
+* psychological: concerns - Concerned about the decline of the news media industry and considering leaving the PR job. Also has a fear of dying. User is a beginner in English and needs clear distinctions between colloquial and written forms for study.
+* psychological: learning_preferences - User prefers detailed feedback on sentence correctness, including grammar, standard English perspective, spelling, and suggestions for better expressions. User also prefers to learn English by understanding both colloquial and written forms of sentences. User wants sentence analysis to include explanations for correctness or errors. User is interested in understanding English grammar, specifically the use of prepositions and objects with verbs.
+* psychological: motivations - User is motivated to improve English skills and understand and use prepositions correctly.
+* psychological: personality - MBTI type is ESTP and user is curious and seeks to understand complex topics.
+* psychological: values - User values a thorough and collaborative decision-making process, values apologizing and taking responsibility for their actions, finds the classification of the 'MZ Generation' as meaningless and oversimplifying, and values clear and grammatically correct communication.
+* work:  - User is involved in decision-making processes at their company
+* work: company - User works at Cafe24, where the CEO plans to replace some employees with AI
+* work: employee_sentiment - Most employees are very upset about the CEO's decision to replace some employees with AI.
+* work: previous_projects - User is working on a Python script to monitor webpage changes and send email notifications.
+* work: title - PR manager
+* work: working_industry - News media industry

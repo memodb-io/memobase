@@ -88,9 +88,9 @@ async def add_user_profiles(
     attributes: list[dict],
     related_blobs: list[list[str]],
 ) -> Promise[IdsData]:
-    assert len(profiles) == len(
-        related_blobs
-    ), "Length of profiles and related_blobs must be equal"
+    assert (
+        len(profiles) == len(related_blobs) == len(attributes)
+    ), "Length of profiles, attributes and related_blobs must be equal"
     with Session() as session:
         db_profiles = [
             UserProfile(user_id=user_id, content=content, attributes=attr)
