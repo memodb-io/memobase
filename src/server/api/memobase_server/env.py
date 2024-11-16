@@ -9,7 +9,7 @@ import yaml
 import logging
 import tiktoken
 import dataclasses
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,8 +29,7 @@ class Config:
     embedding_dim: int = 1536
     embedding_max_token_size: int = 8192
 
-    # azure_openai_base_url: str = ""
-    # azure_openai_api_key: str = ""
+    additional_user_profiles: list[dict] = field(default_factory=list)
 
     @classmethod
     def load_config(cls) -> "Config":
@@ -41,6 +40,7 @@ class Config:
             overwrite_config = yaml.safe_load(f)
             LOG.info(f"Load ./config.yaml")
         overwrite_config = dataclasses.replace(cls(), **overwrite_config)
+        LOG.info(f"{overwrite_config}")
         return overwrite_config
 
 
@@ -56,4 +56,3 @@ ENCODER = tiktoken.encoding_for_model("gpt-4o")
 
 # 3. Load config
 CONFIG = Config.load_config()
-LOG.info(f"{CONFIG}")
