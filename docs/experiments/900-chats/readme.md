@@ -2,27 +2,51 @@
 
 ## Setup
 
-- [ShareGPT dataset](https://huggingface.co/datasets/RyokoAI/ShareGPT52K/tree/main/old) `sg_90k_part1.json`, ID "7uOhOjo". Process to `./sharegpt_test_7uOhOjo.json`.
+- We choose the longest chats from [ShareGPT dataset](https://huggingface.co/datasets/RyokoAI/ShareGPT52K/tree/main/old) (`sg_90k_part1.json`)
+  - ID "7uOhOjo". Check the chats in this file: `./sharegpt_test_7uOhOjo.json`.
+
 - Make sure you have [set up the MemoBase Backend](../../../src/server/readme.md)
 - `pip install memobase rich`
-- We use OpenAI **gpt-4o** as default model, make sure you have a OpenAI key. Place it to `config.yaml`
+- We use OpenAI **gpt-4o-mini** as default model, make sure you have a OpenAI key. Place it to `config.yaml`
 - Run `python run.py`, it will take a while.
+- For a reference, we also compare with a greate memory layer solution [mem0](https://github.com/mem0ai/mem0) (version 0.1.2), the code is `./run_mem0.py`, its default model is also gpt-4o-mini.
+  - Welcome to raise issues about `run_mem0.py`, we write this script based on the [basic docs](https://docs.mem0.ai/open-source/quickstart) and maybe not the best practice. Nevertheless, we keep the process of MemoBase as basic as possible for a fair comparison.
+
+- To simulate the real results, we pack one user+assistant chat as a turn to insert to both MemoBase and Mem0.
 
 
 
 ## How much will you cost?
 
-- We use tiktoken to count tokens (model `gpt-4o`)
+- We use `tiktoken` to count tokens (model `gpt-4o`)
 - Number of Raw Messages' tokens is 63736 
-- MemoBase will cost (in one test, may diff from your tests):
-  - **#Input token: 202217**, ~3.3:1 to the raw input tokens. (<< mem0)
-  - **#Output token: 7517**
-- Based on the latest [pricing](https://openai.com/api/pricing/) of OpenAI, a user of 900 turns of chat will cost you 0.6$~. (*No counting Cached input or Batch API*)
-- The whole insertion will spend 125 - 150  seconds (3 tests) (<< mem0)
+
+#### MemoBase
+
+- MemoBase will cost:
+  - #Input token: 220000~
+  - #Output token: 15000~
+- Based on the DashBoard results of OpenAI, a user of 900 turns of chat will cost you **0.042$**(llm)
+- The whole insertion will spend **125 - 150  seconds** (3 tests)
+
+#### Mem0
+
+- Based on the DashBoard results of OpenAI, a user of 900 turns of chat will cost you **0.24$**(llm) + **<0.01$**(embedding)
+- The whole insertion will spend **1683 seconds** (1 tests)
+
+
+
+## Why
+
+- Mem0 uses hot-path update, that means each update will trigger a memory flush. When using `Memory.add` of Mem0, you should manually manage how many data you should insert so that the memory flush won't happen too many times. MemoBase has a buffer zone to automatically manage your inserted data, so you don't need to worry about this.
+  - This leads to Mem0 calls LLM much more than MemoBase, so it will be slower and cost more.
+- Also, Mem0 computes embeddings for each memory and retrieve them on each time you insert, while MemoBase doesn't use embeddings for user memory. We use dynamic profiling to generate first and secondary index for users, when we retrieve memories for updating, we only use SQL.
 
 
 
 ## How will you get?
+
+#### MemoBase
 
 User profile is below (mask sensitive information as **):
 
@@ -34,7 +58,7 @@ User profile is below (mask sensitive information as **):
 * education:  - User had an English teacher who emphasized capitalization...
 ```
 
-You can view the full profile in [here](./full_profile.txt)
+You can view the full profile in [here](./full_memobase.txt)
 
 Take a look at a more structured profiles:
 
@@ -55,7 +79,27 @@ Take a look at a more structured profiles:
 ]
 ```
 
-Wait, MemoBase said the user is married, **but the words married or marry never occur in the dataset**. let's find out if MemoBase is hallucinating. We can output this profiles' related blobs, below is the three related blobs' messages:
+#### Mem0
+
+We list some of the memories below(`Memory.get_all`):
+
+```python
+- The restaurant is awesome
+- User is interested in the lyrics of 'Home Sweet Home' by Motley Crue
+- In Korea, people use '^^' to express smile
+- Reservation for a birthday party on March 22
+- Did not decide the menu...
+```
+
+The full results is in [here](./full_mem0.txt).
+
+
+
+## Does MemoBase hallucinate?
+
+One thing is worse than no memory is wrong memory, we can't guarantee the absolute right of the profiles(because we rely on LLM), but MemoBase left a chance to correct it because we save links between a memory and its raw sources.
+
+In the above section, MemoBase said the user is married, **but the words "married" or "marry" never occur in this dataset**. let's find out if MemoBase is hallucinating. We can output this profiles' related blobs, below is the three related blobs' messages:
 
 ---
 
@@ -69,4 +113,4 @@ Wait, MemoBase said the user is married, **but the words married or marry never 
 
 ---
 
-Sseem like this guy has a wife😂
+Seem like this guy has a wife😂 and he/she does get married.

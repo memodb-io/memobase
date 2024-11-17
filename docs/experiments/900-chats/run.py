@@ -58,17 +58,19 @@ assert client.ping()
 
 
 # Change to the uid
-uid = "c6f78677-9f3d-4d42-bdcf-65e9bc891807"
+uid = "8327710d-f3a9-47e7-a28b-9e6f10bd01d5"
 print("User ID is", uid)
 u = client.get_user(uid)
-u.flush()
 profiles = u.profile()
 
-for p in profiles:
-    if "married" in p.describe:
-        print(p.describe)
-        pprint(p)
-        for bid in p.related_blob_ids:
-            b = cast(ChatBlob, u.get(bid))
-            print("\n".join([f"{m.role}: {m.content}" for m in b.messages]))
-        break
+prompts = [(m.topic, m.sub_topic) for m in profiles]
+pprint(sorted(prompts))
+
+# for p in profiles:
+#     if "married" in p.describe:
+#         print(p.describe)
+#         pprint(p)
+#         for bid in p.related_blob_ids:
+#             b = cast(ChatBlob, u.get(bid))
+#             print("\n".join([f"{m.role}: {m.content}" for m in b.messages]))
+#         break

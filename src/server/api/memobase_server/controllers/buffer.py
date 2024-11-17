@@ -16,6 +16,10 @@ from .modal import BLOBS_PROCESS
 async def insert_blob_to_buffer(
     user_id: str, blob_id: str, blob_data: Blob
 ) -> Promise[None]:
+    p = await detect_buffer_idle_or_not(user_id, blob_data.type)
+    if not p.ok():
+        return p
+
     with Session() as session:
         buffer = BufferZone(
             user_id=user_id,
@@ -25,7 +29,8 @@ async def insert_blob_to_buffer(
         )
         session.add(buffer)
         session.commit()
-    p = await detect_buffer_flush_or_not(user_id, blob_data.type)
+
+    p = await detect_buffer_full_or_not(user_id, blob_data.type)
     if not p.ok():
         return p
     return Promise.resolve(None)
@@ -41,9 +46,7 @@ async def get_buffer_capacity(user_id: str, blob_type: BlobType) -> Promise[int]
     return Promise.resolve(buffer_count)
 
 
-async def detect_buffer_flush_or_not(
-    user_id: str, blob_type: BlobType
-) -> Promise[bool]:
+async def detect_buffer_full_or_not(user_id: str, blob_type: BlobType) -> Promise[bool]:
     with Session() as session:
         # 1. if buffer size reach maximum, flush it
         buffer_size = (
@@ -57,7 +60,12 @@ async def detect_buffer_flush_or_not(
             )
             await flush_buffer(user_id, blob_type)
             return Promise.resolve(True)
-        # 2. if buffer is idle for a long time, flush it
+    return Promise.resolve(False)
+
+
+async def detect_buffer_idle_or_not(user_id: str, blob_type: BlobType) -> Promise[bool]:
+    with Session() as session:
+        # if buffer is idle for a long time, flush it
         last_buffer_update = (
             session.query(func.max(BufferZone.created_at))
             .filter_by(user_id=user_id, blob_type=str(blob_type))

@@ -60,6 +60,7 @@ async def process_blobs(
     related_blob_ids = []
     fact_contents = []
     fact_attributes = []
+    # FIXME if two same attributes in fact_attributes, will cause duplicate in profiles to add
     for nf in new_facts:
         fact_contents.append(nf["memo"])
         fact_attributes.append(
