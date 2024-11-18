@@ -42,29 +42,29 @@ client = MemoBaseClient(
 assert client.ping()
 
 
-# uid = client.add_user()
-# print("User ID is", uid)
-# u = client.get_user(uid)
+uid = client.add_user()
+print("User ID is", uid)
+u = client.get_user(uid)
 
-# start = time()
-# for blob in track(blobs):
-#     u.insert(blob)
-# u.flush()
-# print("Cost time(s)", time() - start)
+start = time()
+for blob in track(blobs):
+    u.insert(blob)
+u.flush()
+print("Cost time(s)", time() - start)
 
-# pprint(u.profile()[:10])
-# prompts = [m.describe for m in u.profile()]
-# print("* " + "\n* ".join(sorted(prompts)))
+pprint(u.profile()[:10])
+prompts = [m.describe for m in u.profile()]
+print("* " + "\n* ".join(sorted(prompts)))
 
 
 # Change to the uid
-uid = "8327710d-f3a9-47e7-a28b-9e6f10bd01d5"
-print("User ID is", uid)
-u = client.get_user(uid)
-profiles = u.profile()
+# uid = "8327710d-f3a9-47e7-a28b-9e6f10bd01d5"
+# print("User ID is", uid)
+# u = client.get_user(uid)
+# profiles = u.profile()
 
-prompts = [(m.topic, m.sub_topic) for m in profiles]
-pprint(sorted(prompts))
+# prompts = [(m.topic, m.sub_topic) for m in profiles]
+# pprint(sorted(prompts))
 
 # for p in profiles:
 #     if "married" in p.describe:

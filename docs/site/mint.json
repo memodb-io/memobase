@@ -7,15 +7,10 @@
     "light": "/logo/light.svg",
     "href": "https://github.com/memodb-io/memobase"
   },
-  "theme": "prism",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373",
-    "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
-    },
+    "primary": "#6c60f0",
+    "light": "#ececdb",
+    "dark": "#a3df02",
     "background": {
       "dark": "#0f1117",
       "light": "#fff"
@@ -29,7 +24,7 @@
   ],
   "topbarCtaButton": {
     "name": "Dashboard",
-    "url": "https://dashboard.memobase.io"
+    "url": "https://memobase.io/pricing"
   },
   "tabs": [
     {
@@ -47,11 +42,6 @@
       "name": "Community",
       "icon": "discord",
       "url": "https://discord.gg/YdgwU4d9NB"
-    },
-    {
-      "name": "Blog",
-      "icon": "newspaper",
-      "url": "https://blog.memobase.io"
     }
   ],
   "navigation": [
@@ -60,7 +50,7 @@
       "pages": [
         "introduction",
         "quickstart",
-        "development"
+        "features"
       ]
     },
     {

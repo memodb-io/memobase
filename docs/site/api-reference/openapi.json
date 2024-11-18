@@ -245,6 +245,57 @@
         }
       }
     },
+    "/api/v1/users/buffer/{user_id}/{buffer_type}": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Flush Buffer",
+        "description": "Get the real-time user profiles for long term memory",
+        "operationId": "flush_buffer_api_v1_users_buffer__user_id___buffer_type__post",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "buffer_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/BlobType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/blobs/insert/{user_id}": {
       "post": {
         "tags": [
@@ -603,6 +654,16 @@
             },
             "type": "array",
             "title": "Related Blobs"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
           },
           "attributes": {
             "anyOf": [
