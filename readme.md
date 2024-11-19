@@ -56,7 +56,7 @@
 
 ```python
 uid = mb.add_user({"any_key": "any_value"})
-mb.update_user({"any_key": "any_value2"})
+mb.update_user(uid, {"any_key": "any_value2"})
 u = mb.get_user(uid)
 
 print(u)
