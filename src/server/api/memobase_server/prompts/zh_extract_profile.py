@@ -22,15 +22,9 @@ EXAMPLES = [
                 {
                     "topic": "人口统计",
                     "sub_topic": "婚姻状况",
-                    "memo": "用户与SiLei已婚",
+                    "memo": "用户与assistant已婚, 结婚日期在$$TODAY$$",
                     "cites": [0],
-                },
-                {
-                    "topic": "生活事件",
-                    "sub_topic": "婚姻",
-                    "memo": "在$$TODAY$$与你结婚了",
-                    "cites": [0],
-                },
+                }
             ]
         },
     ),
@@ -63,8 +57,8 @@ EXAMPLES = [
             "facts": [
                 {
                     "topic": "基本信息",
-                    "sub_topic": "姓名",
-                    "memo": "被称为Melinda",
+                    "sub_topic": "可能的姓名",
+                    "memo": "用户被称为Melinda",
                     "cites": [0],
                 },
                 {
