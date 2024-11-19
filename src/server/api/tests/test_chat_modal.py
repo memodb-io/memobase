@@ -70,7 +70,7 @@ def mock_llm_complete():
 
 
 @pytest.mark.asyncio
-async def test_chat_buffer_modal(db_env, mock_llm_complete):
+async def test_chat_buffer_modal(db_env):
     p = await controllers.user.create_user(res.UserData())
     assert p.ok()
     u_id = p.data().id
@@ -121,6 +121,7 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
 
     p = await controllers.user.get_user_profiles(u_id)
     assert p.ok()
+    print(p.data())
 
     p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
     assert p.ok() and p.data() == 0

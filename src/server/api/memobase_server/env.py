@@ -10,6 +10,7 @@ import logging
 import tiktoken
 import dataclasses
 from dataclasses import dataclass, field
+from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,14 +22,17 @@ class Config:
     max_chat_blob_buffer_token_size: int = 1024
 
     # LLM
-    openai_base_url: str = None
-    openai_api_key: str = None
+    language: str = "en"
+    llm_style: str = "openai"
+    llm_base_url: str = None
+    llm_api_key: str = None
     best_llm_model: str = "gpt-4o-mini"
     embedding_model: str = "text-embedding-3-small"
     embedding_dim: int = 1536
     embedding_max_token_size: int = 8192
 
     additional_user_profiles: list[dict] = field(default_factory=list)
+    overwrite_user_profiles: Optional[list[dict]] = None
 
     @classmethod
     def load_config(cls) -> "Config":
@@ -41,6 +45,9 @@ class Config:
         overwrite_config = dataclasses.replace(cls(), **overwrite_config)
         LOG.info(f"{overwrite_config}")
         return overwrite_config
+
+    def __post_init__(self):
+        assert self.llm_style in ["openai", "doubao"]
 
 
 # 1. Add logger

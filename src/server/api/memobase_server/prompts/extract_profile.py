@@ -155,7 +155,7 @@ FACT_RETRIEVAL_PROMPT = """You are a professional psychologist.
 Your responsibility is to carefully read out the conversation between the user and the other party.
 Then extract relevant and important facts, preferences about the user that will help evaluate the user's state.
 You will not only extract the information that's explicitly stated, but also infer what's implied from the conversation.
-
+You will use the same language as the user's input to record the facts.
 
 ## Topics you should be aware of
 Below are some example topics/sub_topics you can refer to:
@@ -200,6 +200,7 @@ Remember the following:
 - Make sure to return the response in the format mentioned in the formatting & examples section.
 - For each fact/preference you extracted, make sure you cite the right and relevant data_indexs where the information was shared.
 - You should infer what's implied from the conversation, not just what's explicitly stated.
+- Place all content related to this topic/sub_topic in one element, no repeat.
 
 
 ## User Before topics

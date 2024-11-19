@@ -2,7 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
 
-config.yaml
+config*.yaml
 .vscode
 .DS_Store
 __pycache__/

@@ -1,12 +1,17 @@
 import json
 import asyncio
 from typing import Callable, Optional, List, Dict, Any, Awaitable
+from ..prompts.utils import convert_response_to_json
 from ..utils import get_encoded_tokens
 from ..env import CONFIG, LOG
 from ..models.utils import Promise
 from ..models.response import CODE
 from .openai import openai_complete
+from .doubao import doubao_complete
 from ..dashboard.capture_key import capture_int_key
+
+
+FACTORIES = {"openai": openai_complete, "doubao": doubao_complete}
 
 
 # TODO: add TPM/Rate limiter
@@ -16,7 +21,7 @@ async def llm_complete(
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
     try:
-        results = await openai_complete(
+        results = await FACTORIES[CONFIG.llm_style](
             CONFIG.best_llm_model,
             prompt,
             system_prompt=system_prompt,
@@ -34,13 +39,32 @@ async def llm_complete(
     )
     out_tokens = len(get_encoded_tokens(results))
 
-    capture_int_key("openai_llm_input_tokens", in_tokens)
-    capture_int_key("openai_llm_output_tokens", out_tokens)
+    capture_int_key(f"{CONFIG.llm_style}_llm_input_tokens", in_tokens)
+    capture_int_key(f"{CONFIG.llm_style}_llm_output_tokens", out_tokens)
 
     if not json_mode:
         return Promise.resolve(results)
-    return Promise.resolve(json.loads(results))
+    parse_dict = convert_response_to_json(results)
+    if parse_dict is not None:
+        return Promise.resolve(parse_dict)
+    else:
+        return Promise.reject(
+            CODE.UNPROCESSABLE_ENTITY, "Failed to parse JSON response"
+        )
 
+
+if __name__ == "__main__":
+    import asyncio
+
+    print(
+        asyncio.run(
+            llm_complete(
+                "你好",
+                '回复{"response": 我是MemoBase}如果用户向你说你好',
+                json_mode=True,
+            )
+        ).data()
+    )
 
 # TODO: llm abstraction
 # LLMFunc = Callable[

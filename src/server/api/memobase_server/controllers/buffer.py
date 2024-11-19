@@ -58,7 +58,9 @@ async def detect_buffer_full_or_not(user_id: str, blob_type: BlobType) -> Promis
             LOG.info(
                 f"Flush {blob_type} buffer for user {user_id} due to reach maximum token size"
             )
-            await flush_buffer(user_id, blob_type)
+            p = await flush_buffer(user_id, blob_type)
+            if not p.ok():
+                return p
             return Promise.resolve(True)
     return Promise.resolve(False)
 
@@ -78,7 +80,9 @@ async def detect_buffer_idle_or_not(user_id: str, blob_type: BlobType) -> Promis
             LOG.info(
                 f"Flush {blob_type} buffer for user {user_id} due to idle for a long time"
             )
-            await flush_buffer(user_id, blob_type)
+            p = await flush_buffer(user_id, blob_type)
+            if not p.ok():
+                return p
             return Promise.resolve(True)
     return Promise.resolve(False)
 

@@ -1,8 +1,8 @@
 max_chat_blob_buffer_token_size: 1024
 buffer_flush_interval: 3600
 
-openai_api_key: YOUR-KEY
-openai_base_url: https://api.openai.com/v1/
+llm_api_key: YOUR-KEY
+llm_base_url: https://api.openai.com/v1/
 
 best_llm_model: gpt-4o
 embedding_model: text-embedding-3-small

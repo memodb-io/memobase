@@ -1,12 +1,17 @@
 import asyncio
 from typing import TypedDict
-from ...env import LOG, pprint
+from ...env import CONFIG, LOG, pprint
 from ...utils import get_blob_str
 from ...models.utils import Promise
 from ...models.blob import Blob, BlobType
 from ...models.response import ProfileData
 from ...llms import llm_complete
-from ...prompts import extract_profile, merge_profile
+from ...prompts import (
+    extract_profile,
+    merge_profile,
+    zh_extract_profile,
+    zh_merge_profile,
+)
 from ...prompts.utils import tag_strings_in_order_xml, attribute_unify
 from ..user import add_user_profiles, get_user_profiles, update_user_profile
 
@@ -14,6 +19,25 @@ FactResponse = TypedDict(
     "Facts", {"topic": str, "sub_topic": str, "memo": str, "cites": list[int]}
 )
 UpdateResponse = TypedDict("Facts", {"action": str, "memo": str})
+
+
+PROMPTS = {
+    "en": {"extract": extract_profile, "merge": merge_profile},
+    "zh": {"extract": zh_extract_profile, "merge": zh_merge_profile},
+}
+
+
+def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
+    topic_subtopic = {}
+    for nf in new_facts:
+        key = (nf["topic"], nf["sub_topic"])
+        if key in topic_subtopic:
+            if isinstance(nf["memo"], str):
+                topic_subtopic[key]["memo"] += f"; {nf['memo']}"
+                topic_subtopic[key]["cites"] += nf["cites"]
+                continue
+        topic_subtopic[key] = nf
+    return list(topic_subtopic.values())
 
 
 async def process_blobs(
@@ -48,15 +72,27 @@ async def process_blobs(
     )
     p = await llm_complete(
         blob_strs,
-        system_prompt=extract_profile.get_prompt(already_topics=already_topics_prompt),
+        system_prompt=PROMPTS[CONFIG.language]["extract"].get_prompt(
+            already_topics=already_topics_prompt
+        ),
         json_mode=True,
         temperature=0.2,  # precise
     )
     if not p.ok():
         return p
     results = p.data()
+    if "facts" not in results:
+        LOG.warning(f"No facts extracted: {results}")
+        return Promise.resolve(None)
     new_facts: list[FactResponse] = results["facts"]
+    for nf in new_facts:
+        nf["topic"] = attribute_unify(nf["topic"])
+        nf["sub_topic"] = attribute_unify(nf["sub_topic"])
+    new_facts = merge_by_topic_sub_topics(new_facts)
 
+    if len(new_facts):
+        pprint([get_blob_str(b) for b in blobs])
+        pprint(new_facts)
     related_blob_ids = []
     fact_contents = []
     fact_attributes = []
@@ -65,8 +101,8 @@ async def process_blobs(
         fact_contents.append(nf["memo"])
         fact_attributes.append(
             {
-                "topic": attribute_unify(nf["topic"]),
-                "sub_topic": attribute_unify(nf["sub_topic"]),
+                "topic": nf["topic"],
+                "sub_topic": nf["sub_topic"],
             }
         )
         related_blob_ids.append([blob_ids[i] for i in nf["cites"] if i < len(blob_ids)])
@@ -129,13 +165,13 @@ async def merge_or_add_new_memos(
     for dp in facts_to_update:
         old_p: ProfileData = dp["old_profile"]
         task = llm_complete(
-            merge_profile.get_input(
+            PROMPTS[CONFIG.language]["merge"].get_input(
                 old_p.attributes["topic"],
                 old_p.attributes["sub_topic"],
                 old_p.content,
                 dp["new_profile"]["content"],
             ),
-            system_prompt=merge_profile.get_prompt(),
+            system_prompt=PROMPTS[CONFIG.language]["merge"].get_prompt(),
             json_mode=True,
             temperature=0.2,  # precise
         )

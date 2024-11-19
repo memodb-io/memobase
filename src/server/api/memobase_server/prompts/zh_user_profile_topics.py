@@ -23,100 +23,101 @@ class UserProfileTopic:
 
 CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic] = [
     UserProfileTopic(
-        "basic_info",
+        "基本信息",
         [
-            "Name",
+            "用户姓名",
             {
-                "name": "Age",
-                "description": "integer",
+                "name": "用户年龄",
+                "description": "整数",
             },
-            "Gender",
-            "birth_date",
-            "nationality",
-            "ethnicity",
-            "language_spoken",
+            "性别",
+            "出生日期",
+            "国籍",
+            "民族",
+            "语言",
         ],
     ),
     UserProfileTopic(
-        "contact_info",
+        "联系信息",
         [
-            "email",
-            "phone",
-            "address",
-            "city",
-            "state",
-            "country",
-            "postal_code",
+            "电子邮件",
+            "电话",
+            "地址",
+            "城市",
+            "省份",
+            "国家",
+            "邮政编码",
         ],
     ),
     UserProfileTopic(
-        "education",
+        "教育背景",
         [
-            "school",
-            "degree",
-            "major",
-            "graduation_year",
-            "field_of_study",
-            "institutions",
+            "学校",
+            "学位",
+            "专业",
+            "毕业年份",
+            "研究领域",
+            "教育机构",
         ],
     ),
     UserProfileTopic(
-        "demographics",
+        "人口统计",
         [
-            "marital_status",
-            "number_of_children",
-            "household_income",
+            "婚姻状况",
+            "子女数量",
+            "家庭收入",
         ],
     ),
     UserProfileTopic(
-        "work",
+        "工作",
         [
-            "company",
-            "title",
-            "workingLocation",
-            "jobStartDate",
-            "jobEndDate",
-            "working_industry",
-            "previous_projects",
-            "work_skills",
+            "公司",
+            "职位",
+            "工作地点",
+            "入职日期",
+            "离职日期",
+            "所属行业",
+            "参与项目",
+            "工作技能",
         ],
     ),
     UserProfileTopic(
-        "interest",
+        "兴趣爱好",
         [
-            "books",
-            "book_authors",
-            "movies",
-            "tv_shows",
-            "music",
-            "music_genres",
-            "foods",
-            "sports",
-            "outdoor_activities",
-            "games",
-            "quotes",
+            "书籍",
+            "喜欢的作者",
+            "电影",
+            "电视节目",
+            "音乐",
+            "音乐类型",
+            "美食",
+            "运动",
+            "户外活动",
+            "游戏",
+            "座右铭",
         ],
     ),
     UserProfileTopic(
-        "lifestyle",
+        "生活方式",
         [
-            {"name": "dietary_preferences", "description": "e.g., vegetarian, vegan"},
-            "exercise_habits",
-            "health_conditions",
-            "sleep_patterns",
-            "smoking",
-            "alcohol",
+            {"name": "饮食偏好", "description": "例如：素食，纯素"},
+            "运动习惯",
+            "健康状况",
+            "睡眠模式",
+            "吸烟",
+            "饮酒",
         ],
     ),
     UserProfileTopic(
-        "psychological",
-        ["personality", "values", "beliefs", "motivations", "goals"],
+        "心理特征",
+        ["性格特点", "价值观", "信仰", "动力", "目标"],
     ),
     UserProfileTopic(
-        "life_event",
-        ["marriage", "relocation", "retirement"],
+        "人生大事",
+        ["婚姻", "搬迁", "退休"],
     ),
 ]
+
 
 if CONFIG.overwrite_user_profiles is not None:
     CANDIDATE_PROFILE_TOPICS = [
@@ -129,14 +130,14 @@ elif CONFIG.additional_user_profiles:
         for up in CONFIG.additional_user_profiles
     ]
     CANDIDATE_PROFILE_TOPICS.extend(_addon_user_profiles)
-if CONFIG.language == "en":
+if CONFIG.language == "zh":
     LOG.info(f"User profiles: {CANDIDATE_PROFILE_TOPICS}")
 
 
 def formate_profile_topic(topic: UserProfileTopic) -> str:
     if not topic.sub_topics:
         return f"- {topic.topic}"
-    return f"- {topic.topic}. Including sub_topics: " + ", ".join(
+    return f"- {topic.topic}. 包括sub_topics: " + ", ".join(
         [
             f"{sp['name']}"
             + (f"({sp['description']})" if sp.get("description") else "")

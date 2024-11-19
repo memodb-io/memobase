@@ -40,7 +40,7 @@ Place your action in 'action' field and the final memo in 'memo' field.
 And return your results in JSON format.
 
 Compare newly retrieved facts with the existing memory. For each new fact, decide whether to:
-- REPLACE: The old memo is considered outdated and should be replaced with the new memo, or the new memo is conflicting with the old memo.
+- REPLACE: The old memo is considered completely outdated and should be replaced with the new memo, or the new memo is completely conflicting with the old memo.
 - MERGE: The old and new memo tell different parts of the same story and should be merged together.
 
 There are specific guidelines to select which operation to perform:
