@@ -7,11 +7,11 @@ from ..env import CONFIG, LOG
 from ..models.utils import Promise
 from ..models.response import CODE
 from .openai import openai_complete
-from .doubao import doubao_complete
 from ..dashboard.capture_key import capture_int_key
 
 
-FACTORIES = {"openai": openai_complete, "doubao": doubao_complete}
+FACTORIES = {"openai": openai_complete}
+assert CONFIG.llm_style in FACTORIES, f"Unsupported LLM style: {CONFIG.llm_style}"
 
 
 # TODO: add TPM/Rate limiter

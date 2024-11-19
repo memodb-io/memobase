@@ -46,9 +46,6 @@ class Config:
         LOG.info(f"{overwrite_config}")
         return overwrite_config
 
-    def __post_init__(self):
-        assert self.llm_style in ["openai", "doubao"]
-
 
 # 1. Add logger
 LOG = logging.getLogger("memobase_server")
