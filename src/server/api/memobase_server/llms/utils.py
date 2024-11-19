@@ -6,11 +6,9 @@ from tenacity import (
     wait_exponential,
     retry_if_exception_type,
 )
-from volcenginesdkarkruntime import AsyncArk
 from ..env import CONFIG
 
 _global_openai_async_client = None
-_global_doubao_async_client = None
 
 
 def get_openai_retry_decorator():
@@ -29,13 +27,3 @@ def get_openai_async_client_instance():
             api_key=CONFIG.llm_api_key,
         )
     return _global_openai_async_client
-
-
-def get_doubao_async_client_instance():
-    global _global_doubao_async_client
-    if _global_doubao_async_client is None:
-        _global_doubao_async_client = AsyncArk(
-            base_url=CONFIG.llm_base_url,
-            api_key=CONFIG.llm_api_key,
-        )
-    return _global_doubao_async_client
