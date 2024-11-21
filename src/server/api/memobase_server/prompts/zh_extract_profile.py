@@ -224,4 +224,4 @@ def get_prompt(already_topics: str) -> str:
 
 
 if __name__ == "__main__":
-    print(get_prompt(zh_user_profile_topics.get_prompt()))
+    print(get_prompt(already_topics=""))

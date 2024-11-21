@@ -1,11 +1,11 @@
 from ..env import CONFIG, LOG
-from .types import UserProfileTopic
+from .types import UserProfileTopic, formate_profile_topic, modify_default_user_profile
 
 
 CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic] = [
     UserProfileTopic(
         "basic_info",
-        [
+        sub_topics=[
             "Name",
             {
                 "name": "Age",
@@ -20,30 +20,24 @@ CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic] = [
     ),
     UserProfileTopic(
         "contact_info",
-        [
+        sub_topics=[
             "email",
             "phone",
-            "address",
             "city",
-            "state",
             "country",
-            "postal_code",
         ],
     ),
     UserProfileTopic(
         "education",
-        [
+        sub_topics=[
             "school",
             "degree",
             "major",
-            "graduation_year",
-            "field_of_study",
-            "institutions",
         ],
     ),
     UserProfileTopic(
         "demographics",
-        [
+        sub_topics=[
             "marital_status",
             "number_of_children",
             "household_income",
@@ -51,12 +45,9 @@ CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic] = [
     ),
     UserProfileTopic(
         "work",
-        [
+        sub_topics=[
             "company",
             "title",
-            "workingLocation",
-            "jobStartDate",
-            "jobEndDate",
             "working_industry",
             "previous_projects",
             "work_skills",
@@ -64,66 +55,29 @@ CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic] = [
     ),
     UserProfileTopic(
         "interest",
-        [
+        sub_topics=[
             "books",
-            "book_authors",
             "movies",
-            "tv_shows",
             "music",
-            "music_genres",
             "foods",
             "sports",
-            "outdoor_activities",
-            "games",
-            "quotes",
-        ],
-    ),
-    UserProfileTopic(
-        "lifestyle",
-        [
-            {"name": "dietary_preferences", "description": "e.g., vegetarian, vegan"},
-            "exercise_habits",
-            "health_conditions",
-            "sleep_patterns",
-            "smoking",
-            "alcohol",
         ],
     ),
     UserProfileTopic(
         "psychological",
-        ["personality", "values", "beliefs", "motivations", "goals"],
+        sub_topics=["personality", "values", "beliefs", "motivations", "goals"],
     ),
     UserProfileTopic(
         "life_event",
-        ["marriage", "relocation", "retirement"],
+        sub_topics=["marriage", "relocation", "retirement"],
     ),
 ]
 
-if CONFIG.overwrite_user_profiles is not None:
-    CANDIDATE_PROFILE_TOPICS = [
-        UserProfileTopic(up["topic"], up["sub_topics"])
-        for up in CONFIG.overwrite_user_profiles
-    ]
-elif CONFIG.additional_user_profiles:
-    _addon_user_profiles = [
-        UserProfileTopic(up["topic"], up["sub_topics"])
-        for up in CONFIG.additional_user_profiles
-    ]
-    CANDIDATE_PROFILE_TOPICS.extend(_addon_user_profiles)
+CANDIDATE_PROFILE_TOPICS = modify_default_user_profile(CANDIDATE_PROFILE_TOPICS)
 if CONFIG.language == "en":
     LOG.info(f"User profiles: {CANDIDATE_PROFILE_TOPICS}")
 
-
-def formate_profile_topic(topic: UserProfileTopic) -> str:
-    if not topic.sub_topics:
-        return f"- {topic.topic}"
-    return f"- {topic.topic}. Including sub_topics: " + ", ".join(
-        [
-            f"{sp['name']}"
-            + (f"({sp['description']})" if sp.get("description") else "")
-            for sp in topic.sub_topics
-        ]
-    )
+CANDIDATE_PROFILE_TOPICS = modify_default_user_profile(CANDIDATE_PROFILE_TOPICS)
 
 
 def get_prompt():

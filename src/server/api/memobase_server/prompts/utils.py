@@ -67,9 +67,7 @@ def parse_value(value: str):
             return value.strip('"')  # Remove surrounding quotes if they exist
 
 
-def extract_values_from_json(
-    json_string, keys=["reasoning", "answer", "data"], allow_no_quotes=False
-):
+def extract_values_from_json(json_string, allow_no_quotes=False):
     """Extract key values from a non-standard or malformed JSON string, handling nested objects."""
     extracted_values = {}
 

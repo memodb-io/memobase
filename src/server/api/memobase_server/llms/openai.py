@@ -2,7 +2,6 @@ from .utils import get_openai_retry_decorator, get_openai_async_client_instance
 from ..env import CONFIG
 
 
-@get_openai_retry_decorator()
 async def openai_complete(
     model, prompt, system_prompt=None, history_messages=[], **kwargs
 ) -> str:

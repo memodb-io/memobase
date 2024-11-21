@@ -1,10 +1,11 @@
 import asyncio
 from typing import TypedDict
+import pydantic
 from ...env import CONFIG, LOG, pprint
 from ...utils import get_blob_str
 from ...models.utils import Promise
 from ...models.blob import Blob, BlobType
-from ...models.response import ProfileData
+from ...models.response import ProfileData, AIUserProfiles, CODE
 from ...llms import llm_complete
 from ...prompts import (
     extract_profile,
@@ -81,9 +82,14 @@ async def process_blobs(
     if not p.ok():
         return p
     results = p.data()
-    if "facts" not in results:
-        LOG.warning(f"No facts extracted: {results}")
-        return Promise.resolve(None)
+    try:
+        AIUserProfiles.model_validate(results)
+    except pydantic.ValidationError as e:
+        LOG.warning(f"Invalid AIUserProfiles: {e}")
+        return Promise.reject(
+            CODE.SERVICE_UNAVAILABLE,
+            f"Invalid LLM Response: {results}",
+        )
     new_facts: list[FactResponse] = results["facts"]
     for nf in new_facts:
         nf["topic"] = attribute_unify(nf["topic"])

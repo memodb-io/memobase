@@ -50,13 +50,17 @@ MERGE_FACTS_PROMPT = """你是一个智能备忘录管理器，负责控制用�
 {example_replace}
 
 ## MERGE
+你需要总结new memo和old memo的内容，以便在新memo中包含所有信息。
 **示例**：
 {example_merge}
 
-智慧地理解备忘录，你可以从new memo和old memo中推断信息以决定正确的操作。
+理解memo，你可以从new memo和old memo中推断信息以决定正确的操作。
 遵循以下说明：
 - 不要返回上面提供的自定义少量提示中的任何内容。
 - 严格遵守正确的JSON格式。
+- 当REPLACE或者MERGE之后的memo超过5句话时，你需要输出memo的总结和摘要。
+- 最终的memo不能超过5句话。
+
 
 除了JSON格式外，不要返回任何其他内容。
 """

@@ -28,6 +28,17 @@ class CODE(IntEnum):
     GATEWAY_TIMEOUT = 504  # The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server.
 
 
+class AIUserProfile(BaseModel):
+    topic: str
+    sub_topic: str
+    memo: str
+    cites: list[int]
+
+
+class AIUserProfiles(BaseModel):
+    facts: list[AIUserProfile]
+
+
 # Return data format
 class IdData(BaseModel):
     id: UUID4
