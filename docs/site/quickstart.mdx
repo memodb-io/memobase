@@ -4,304 +4,306 @@ title: 'Quickstart'
 
 
 <CardGroup cols={2}>
-  <Card title="Server Side" icon="chart-simple" href="#mem0-platform-managed-solution">
-    Launch MemoBase backend with docker
-  </Card>
   <Card title="Client Side" icon="code-branch" href="#mem0-open-source">
     Integrate MemoBase in your Apps
+  </Card>
+  <Card title="Server Side" icon="chart-simple" href="#memobase-backend">
+    Launch MemoBase backend with docker
   </Card>
 </CardGroup>
 
 
-## Mem0 Platform (Managed Solution)
-MemoBase offers a open-source solution with a docker backend to launch your own instance.
+## MemoBase Client
 
-Our fully managed platform provides a hassle-free way to integrate Mem0's capabilities into your AI agents and assistants. Sign up for Mem0 platform [here](https://mem0.dev/pd).
-
-Follow the steps below to get started with Mem0 Platform:
-
-1. [Install Mem0](#1-install-mem0)
-2. [Add Memories](#2-add-memories)
-3. [Retrieve Memories](#3-retrieve-memories)
-
-### 1. Install Mem0
+### Get Prepared
 
 <AccordionGroup>
-<Accordion title="Install package">
+<Accordion title="Using SDK (python)">
 <CodeGroup>
 ```bash pip
-pip install mem0ai
+pip install memobase
 ```
-
-```bash npm
-npm install mem0ai
+```bash http
+# Skip to next step
 ```
 </CodeGroup>
 </Accordion>
-<Accordion title="Get API Key">
-
-1. Sign in to [Mem0 Platform](https://mem0.dev/pd-api)
-2. Copy your API Key from the dashboard
-
-![Get API Key from Mem0 Platform](/images/platform/api-key.png)
-
+<Accordion title="Your Project URL and TOKEN">
+Cloud Service is still under development, below steps are for future reference.
+> 1. Sign up at [MemoBase](https://memobase.io)
+> 2. Create a [new project](https://dashboard.memobase.io), and get your project url, token.
 </Accordion>
 </AccordionGroup>
 
-### 2. Add Memories
+### Connect to MemoBase Backend
 
 <AccordionGroup>
 <Accordion title="Instantiate client">
 <CodeGroup>
 ```python Python
-from mem0 import MemoryClient
-client = MemoryClient(api_key="your-api-key")
-```
-
-```javascript JavaScript
-const MemoryClient = require('mem0ai');
-const client = new MemoryClient('your-api-key');
+from memobase import MemoBaseClient
+client = MemoBaseClient(
+    "PROJECT_URL",
+    api_key="PROJECT_TOKEN"
+)
 ```
 </CodeGroup>
 </Accordion>
-<Accordion title="Add memories">
+<Accordion title="Test connection">
 <CodeGroup>
 
 ```python Python
-messages = [
-    {"role": "user", "content": "Hi, I'm Alex. I'm a vegetarian and I'm allergic to nuts."},
-    {"role": "assistant", "content": "Hello Alex! I've noted that you're a vegetarian and have a nut allergy. I'll keep this in mind for any food-related recommendations or discussions."}
-]
-client.add(messages, user_id="alex")
+assert client.ping()
 ```
-
-```javascript JavaScript
-const messages = [
-    {"role": "user", "content": "Hi, I'm Alex. I'm a vegetarian and I'm allergic to nuts."},
-    {"role": "assistant", "content": "Hello Alex! I've noted that you're a vegetarian and have a nut allergy. I'll keep this in mind for any food-related recommendations or discussions."}
-];
-client.add(messages, { user_id: "alex" })
-    .then(response => console.log(response))
-    .catch(error => console.error(error));
-```
-
 ```bash cURL
-curl -X POST "https://api.mem0.ai/v1/memories/" \
-     -H "Authorization: Token your-api-key" \
-     -H "Content-Type: application/json" \
-     -d '{
-         "messages": [
-             {"role": "user", "content": "Hi, I'm Alex. I'm a vegetarian and I'm allergic to nuts."},
-             {"role": "assistant", "content": "Hello Alex! I've noted that you're a vegetarian and have a nut allergy. I'll keep this in mind for any food-related recommendations or discussions."}
-         ],
-         "user_id": "alex"
-     }'
+curl -H "Authorization: Bearer $PROJECT_TOKEN" "$PROJECT_URL/api/v1/healthcheck"
 ```
 
 ```json Output
-{'message': 'ok'}
+{"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
 </Accordion>
 </AccordionGroup>
 
-### 3. Retrieve Memories
-
+### User Management
+This section is a quickstart of how to do CURD of users.
 <AccordionGroup>
-<Accordion title="Search for relevant memories">
+<Accordion title="Create">
 <CodeGroup>
 
 ```python Python
-query = "What can I cook for dinner tonight?"
-client.search(query, user_id="alex")
-```
-
-```javascript JavaScript
-const query = "What can I cook for dinner tonight?";
-client.search(query, { user_id: "alex" })
-    .then(results => console.log(results))
-    .catch(error => console.error(error));
+uid = client.add_user({"ANY": "DATA"})
 ```
 
 ```bash cURL
-curl -X POST "https://api.mem0.ai/v1/memories/search/" \
-     -H "Authorization: Token your-api-key" \
+curl -X POST "$PROJECT_URL/api/v1/users" \
+     -H "Authorization: Bearer $PROJECT_TOKEN" \
      -H "Content-Type: application/json" \
-     -d '{
-         "query": "What can I cook for dinner tonight?",
-         "user_id": "alex"
-     }'
+     -d '{"data": {"ANY": "DATA"}}'
 ```
 
 ```json Output
-[
+{"data":{"id":"60377b0b-bf46-462f-UUID-2fbc6a38a884"},"errno":0,"errmsg":""}
+```
+</CodeGroup>
+</Accordion>
+
+<Accordion title="Update">
+<CodeGroup>
+
+```python Python
+client.update_user(uid, {"ANY": "NEW_DATA"})
+```
+
+```bash cURL
+curl -X PUT "$PROJECT_URL/api/v1/users/{uid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"data": {"ANY": "NEW_DATA"}}'
+```
+
+```json Output
+{
+    "data":{
+        "id": "60377b0b-bf46-462f-UUID-2fbc6a38a884",
+    },
+    "errno":0,
+    "errmsg":""
+}
+```
+</CodeGroup>
+</Accordion>
+
+<Accordion title="Get">
+<CodeGroup>
+
+```python Python
+u = client.get_user(uid)
+```
+
+```bash cURL
+curl -X GET "$PROJECT_URL/api/v1/users/{uid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN"
+```
+
+```json Output
+{
+    "data":{
+        "data":{"ANY":"DATA"},
+        "created_at":"2024-11-21T15:29:50.503356",
+        "updated_at":"2024-11-21T15:29:50.503356"
+    },
+    "errno":0,
+    "errmsg":""
+}
+```
+</CodeGroup>
+</Accordion>
+
+<Accordion title="Delete">
+<CodeGroup>
+
+```python Python
+client.delete_user(uid)
+```
+
+```bash cURL
+curl -X DELETE "$PROJECT_URL/api/v1/users/{uid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN"
+```
+
+```json Output
+{"data":null,"errno":0,"errmsg":""}
+```
+</CodeGroup>
+</Accordion>
+</AccordionGroup>
+
+### User Data Management
+Once you created a user, you can start to manage user data.
+<AccordionGroup>
+<Accordion title="Insert Data">
+<CodeGroup>
+
+```python Python
+from memobase import ChatBlob
+b = ChatBlob(messages=[
     {
-        "id": "7f165f7e-b411-4afe-b7e5-35789b72c4a5",
-        "memory": "Name: Alex. Vegetarian. Allergic to nuts.",
-        "input": [
-            {
-                "role": "user",
-                "content": "Hi, I'm Alex. I'm a vegetarian and I'm allergic to nuts."
-            },
-            {
-                "role": "assistant",
-                "content": "Hello Alex! I've noted that you're a vegetarian and have a nut allergy. I'll keep this in mind for any food-related recommendations or discussions."
-            }
-        ],
-        "user_id": "alex",
-        "hash": "9ee7e1455e84d1dab700ed8749aed75a",
-        "metadata": null,
-        "created_at": "2024-07-20T01:30:36.275141-07:00",
-        "updated_at": "2024-07-20T01:30:36.275172-07:00"
+        "role": "user",
+        "content": "Hi, I'm here again"
+    },
+    {
+        "role": "assistant",
+        "content": "Hi, Gus! How can I help you?"
     }
-]
-```
-</CodeGroup>
-
-</Accordion>
-<Accordion title="Get all memories of a user">
-
-<CodeGroup>
-
-```python Python
-user_memories = client.get_all(user_id="alex")
-```
-
-```javascript JavaScript
-client.getAll({ user_id: "alex" })
-    .then(memories => console.log(memories))
-    .catch(error => console.error(error));
+])
+u = client.get_user(uid)
+bid = u.insert(b)
 ```
 
 ```bash cURL
-curl -X GET "https://api.mem0.ai/v1/memories/?user_id=alex" \
-     -H "Authorization: Token your-api-key"
+curl -X POST "$PROJECT_URL/api/v1/blobs/insert/{uid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{ "blob_type": "chat", "blob_data": { "messages": [ {"role": "user","content": "Hi, Im here again"}, {"role": "assistant", "content": "Hi, Gus! How can I help you?"}] }}'
 ```
 
 ```json Output
-[
-   {
-      "id":"f38b689d-6b24-45b7-bced-17fbb4d8bac7",
-      "memory":"是素食主义者，对坚果过敏。",
-      "agent_id":"travel-assistant",
-      "hash":"62bc074f56d1f909f1b4c2b639f56f6a",
-      "metadata":"None",
-      "created_at":"2024-07-25T23:57:00.108347-07:00",
-      "updated_at":"2024-07-25T23:57:00.108367-07:00"
-   },
-   {
-      "id":"0a14d8f0-e364-4f5c-b305-10da1f0d0878",
-      "memory":"Will maintain personalized travel preferences for each user. Provide customized recommendations based on dietary restrictions, interests, and past interactions.",
-      "agent_id":"travel-assistant",
-      "hash":"35a305373d639b0bffc6c2a3e2eb4244",
-      "metadata":"None",
-      "created_at":"2024-07-26T00:31:03.543759-07:00",
-      "updated_at":"2024-07-26T00:31:03.543778-07:00"
-   }
-]
+{"data":{"id":"60377b0b-bf46-BLOB-UUID-2fbc6a38a884"},"errno":0,"errmsg":""}
 ```
 </CodeGroup>
 </Accordion>
-</AccordionGroup>
 
-<Card title="Mem0 Platform" icon="chart-simple" href="/platform/overview">
-  Learn more about Mem0 platform
-</Card>
+<Accordion title="Get">
+<CodeGroup>
 
-## Mem0 Open Source
-
-Our open-source version is available for those who prefer full control and customization. You can self-host Mem0 on your infrastructure and integrate it with your AI agents and assistants. Checkout our [GitHub repository](https://mem0.dev/gd)
-
-Follow the steps below to get started with Mem0 Open Source:
-
-1. [Install Mem0 Open Source](#1-install-mem0-open-source)
-2. [Add Memories](#2-add-memories-open-source)
-3. [Retrieve Memories](#3-retrieve-memories-open-source)
-
-### 1. Install Mem0 Open Source
-
-<AccordionGroup>
-<Accordion title="Install package">
-```bash
-pip install mem0ai
-```
-</Accordion>
-</AccordionGroup>
-
-### 2. Add Memories <a name="2-add-memories-open-source"></a>
-
-<AccordionGroup>
-<Accordion title="Instantiate client">
 ```python Python
-from mem0 import Memory
-m = Memory()
+b = u.get(bid)
 ```
-</Accordion>
-<Accordion title="Add memories">
-<CodeGroup>
-```python Code
-# For a user
-result = m.add("I like to take long walks on weekends.", user_id="alice", metadata={"category": "hobbies"})
+
+```bash cURL
+curl -X GET "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN"
 ```
 
 ```json Output
-{'message': 'ok'}
+{
+    "data":{
+        "blob_type":"chat",
+        "blob_data":{
+            "messages":[
+                {"role":"user","alias":null,"content":"Hi, Im here again"},
+                {"role":"assistant","alias":null,"content":"Hi, Gus! How can I help you?"}
+                ]
+            },
+        "fields":null,
+        "created_at":"2024-11-23T08:38:22.067493",
+        "updated_at":"2024-11-23T08:38:22.067493"
+    },
+    "errno":0,
+    "errmsg":""}
+```
+</CodeGroup>
+</Accordion>
+
+<Accordion title="Delete">
+<CodeGroup>
+
+```python Python
+u.delete(bid)
+
+```
+```bash cURL
+curl -X DELETE "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN"
+```
+
+```json Output
+{"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
 </Accordion>
 </AccordionGroup>
 
-### 3. Retrieve Memories <a name="3-retrieve-memories-open-source"></a>
+### Memory Operations
+MemoBase provides memory extraction and storage for each user：
+1. `flush`: User Data will stay in buffer until the buffer is too big or IDLE for too long. You can flush the buffer to trigger the memory extraction manually
+2. `profile`: Get the memory profiles of a user.
 
 <AccordionGroup>
-<Accordion title="Search for relevant memories">
+<Accordion title="Flush" description="e.g. After a chat session is closed">
 <CodeGroup>
-```python Code
-related_memories = m.search(query="Help me plan my weekend.", user_id="alice")
+
+```python Python
+u.flush()
+```
+
+```bash cURL
+curl -X POST "$PROJECT_URL/api/v1/users/buffer/{uid}/chat" \
+     -H "Authorization: Bearer $PROJECT_TOKEN"
 ```
 
 ```json Output
-[
-   {
-      "id":"ea925981-272f-40dd-b576-be64e4871429",
-      "memory":"Likes to take long walks on weekends.",
-      "hash":"c8809002-25c1-4c97-a3a2-227ce9c20c53",
-      "metadata":{
-         "category":"hobbies"
-      },
-      "score":0.32116443111457704,
-      "created_at":"2024-07-26T10:29:36.630547-07:00",
-      "updated_at":"None",
-      "user_id":"alice"
-   }
-]
+{"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
 </Accordion>
-<Accordion title="Get all memories of a user">
+
+<Accordion title="User Profile">
 <CodeGroup>
-```python Code
-# Get all memories
-all_memories = m.get_all(user_id="alice")
+
+```python Python
+u.profile()
+```
+
+```bash cURL
+curl -X GET "$PROJECT_URL/api/v1/users/profile/{uid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN"
 ```
 
 ```json Output
-[
-   {
-      "id":"13efe83b-a8df-4ec0-814e-428d6e8451eb",
-      "memory":"Likes to take long walks on weekends",
-      "hash":"87bcddeb-fe45-4353-bc22-15a841c50308",
-      "metadata":"None",
-      "created_at":"2024-07-26T08:44:41.039788-07:00",
-      "updated_at":"None",
-      "user_id":"alice"
-   }
-]
+{
+    "data":{
+        "profiles":[
+            {
+                "content":"Gus",
+                "attributes":{"topic":"基本信息","sub_topic":"姓名"}
+                "id":"186bdbf0-ce35-4608-9404-47af27000f7f",
+                "related_blobs":["9af94328-526e-486e-a411-efffdd8fc37e"],
+                "created_at":"2024-11-23T08:53:14.227481",
+                "updated_at":"2024-11-23T08:53:14.227481",
+            }
+        ]
+    },
+    "errno":0,
+    "errmsg":""}
 ```
 </CodeGroup>
 </Accordion>
+
 </AccordionGroup>
 
-<Card title="Mem0 Open source" icon="code-branch" href="/open-source/overview">
-  Learn more about Mem0 open source
-</Card>
+## MemoBase Backend
+MemoBase offers a open-source solution with a docker backend to launch your own instance.
+TODO
