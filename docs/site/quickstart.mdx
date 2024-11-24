@@ -249,9 +249,7 @@ curl -X DELETE "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 ### Memory Operations
 MemoBase provides memory extraction and storage for each user：
 1. `flush`: User Data will stay in buffer until the buffer is too big or IDLE for too long. You can flush the buffer to trigger the memory extraction manually
-2. `profile`: Get the memory profiles of a user.
 
-<AccordionGroup>
 <Accordion title="Flush" description="e.g. After a chat session is closed">
 <CodeGroup>
 
@@ -269,6 +267,8 @@ curl -X POST "$PROJECT_URL/api/v1/users/buffer/{uid}/chat" \
 ```
 </CodeGroup>
 </Accordion>
+
+2. `profile`: Get the memory profiles of a user.
 
 <Accordion title="User Profile">
 <CodeGroup>
@@ -302,7 +302,26 @@ curl -X GET "$PROJECT_URL/api/v1/users/profile/{uid}" \
 </CodeGroup>
 </Accordion>
 
-</AccordionGroup>
+3. Pack the profiles into your system prompt:
+
+
+<Accordion title="Prompt Example">
+<CodeGroup>
+
+```txt Prompt
+Below are the user profile:
+* basic_info: name - 오*영
+* basic_info: language_spoken - User uses both English and Korean.
+* contact_info: email - s****2@ca**rp.com
+* education:  - User had an English teacher who emphasized capitalization rules during school days.
+* education: major - 국어국문학과 (Korean Language and Literature)
+* demographics: marital_status - user is married
+...
+You should be aware of these information when you talk to the user.
+```
+</CodeGroup>
+</Accordion>
+
 
 ## MemoBase Backend
 MemoBase offers a open-source solution with a docker backend to launch your own instance.
