@@ -288,7 +288,8 @@ curl -X GET "$PROJECT_URL/api/v1/users/profile/{uid}" \
         "profiles":[
             {
                 "content":"Gus",
-                "attributes":{"topic":"基本信息","sub_topic":"姓名"}
+                "attributes":{"topic":"basic_info","sub_topic":"name"},
+
                 "id":"186bdbf0-ce35-4608-9404-47af27000f7f",
                 "related_blobs":["9af94328-526e-486e-a411-efffdd8fc37e"],
                 "created_at":"2024-11-23T08:53:14.227481",
@@ -305,7 +306,7 @@ curl -X GET "$PROJECT_URL/api/v1/users/profile/{uid}" \
 3. Pack the profiles into your system prompt:
 
 
-<Accordion title="Prompt Example">
+<Accordion title="Prompt Example" description="Example Profile from ShareGPT">
 <CodeGroup>
 
 ```txt Prompt
