@@ -6,29 +6,13 @@ from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
 
 
-GD_FACTS = {
-    "facts": [
-        {"topic": "basic_info", "sub_topic": "Name", "memo": "Gus", "cites": [0, 1]},
-        {
-            "topic": "interest",
-            "sub_topic": "foods",
-            "memo": "Chinese food",
-            "cites": [1],
-        },
-        {
-            "topic": "education",
-            "sub_topic": "level",
-            "memo": "High School",
-            "cites": [1],
-        },
-        {
-            "topic": "psychological",
-            "sub_topic": "emotional_state",
-            "memo": "Feels bored with high school",
-            "cites": [1],
-        },
-    ]
-}
+GD_FACTS = """
+- basic_info::name::Gus::[0,1]
+- interest::foods::Chinese food::[1]
+- education::level::High School::[1]
+- psychological::emotional_state::Feels bored with high school::[1]
+"""
+
 PROFILES = [
     "user likes to play basketball",
     "user is a junior school student",
@@ -70,7 +54,7 @@ def mock_llm_complete():
 
 
 @pytest.mark.asyncio
-async def test_chat_buffer_modal(db_env):
+async def test_chat_buffer_modal(db_env, mock_llm_complete):
     p = await controllers.user.create_user(res.UserData())
     assert p.ok()
     u_id = p.data().id
@@ -121,6 +105,7 @@ async def test_chat_buffer_modal(db_env):
 
     p = await controllers.user.get_user_profiles(u_id)
     assert p.ok()
+    assert len(p.data().profiles) == 4
     print(p.data())
 
     p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)

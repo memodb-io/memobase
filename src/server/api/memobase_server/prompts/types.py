@@ -25,9 +25,9 @@ class UserProfileTopic:
 def formate_profile_topic(topic: UserProfileTopic) -> str:
     if not topic.sub_topics:
         return f"- {topic.topic}"
-    return f"- {topic.topic} ({topic.description or ''})\n    - " + "\n    - ".join(
+    return f"- {topic.topic} ({topic.description or ''})\n" + "\n".join(
         [
-            f"{sp['name']}"
+            f"  - {sp['name']}"
             + (f"({sp['description']})" if sp.get("description") else "")
             for sp in topic.sub_topics
         ]

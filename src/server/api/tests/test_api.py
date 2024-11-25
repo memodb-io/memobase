@@ -29,18 +29,7 @@ def mock_llm_complete():
     with patch("memobase_server.controllers.modal.chat.llm_complete") as mock_llm:
         mock_client1 = AsyncMock()
         mock_client1.ok = Mock(return_value=True)
-        mock_client1.data = Mock(
-            return_value={
-                "facts": [
-                    {
-                        "topic": "basic_info",
-                        "sub_topic": "Name",
-                        "memo": "Gus",
-                        "cites": [0, 1],
-                    }
-                ]
-            }
-        )
+        mock_client1.data = Mock(return_value="- basic_info::name::Gus::[0,1]")
 
         mock_llm.side_effect = [mock_client1]
         yield mock_llm

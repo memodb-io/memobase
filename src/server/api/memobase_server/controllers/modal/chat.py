@@ -13,7 +13,11 @@ from ...prompts import (
     zh_extract_profile,
     zh_merge_profile,
 )
-from ...prompts.utils import tag_strings_in_order_xml, attribute_unify
+from ...prompts.utils import (
+    tag_strings_in_order_xml,
+    attribute_unify,
+    parse_string_into_profiles,
+)
 from ..user import add_user_profiles, get_user_profiles, update_user_profile
 
 FactResponse = TypedDict(
@@ -56,11 +60,8 @@ async def process_blobs(
         already_topics_subtopics = sorted(
             set([(p.attributes["topic"], p.attributes["sub_topic"]) for p in profiles])
         )
-        already_topics_prompt = "- " + "\n- ".join(
-            [
-                f"topic: {topic}, sub_topic: {sub_topic}"
-                for topic, sub_topic in already_topics_subtopics
-            ]
+        already_topics_prompt = "\n".join(
+            [f"- {topic}::{sub_topic}" for topic, sub_topic in already_topics_subtopics]
         )
         LOG.info(
             f"User {user_id} already have {len(profiles)} profiles, {len(already_topics_subtopics)} topics"
@@ -76,21 +77,14 @@ async def process_blobs(
         system_prompt=PROMPTS[CONFIG.language]["extract"].get_prompt(
             already_topics=already_topics_prompt
         ),
-        json_mode=True,
         temperature=0.2,  # precise
     )
     if not p.ok():
         return p
     results = p.data()
-    try:
-        AIUserProfiles.model_validate(results)
-    except pydantic.ValidationError as e:
-        LOG.warning(f"Invalid AIUserProfiles: {e}")
-        return Promise.reject(
-            CODE.SERVICE_UNAVAILABLE,
-            f"Invalid LLM Response: {results}",
-        )
-    new_facts: list[FactResponse] = results["facts"]
+    parsed_facts: AIUserProfiles = parse_string_into_profiles(results)
+    new_facts: list[FactResponse] = parsed_facts.model_dump()["facts"]
+
     for nf in new_facts:
         nf["topic"] = attribute_unify(nf["topic"])
         nf["sub_topic"] = attribute_unify(nf["sub_topic"])
@@ -98,10 +92,13 @@ async def process_blobs(
 
     if len(new_facts):
         pprint([get_blob_str(b) for b in blobs])
+        pprint(results)
         pprint(new_facts)
+
     related_blob_ids = []
     fact_contents = []
     fact_attributes = []
+
     # FIXME if two same attributes in fact_attributes, will cause duplicate in profiles to add
     for nf in new_facts:
         fact_contents.append(nf["memo"])

@@ -1,6 +1,10 @@
 import re
 import json
 from ..env import LOG
+from ..models.response import AIUserProfiles, AIUserProfile
+
+LIST_INT_PATTERN = re.compile(r"\[\d+(?:,\s*\d+)*\]")
+INT_INT_PATTERN = re.compile(r"\[(\d+)\]")
 
 
 def tag_strings_in_order_xml(
@@ -103,3 +107,54 @@ def convert_response_to_json(response: str) -> dict:
         LOG.error("JSON extract failed.")
 
     return prediction_json
+
+
+def pack_profiles_into_string(profiles: AIUserProfiles, tab="::") -> str:
+    lines = [
+        f"- {attribute_unify(p.topic)}{tab}{attribute_unify(p.sub_topic)}{tab}{p.memo.strip()}{tab}{p.cites}"
+        for p in profiles.facts
+    ]
+    if not len(lines):
+        return "NONE"
+    return "\n".join(lines)
+
+
+def parse_string_into_profiles(response: str, tab="::") -> AIUserProfiles:
+    lines = response.split("\n")
+    lines = [l.strip() for l in lines if l.strip()]
+    facts = [parse_line_into_profile(l) for l in lines]
+    facts = [f for f in facts if f is not None]
+    return AIUserProfiles(facts=facts)
+
+
+def parse_line_into_profile(line: str, tab="::") -> AIUserProfile | None:
+    if not line.startswith("- "):
+        return None
+    line = line[2:]
+    parts = line.split(tab)
+    if not len(parts) == 4:
+        return None
+    topic, sub_topic, memo, cites = parts
+    cites = parse_string_into_cites(cites)
+    return AIUserProfile(
+        topic=attribute_unify(topic),
+        sub_topic=attribute_unify(sub_topic),
+        memo=memo.strip(),
+        cites=cites,
+    )
+
+
+def parse_string_into_cites(response: str) -> list[int] | None:
+    normal_list = LIST_INT_PATTERN.search(response)
+    if normal_list is not None:
+        return json.loads(normal_list.group())
+
+    int_bracket_list = INT_INT_PATTERN.findall(response)
+    if len(int_bracket_list):
+        return [int(i) for i in int_bracket_list]
+    LOG.warning(f"No cites found in the response: {response}")
+    return []
+
+
+if __name__ == "__main__":
+    print(parse_line_into_profile("- basic_info::name::Gus::[0, 1]"))

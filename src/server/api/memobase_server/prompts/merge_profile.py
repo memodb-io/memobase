@@ -60,6 +60,7 @@ Understand the memos wisely, you are allowed to infer the information from the n
 Follow the instruction mentioned below:
 - Do not return anything from the custom few shot prompts provided above.
 - Stick to the correct JSON format.
+- If MERGE, make sure the final memo is no more than 5 sentences, summarize old and new memos to merge them.
 
 Do not return anything except the JSON format.
 """
