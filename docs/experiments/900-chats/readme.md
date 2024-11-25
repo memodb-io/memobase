@@ -25,12 +25,12 @@
   - #Input token: 220000~
   - #Output token: 15000~
 - Based on the DashBoard results of OpenAI, a user of 900 turns of chat will cost you **0.042$**(llm)
-- The whole insertion will spend **270 - 300  seconds** (3 tests)
+- The whole insertion will take **270 - 300  seconds** (3 tests)
 
 #### Mem0
 
 - Based on the DashBoard results of OpenAI, a user of 900 turns of chat will cost you **0.24$**(llm) + **<0.01$**(embedding)
-- The whole insertion will spend **1683 seconds** (1 tests)
+- The whole insertion will take **1683 seconds** (1 tests)
 
 ### Why
 
