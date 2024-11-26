@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import TypedDict, Optional
 
 from ..env import CONFIG, LOG
+from .utils import attribute_unify
 
 SubTopic = TypedDict("SubTopic", {"name": str, "description": Optional[str]})
 
@@ -13,13 +14,15 @@ class UserProfileTopic:
     sub_topics: list[SubTopic] = field(default_factory=list)
 
     def __post_init__(self):
+        self.topic = attribute_unify(self.topic)
         self.sub_topics = [
-            {"name": st, "description": None} if isinstance(st, str) else st
+            ({"name": st, "description": None} if isinstance(st, str) else st)
             for st in self.sub_topics
         ]
         for st in self.sub_topics:
             assert isinstance(st["name"], str)
             assert isinstance(st["description"], (str, type(None)))
+            st["name"] = attribute_unify(st["name"])
 
 
 def formate_profile_topic(topic: UserProfileTopic) -> str:
