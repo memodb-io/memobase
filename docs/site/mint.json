@@ -5,7 +5,7 @@
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg",
-    "href": "https://github.com/memodb-io/memobase"
+    "href": "https://memobase.io"
   },
   "colors": {
     "primary": "#6c60f0",
