@@ -1,7 +1,9 @@
-from datetime import timezone, datetime
-from .env import ENCODER
-from .models.blob import Blob, BlobType, ChatBlob, DocBlob
 from typing import cast
+from datetime import timezone, datetime
+from functools import wraps
+from .env import ENCODER, LOG
+from .models.blob import Blob, BlobType, ChatBlob, DocBlob
+from .connectors import get_redis_client
 
 
 def get_encoded_tokens(content: str):
@@ -43,3 +45,25 @@ def get_blob_token_size(blob: Blob):
 
 def seconds_from_now(dt: datetime):
     return (datetime.now(tz=timezone.utc) - dt.replace(tzinfo=timezone.utc)).seconds
+
+
+def user_id_lock(func):
+    @wraps(func)
+    async def wrapper(user_id, *args, **kwargs):
+        redis_client = get_redis_client()
+        lock_key = f"user_lock:{user_id}"
+        lock = redis_client.lock(lock_key, timeout=60)  # 30 seconds timeout
+        print("ENTERING LOCK", user_id)
+        try:
+            if not lock.acquire(blocking=True):  # 5 seconds wait
+                print("TIMEOUT!!!!!")
+                raise TimeoutError("Could not acquire lock")
+            return await func(user_id, *args, **kwargs)
+        finally:
+            try:
+                lock.release()
+                print("RELEASED LOCK", user_id)
+            except Exception as e:
+                print(f"Error releasing lock: {e}")
+
+    return wrapper

@@ -4,7 +4,6 @@ from ..models.database import GeneralBlob
 from ..models.response import CODE, BlobData, IdData
 from ..models.blob import ChatBlob, DocBlob, BlobType
 from ..connectors import Session
-from .buffer import insert_blob_to_buffer
 
 
 async def insert_blob(user_id: str, blob: BlobData) -> Promise[IdData]:
@@ -22,9 +21,6 @@ async def insert_blob(user_id: str, blob: BlobData) -> Promise[IdData]:
         session.add(blob_db)
         session.commit()
         b_id = blob_db.id
-    p = await insert_blob_to_buffer(user_id, b_id, blob_parsed)
-    if not p.ok():
-        return p
     return Promise.resolve(IdData(id=b_id))
 
 

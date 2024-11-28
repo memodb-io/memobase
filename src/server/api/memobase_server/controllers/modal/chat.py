@@ -2,7 +2,7 @@ import asyncio
 from typing import TypedDict
 import pydantic
 from ...env import CONFIG, LOG, pprint
-from ...utils import get_blob_str
+from ...utils import get_blob_str, get_encoded_tokens
 from ...models.utils import Promise
 from ...models.blob import Blob, BlobType
 from ...models.response import ProfileData, AIUserProfiles, CODE
@@ -10,6 +10,7 @@ from ...llms import llm_complete
 from ...prompts import (
     extract_profile,
     merge_profile,
+    summary_profile,
     zh_extract_profile,
     zh_merge_profile,
 )
@@ -50,7 +51,6 @@ async def process_blobs(
 ) -> Promise[None]:
     assert len(blob_ids) == len(blobs), "Length of blob_ids and blobs must be equal"
     assert all(b.type == BlobType.chat for b in blobs), "All blobs must be chat blobs"
-
     p = await get_user_profiles(user_id)
     if not p.ok():
         return p
@@ -89,11 +89,6 @@ async def process_blobs(
         nf["topic"] = attribute_unify(nf["topic"])
         nf["sub_topic"] = attribute_unify(nf["sub_topic"])
     new_facts = merge_by_topic_sub_topics(new_facts)
-
-    if len(new_facts):
-        pprint([get_blob_str(b) for b in blobs])
-        pprint(results)
-        pprint(new_facts)
 
     related_blob_ids = []
     fact_contents = []
@@ -190,6 +185,21 @@ async def merge_or_add_new_memos(
             continue
         old_p: ProfileData = old_new_profile["old_profile"]
         update_response: UpdateResponse = p.data()
+        if (
+            len(get_encoded_tokens(update_response["memo"]))
+            > CONFIG.max_pre_profile_token_size
+        ):
+            print("TOO long", update_response["memo"])
+            LOG.warning(
+                f"Profile too long: {update_response['memo'][:100]}, summarizing"
+            )
+            sum_memo = await summary_memo(update_response["memo"])
+            if not sum_memo.ok():
+                LOG.warning(
+                    f"Failed to summarize: {update_response['memo'][:100]}, abort update"
+                )
+                continue
+            update_response["memo"] = sum_memo.data()
         if update_response["action"] == "REPLACE":
             p = await update_user_profile(
                 user_id,
@@ -223,3 +233,12 @@ async def merge_or_add_new_memos(
         )
     )
     return Promise.resolve(None)
+
+
+async def summary_memo(profile: str) -> Promise[str]:
+    result = await llm_complete(
+        profile,
+        system_prompt=summary_profile.get_prompt(),
+        temperature=0.2,  # precise
+    )
+    return result

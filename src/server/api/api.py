@@ -3,7 +3,7 @@ import memobase_server.env
 # Done setting up env
 
 import os
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from memobase_server.connectors import db_health_check, redis_health_check
@@ -80,6 +80,19 @@ async def flush_buffer(user_id: str, buffer_type: BlobType) -> res.BaseResponse:
 @router.post("/blobs/insert/{user_id}", tags=["user"])
 async def insert_blob(user_id: str, blob_data: res.BlobData) -> res.IdResponse:
     p = await controllers.blob.insert_blob(user_id, blob_data)
+    if not p.ok():
+        return p.to_response(res.IdResponse)
+    p2 = await controllers.buffer.insert_blob_to_buffer(
+        user_id, p.data().id, blob_data.to_blob()
+    )
+    if not p2.ok():
+        return p2.to_response(res.IdResponse)
+    # background_tasks.add_task(
+    #     controllers.buffer.insert_blob_to_buffer,
+    #     user_id,
+    #     p.data().id,
+    #     blob_data.to_blob(),
+    # )
     return p.to_response(res.IdResponse)
 
 

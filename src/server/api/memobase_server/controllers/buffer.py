@@ -5,14 +5,16 @@ from ..utils import (
     get_blob_token_size,
     pack_blob_from_db,
     seconds_from_now,
+    user_id_lock,
 )
 from ..models.utils import Promise
 from ..models.database import BufferZone, GeneralBlob
 from ..models.blob import BlobType, Blob
-from ..connectors import Session
+from ..connectors import Session, get_redis_client
 from .modal import BLOBS_PROCESS
 
 
+# @user_id_lock
 async def insert_blob_to_buffer(
     user_id: str, blob_id: str, blob_data: Blob
 ) -> Promise[None]:
@@ -111,18 +113,15 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
                 .all()
             )
             blobs = [pack_blob_from_db(bd.blob_data, blob_type) for bd in blob_data]
-            # 3. convert blobs to facts
-            p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
-            if not p.ok():
-                return p
-            LOG.info(
-                f"Flush {blob_type} buffer(size: {len(blob_buffers)}) for user {user_id}"
-            )
         finally:
             # FIXME: when failed, the buffer will be deleted anyway. Add some rollback maybe
             # final: delete waiting blobs in buffer
             for buffer in blob_buffers:
                 session.delete(buffer)
             session.commit()
-
+            # 3. convert blobs to facts
+    p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
+    if not p.ok():
+        return p
+    LOG.info(f"Flush {blob_type} buffer(size: {len(blob_buffers)}) for user {user_id}")
     return Promise.resolve(None)
