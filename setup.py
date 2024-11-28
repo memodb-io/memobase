@@ -21,6 +21,7 @@ with open("./requirements.txt") as f:
             continue
         deps.append(line.strip())
 
+
 setuptools.setup(
     name="memobase",
     url=vars2readme["__url__"],
@@ -31,7 +32,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     package_dir={"": "src/client"},
-    packages=find_packages(where="src/client"),
+    packages=find_packages(where="src/client", exclude=["tests"]),
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.11",
