@@ -6,8 +6,6 @@ WORKDIR /app
 COPY ./requirements.txt /app/requirements.txt
 RUN python3.11 -m pip install -r requirements.txt --no-cache-dir
 
-
-COPY ./config.yaml /app/config.yaml
 COPY ./memobase_server /app/memobase_server
 COPY ./api.py /app
 

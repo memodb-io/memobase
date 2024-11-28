@@ -37,8 +37,13 @@ services:
       - '${API_EXPORT_PORT}:8000'
     build:
       context: ./api
+    volumes:
+      - ./api/config.yaml:/app/config.yaml
+
 volumes:
   memobase-server-db:
     driver: local
   memobase-server-redis:
+    driver: local
+  memobase-server-api:
     driver: local
