@@ -20,7 +20,7 @@ load_dotenv()
 class Config:
     buffer_flush_interval: int = 60 * 60  # 1 hour
     max_chat_blob_buffer_token_size: int = 1024
-    max_pre_profile_token_size: int = 256
+    max_pre_profile_token_size: int = 512
 
     # LLM
     language: str = "en"
