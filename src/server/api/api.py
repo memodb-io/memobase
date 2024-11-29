@@ -112,6 +112,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         if not request.url.path.startswith("/api"):
             return await call_next(request)
+        if request.url.path.startswith("/api/v1/healthcheck"):
+            return await call_next(request)
         auth_token = request.headers.get("Authorization")
         if not auth_token or not self.is_valid_token(auth_token):
             return JSONResponse(
