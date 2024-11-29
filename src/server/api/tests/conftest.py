@@ -1,17 +1,26 @@
 import pytest
-from memobase_server.connectors import (
-    db_health_check,
-    redis_health_check,
-)
+import asyncio
+from api import app
+from fastapi.testclient import TestClient
+
+PREFIX = "/api/v1"
+
+# @pytest.fixture(scope="session")
+# def event_loop():
+#     try:
+#         loop = asyncio.get_running_loop()
+#     except RuntimeError:
+#         loop = asyncio.new_event_loop()
+#     yield loop
+#     loop.close()
 
 
-def db_connection():
-    return db_health_check() and redis_health_check()
-
-
-@pytest.fixture(scope="session")
-def db_env():
-    if db_connection():
+@pytest.fixture(scope="function")
+async def db_env():
+    client = TestClient(app)
+    response = client.get(f"{PREFIX}/healthcheck")
+    d = response.json()
+    if response.status_code == 200 and d["errno"] == 0:
         yield
-        return
-    return pytest.skip("Database not available")
+    else:
+        pytest.skip("Database not available")

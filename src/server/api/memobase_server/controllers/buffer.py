@@ -8,13 +8,14 @@ from ..utils import (
     user_id_lock,
 )
 from ..models.utils import Promise
+from ..models.response import CODE
 from ..models.database import BufferZone, GeneralBlob
 from ..models.blob import BlobType, Blob
-from ..connectors import Session, get_redis_client
+from ..connectors import Session
 from .modal import BLOBS_PROCESS
 
 
-# @user_id_lock
+@user_id_lock("insert_blob_to_buffer")
 async def insert_blob_to_buffer(
     user_id: str, blob_id: str, blob_data: Blob
 ) -> Promise[None]:
@@ -33,6 +34,17 @@ async def insert_blob_to_buffer(
         session.commit()
 
     p = await detect_buffer_full_or_not(user_id, blob_data.type)
+    if not p.ok():
+        return p
+    return Promise.resolve(None)
+
+
+# If there're ongoing insert, wait for them to finish then flush
+@user_id_lock("insert_blob_to_buffer")
+async def wait_insert_done_then_flush(
+    user_id: str, blob_type: BlobType
+) -> Promise[None]:
+    p = await flush_buffer(user_id, blob_type)
     if not p.ok():
         return p
     return Promise.resolve(None)
@@ -58,7 +70,7 @@ async def detect_buffer_full_or_not(user_id: str, blob_type: BlobType) -> Promis
         )
         if buffer_size and buffer_size > CONFIG.max_chat_blob_buffer_token_size:
             LOG.info(
-                f"Flush {blob_type} buffer for user {user_id} due to reach maximum token size"
+                f"Flush {blob_type} buffer for user {user_id} due to reach maximum token size({buffer_size} > {CONFIG.max_chat_blob_buffer_token_size})"
             )
             p = await flush_buffer(user_id, blob_type)
             if not p.ok():
@@ -101,6 +113,10 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
         )
         try:
             # 1.1
+            total_token_size = sum(b.token_size for b in blob_buffers)
+            LOG.info(
+                f"Flush {blob_type} buffer for user {user_id} with {len(blob_buffers)} blobs and total token size({total_token_size})"
+            )
             if not blob_buffers:
                 LOG.info(f"No {blob_type} buffer to flush for user {user_id}")
                 return Promise.resolve(None)
@@ -113,13 +129,14 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
                 .all()
             )
             blobs = [pack_blob_from_db(bd.blob_data, blob_type) for bd in blob_data]
-        finally:
-            # FIXME: when failed, the buffer will be deleted anyway. Add some rollback maybe
-            # final: delete waiting blobs in buffer
             for buffer in blob_buffers:
                 session.delete(buffer)
             session.commit()
-            # 3. convert blobs to facts
+        except Exception as e:
+            LOG.error(f"Error in flush_buffer: {e}")
+            return Promise.reject(
+                CODE.INTERNAL_SERVER_ERROR, f"Error in flush_buffer: {e}"
+            )
     p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
     if not p.ok():
         return p

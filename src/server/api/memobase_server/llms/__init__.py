@@ -39,8 +39,8 @@ async def llm_complete(
     )
     out_tokens = len(get_encoded_tokens(results))
 
-    capture_int_key(f"{CONFIG.llm_style}_llm_input_tokens", in_tokens)
-    capture_int_key(f"{CONFIG.llm_style}_llm_output_tokens", out_tokens)
+    await capture_int_key(f"{CONFIG.llm_style}_llm_input_tokens", in_tokens)
+    await capture_int_key(f"{CONFIG.llm_style}_llm_output_tokens", out_tokens)
 
     if not json_mode:
         return Promise.resolve(results)

@@ -47,23 +47,24 @@ def seconds_from_now(dt: datetime):
     return (datetime.now(tz=timezone.utc) - dt.replace(tzinfo=timezone.utc)).seconds
 
 
-def user_id_lock(func):
-    @wraps(func)
-    async def wrapper(user_id, *args, **kwargs):
-        redis_client = get_redis_client()
-        lock_key = f"user_lock:{user_id}"
-        lock = redis_client.lock(lock_key, timeout=60)  # 30 seconds timeout
-        print("ENTERING LOCK", user_id)
-        try:
-            if not lock.acquire(blocking=True):  # 5 seconds wait
-                print("TIMEOUT!!!!!")
-                raise TimeoutError("Could not acquire lock")
-            return await func(user_id, *args, **kwargs)
-        finally:
+def user_id_lock(scope):
+    def __user_id_lock(func):
+        @wraps(func)
+        async def wrapper(user_id, *args, **kwargs):
+            redis_client = get_redis_client()
+            lock_key = f"user_lock:{scope}:{user_id}"
+            lock = redis_client.lock(lock_key, timeout=60)  # 30 seconds timeout
             try:
-                lock.release()
-                print("RELEASED LOCK", user_id)
-            except Exception as e:
-                print(f"Error releasing lock: {e}")
+                if not await lock.acquire(blocking=True):  # 5 seconds wait
+                    raise TimeoutError("Could not acquire lock")
+                return await func(user_id, *args, **kwargs)
+            finally:
+                try:
+                    await lock.release()
+                except Exception as e:
+                    LOG.error(f"Error releasing lock: {e}")
+                await redis_client.aclose()
 
-    return wrapper
+        return wrapper
+
+    return __user_id_lock

@@ -3,20 +3,35 @@ import memobase_server.env
 # Done setting up env
 
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from memobase_server.connectors import db_health_check, redis_health_check
+from memobase_server.connectors import (
+    db_health_check,
+    redis_health_check,
+    close_connection,
+    init_redis_pool,
+)
 from memobase_server.models.response import BaseResponse, CODE
 from memobase_server.models.blob import BlobType
 from memobase_server.models import response as res
 from memobase_server import controllers
 from memobase_server.env import LOG
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_redis_pool()
+    yield
+    await close_connection()
+
+
 app = FastAPI(
     summary="APIs for MemoBase, a user memory system for LLM Apps",
     version=memobase_server.__version__,
     title="MemoBase API",
+    lifespan=lifespan,
 )
 router = APIRouter(prefix="/api/v1")
 
@@ -30,7 +45,7 @@ async def healthcheck() -> BaseResponse:
             status_code=CODE.INTERNAL_SERVER_ERROR.value,
             detail="Database not available",
         )
-    if not redis_health_check():
+    if not await redis_health_check():
         raise HTTPException(
             status_code=CODE.INTERNAL_SERVER_ERROR.value,
             detail="Redis not available",
@@ -73,26 +88,24 @@ async def get_user_profile(user_id: str) -> res.UserProfileResponse:
 @router.post("/users/buffer/{user_id}/{buffer_type}", tags=["user"])
 async def flush_buffer(user_id: str, buffer_type: BlobType) -> res.BaseResponse:
     """Get the real-time user profiles for long term memory"""
-    p = await controllers.buffer.flush_buffer(user_id, buffer_type)
+    p = await controllers.buffer.wait_insert_done_then_flush(user_id, buffer_type)
     return p.to_response(res.BaseResponse)
 
 
 @router.post("/blobs/insert/{user_id}", tags=["user"])
-async def insert_blob(user_id: str, blob_data: res.BlobData) -> res.IdResponse:
+async def insert_blob(
+    user_id: str, blob_data: res.BlobData, background_tasks: BackgroundTasks
+) -> res.IdResponse:
     p = await controllers.blob.insert_blob(user_id, blob_data)
     if not p.ok():
         return p.to_response(res.IdResponse)
-    p2 = await controllers.buffer.insert_blob_to_buffer(
-        user_id, p.data().id, blob_data.to_blob()
+
+    background_tasks.add_task(
+        controllers.buffer.insert_blob_to_buffer,
+        user_id,
+        p.data().id,
+        blob_data.to_blob(),
     )
-    if not p2.ok():
-        return p2.to_response(res.IdResponse)
-    # background_tasks.add_task(
-    #     controllers.buffer.insert_blob_to_buffer,
-    #     user_id,
-    #     p.data().id,
-    #     blob_data.to_blob(),
-    # )
     return p.to_response(res.IdResponse)
 
 

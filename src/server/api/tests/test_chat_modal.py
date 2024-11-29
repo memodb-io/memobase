@@ -29,8 +29,8 @@ PROFILE_ATTRS = [
 
 
 MERGE_FACTS = [
-    {"action": "MERGE", "memo": "user likes Chinese and Japanese food"},
-    {"action": "REPLACE", "memo": "High School"},
+    "- MERGE::user likes Chinese and Japanese food",
+    "- REPLACE::High School",
 ]
 
 

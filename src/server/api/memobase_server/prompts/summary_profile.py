@@ -7,6 +7,7 @@ Remove the redundant information and keep the most important information.
 去除重复相似的信息，保留最重要的信息。
 
 The result should use the same language as the input.
+结果应该使用与输入相同的语言。
 """
 
 

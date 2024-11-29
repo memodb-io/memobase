@@ -6,7 +6,13 @@ def date_key():
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def capture_int_key(name, value: int = 1):
+async def capture_int_key(name, value: int = 1):
     key = f"memobase_dashboard::{name}:{date_key()}"
-    r_c = get_redis_client()
-    r_c.incrby(key, value)
+    async with get_redis_client() as r_c:
+        await r_c.incrby(key, value)
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    print(asyncio.run(capture_int_key("test_key")))

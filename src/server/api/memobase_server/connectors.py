@@ -1,8 +1,11 @@
 import os
+import asyncio
 import redis.exceptions
+import redis.asyncio as redis
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
+import signal
 from .env import LOG
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -20,7 +23,7 @@ DB_ENGINE = create_engine(
     pool_pre_ping=True,  # Verify connections before using
     pool_timeout=30,  # Wait up to 30 seconds for available connection
 )
-REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL)
+REDIS_POOL = None
 
 Session = sessionmaker(bind=DB_ENGINE)
 
@@ -36,10 +39,10 @@ def db_health_check() -> bool:
         return True
 
 
-def redis_health_check() -> bool:
+async def redis_health_check() -> bool:
     try:
-        redis_client = get_redis_client()
-        redis_client.ping()
+        async with get_redis_client() as redis_client:
+            await redis_client.ping()
     except redis.exceptions.ConnectionError as e:
         LOG.error(f"Redis connection failed: {e}")
         return False
@@ -47,5 +50,33 @@ def redis_health_check() -> bool:
         return True
 
 
+async def close_connection():
+    DB_ENGINE.dispose()
+    if REDIS_POOL is not None:
+        await REDIS_POOL.aclose()
+    LOG.info("Connections closed")
+
+
+def init_redis_pool():
+    global REDIS_POOL
+    REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL)
+    print("!!!", REDIS_POOL)
+
+
 def get_redis_client() -> redis.Redis:
-    return redis.Redis(connection_pool=REDIS_POOL)
+    if REDIS_POOL is not None:
+        return redis.Redis(connection_pool=REDIS_POOL, decode_responses=True)
+    else:
+        return redis.Redis.from_url(REDIS_URL, decode_responses=True)
+
+
+if __name__ == "__main__":
+
+    async def main():
+        try:
+            result = await redis_health_check()
+            print(result)
+        finally:
+            await close_connection()
+
+    asyncio.run(main())
