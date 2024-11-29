@@ -59,44 +59,48 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
     assert p.ok()
     u_id = p.data().id
 
+    blob1 = res.BlobData(
+        blob_type=BlobType.chat,
+        blob_data={
+            "messages": [
+                {"role": "user", "content": "Hello, this is Gus, how are you?"},
+                {"role": "assistant", "content": "I am fine, thank you!"},
+            ]
+        },
+    )
+    blob2 = res.BlobData(
+        blob_type=BlobType.chat,
+        blob_data={
+            "messages": [
+                {"role": "user", "content": "Hi, nice to meet you, I am Gus"},
+                {
+                    "role": "assistant",
+                    "content": "Great! I'm MemoBase Assistant, how can I help you?",
+                },
+                {"role": "user", "content": "I really dig into Chinese food"},
+                {"role": "assistant", "content": "Got it, Gus!"},
+                {
+                    "role": "user",
+                    "content": "write me a homework letter about my final exam, high school is really boring.",
+                },
+            ]
+        },
+        fields={"from": "happy"},
+    )
     p = await controllers.blob.insert_blob(
         u_id,
-        res.BlobData(
-            blob_type=BlobType.chat,
-            blob_data={
-                "messages": [
-                    {"role": "user", "content": "Hello, this is Gus, how are you?"},
-                    {"role": "assistant", "content": "I am fine, thank you!"},
-                ]
-            },
-        ),
+        blob1,
     )
     assert p.ok()
     b_id = p.data().id
+    await controllers.buffer.insert_blob_to_buffer(u_id, b_id, blob1.to_blob())
     p = await controllers.blob.insert_blob(
         u_id,
-        res.BlobData(
-            blob_type=BlobType.chat,
-            blob_data={
-                "messages": [
-                    {"role": "user", "content": "Hi, nice to meet you, I am Gus"},
-                    {
-                        "role": "assistant",
-                        "content": "Great! I'm MemoBase Assistant, how can I help you?",
-                    },
-                    {"role": "user", "content": "I really dig into Chinese food"},
-                    {"role": "assistant", "content": "Got it, Gus!"},
-                    {
-                        "role": "user",
-                        "content": "write me a homework letter about my final exam, high school is really boring.",
-                    },
-                ]
-            },
-            fields={"from": "happy"},
-        ),
+        blob2,
     )
     assert p.ok()
     b_id2 = p.data().id
+    await controllers.buffer.insert_blob_to_buffer(u_id, b_id2, blob2.to_blob())
 
     p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
     assert p.ok() and p.data() == 2
@@ -123,40 +127,44 @@ async def test_chat_merge_modal(db_env, mock_llm_complete):
     assert p.ok()
     u_id = p.data().id
 
+    blob1 = res.BlobData(
+        blob_type=BlobType.chat,
+        blob_data={
+            "messages": [
+                {"role": "user", "content": "Hello, this is Gus, how are you?"},
+                {"role": "assistant", "content": "I am fine, thank you!"},
+                {"role": "user", "content": "I'm 25 now, how time flies!"},
+            ]
+        },
+    )
+    blob2 = res.BlobData(
+        blob_type=BlobType.chat,
+        blob_data={
+            "messages": [
+                {"role": "user", "content": "I really dig into Chinese food"},
+                {"role": "assistant", "content": "Got it, Gus!"},
+                {
+                    "role": "user",
+                    "content": "write me a homework letter about my final exam, high school is really boring.",
+                },
+            ]
+        },
+        fields={"from": "happy"},
+    )
     p = await controllers.blob.insert_blob(
         u_id,
-        res.BlobData(
-            blob_type=BlobType.chat,
-            blob_data={
-                "messages": [
-                    {"role": "user", "content": "Hello, this is Gus, how are you?"},
-                    {"role": "assistant", "content": "I am fine, thank you!"},
-                    {"role": "user", "content": "I'm 25 now, how time flies!"},
-                ]
-            },
-        ),
+        blob1,
     )
     assert p.ok()
     b_id = p.data().id
+    await controllers.buffer.insert_blob_to_buffer(u_id, b_id, blob1.to_blob())
     p = await controllers.blob.insert_blob(
         u_id,
-        res.BlobData(
-            blob_type=BlobType.chat,
-            blob_data={
-                "messages": [
-                    {"role": "user", "content": "I really dig into Chinese food"},
-                    {"role": "assistant", "content": "Got it, Gus!"},
-                    {
-                        "role": "user",
-                        "content": "write me a homework letter about my final exam, high school is really boring.",
-                    },
-                ]
-            },
-            fields={"from": "happy"},
-        ),
+        blob2,
     )
     assert p.ok()
     b_id2 = p.data().id
+    await controllers.buffer.insert_blob_to_buffer(u_id, b_id2, blob2.to_blob())
 
     p = await controllers.user.add_user_profiles(
         u_id,
