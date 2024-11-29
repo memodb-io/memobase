@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from . import user_profile_topics
 from .utils import pack_profiles_into_string
 from ..models.response import AIUserProfiles
+from ..env import CONFIG
 
 EXAMPLES = [
     (
@@ -184,17 +185,17 @@ Be careful to cite the correct `data_index` for each piece of information, it wi
 ## Formatting
 ### Output
 You need to extract the facts and preferences from the conversation and place them in order list:
-- TOPIC::SUB_TOPIC::MEMO::CITES
+- TOPIC{tab}SUB_TOPIC{tab}MEMO{tab}CITES
 For example:
-- basic_info::name::melinda::[0,3,4]
-- work::title::software engineer::[4,5]
+- basic_info{tab}name{tab}melinda{tab}[0,3,4]
+- work{tab}title{tab}software engineer{tab}[4,5]
 
 For each line is a fact or preference, containing:
 1. TOPIC: topic represents of this preference
 2. SUB_TOPIC: the detailed topic of this preference
 3. MEMO: the extracted infos, facts or preferences of `user`
 4. CITES: the list of data_indexs where the information was shared, `data_index` will be given as an attribute in conversation XML.
-those elements should be separated by `::` and each line should be separated by `\n` and started with "- ".
+those elements should be separated by `{tab}` and each line should be separated by `\n` and started with "- ".
 
 
 ## Examples
@@ -234,6 +235,7 @@ def get_prompt(already_topics: str) -> str:
         before_topics=already_topics,
         today=today,
         examples=examples,
+        tab=CONFIG.llm_tab_separator,
         user_profile_topics=user_profile_topics.get_prompt(),
     )
 

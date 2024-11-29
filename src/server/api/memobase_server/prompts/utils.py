@@ -1,6 +1,6 @@
 import re
 import json
-from ..env import LOG
+from ..env import LOG, CONFIG
 from ..models.response import AIUserProfiles, AIUserProfile
 
 LIST_INT_PATTERN = re.compile(r"\[\d+(?:,\s*\d+)*\]")
@@ -109,9 +109,30 @@ def convert_response_to_json(response: str) -> dict:
     return prediction_json
 
 
-def pack_profiles_into_string(profiles: AIUserProfiles, tab="::") -> str:
+def pack_merge_action_into_string(action: dict) -> str:
+    CONFIG.llm_tab_separator
+    return f"- {action['action']}{CONFIG.llm_tab_separator}{action['memo']}"
+
+
+def parse_string_into_merge_action(results: str) -> dict | None:
+    lines = results.split("\n")[0]
+    lines = [l for l in lines.split("\n") if l.strip()]
+    lines = [l for l in lines if l.startswith("- ")]
+    if not len(lines):
+        return None
+    line = lines[0][2:]
+    parts = line.split(CONFIG.llm_tab_separator)
+    if not len(parts) == 2:
+        return None
+    return {
+        "action": parts[0].upper().strip(),
+        "memo": parts[1].strip(),
+    }
+
+
+def pack_profiles_into_string(profiles: AIUserProfiles) -> str:
     lines = [
-        f"- {attribute_unify(p.topic)}{tab}{attribute_unify(p.sub_topic)}{tab}{p.memo.strip()}{tab}{p.cites}"
+        f"- {attribute_unify(p.topic)}{CONFIG.llm_tab_separator}{attribute_unify(p.sub_topic)}{CONFIG.llm_tab_separator}{p.memo.strip()}{CONFIG.llm_tab_separator}{p.cites}"
         for p in profiles.facts
     ]
     if not len(lines):
@@ -119,7 +140,7 @@ def pack_profiles_into_string(profiles: AIUserProfiles, tab="::") -> str:
     return "\n".join(lines)
 
 
-def parse_string_into_profiles(response: str, tab="::") -> AIUserProfiles:
+def parse_string_into_profiles(response: str) -> AIUserProfiles:
     lines = response.split("\n")
     lines = [l.strip() for l in lines if l.strip()]
     facts = [parse_line_into_profile(l) for l in lines]
@@ -127,11 +148,11 @@ def parse_string_into_profiles(response: str, tab="::") -> AIUserProfiles:
     return AIUserProfiles(facts=facts)
 
 
-def parse_line_into_profile(line: str, tab="::") -> AIUserProfile | None:
+def parse_line_into_profile(line: str) -> AIUserProfile | None:
     if not line.startswith("- "):
         return None
     line = line[2:]
-    parts = line.split(tab)
+    parts = line.split(CONFIG.llm_tab_separator)
     if not len(parts) == 4:
         return None
     topic, sub_topic, memo, cites = parts
@@ -158,3 +179,4 @@ def parse_string_into_cites(response: str) -> list[int] | None:
 
 if __name__ == "__main__":
     print(parse_line_into_profile("- basic_info::name::Gus::[0, 1]"))
+    print(parse_string_into_merge_action("- REPLACE::G"))

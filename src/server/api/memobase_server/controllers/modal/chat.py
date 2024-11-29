@@ -18,6 +18,7 @@ from ...prompts.utils import (
     tag_strings_in_order_xml,
     attribute_unify,
     parse_string_into_profiles,
+    parse_string_into_merge_action,
 )
 from ..user import add_user_profiles, get_user_profiles, update_user_profile
 
@@ -61,7 +62,10 @@ async def process_blobs(
             set([(p.attributes["topic"], p.attributes["sub_topic"]) for p in profiles])
         )
         already_topics_prompt = "\n".join(
-            [f"- {topic}::{sub_topic}" for topic, sub_topic in already_topics_subtopics]
+            [
+                f"- {topic}{CONFIG.llm_tab_separator}{sub_topic}"
+                for topic, sub_topic in already_topics_subtopics
+            ]
         )
         LOG.info(
             f"User {user_id} already have {len(profiles)} profiles, {len(already_topics_subtopics)} topics"
@@ -84,6 +88,9 @@ async def process_blobs(
     results = p.data()
     parsed_facts: AIUserProfiles = parse_string_into_profiles(results)
     new_facts: list[FactResponse] = parsed_facts.model_dump()["facts"]
+    if not len(new_facts):
+        LOG.info(f"No new facts extracted {user_id}")
+        return Promise.resolve(None)
 
     for nf in new_facts:
         nf["topic"] = attribute_unify(nf["topic"])
@@ -170,7 +177,6 @@ async def merge_or_add_new_memos(
                 dp["new_profile"]["content"],
             ),
             system_prompt=PROMPTS[CONFIG.language]["merge"].get_prompt(),
-            json_mode=True,
             temperature=0.2,  # precise
         )
         merge_tasks.append(task)
@@ -184,12 +190,16 @@ async def merge_or_add_new_memos(
             LOG.warning(f"Failed to merge profiles: {p.msg()}")
             continue
         old_p: ProfileData = old_new_profile["old_profile"]
-        update_response: UpdateResponse = p.data()
+
+        update_response: UpdateResponse = parse_string_into_merge_action(p.data())
+        print(update_response)
+        if update_response is None:
+            LOG.warning(f"Failed to parse merge action: {p.data()}")
+            continue
         if (
             len(get_encoded_tokens(update_response["memo"]))
             > CONFIG.max_pre_profile_token_size
         ):
-            print("TOO long", update_response["memo"])
             LOG.warning(
                 f"Profile too long: {update_response['memo'][:100]}, summarizing"
             )

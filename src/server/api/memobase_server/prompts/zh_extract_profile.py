@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from . import zh_user_profile_topics
 from ..models.response import AIUserProfiles
+from ..env import CONFIG
 from .utils import pack_profiles_into_string
 
 EXAMPLES = [
@@ -178,17 +179,17 @@ FACT_RETRIEVAL_PROMPT = """你是一位专业的心理学家。
 ## 格式
 ### 输出
 你需要从对话中提取事实和偏好，并按顺序列出：
-- TOPIC::SUB_TOPIC::MEMO::CITES
+- TOPIC{tab}SUB_TOPIC{tab}MEMO{tab}CITES
 例如：
-- basic_info::name::melinda::[0,3,4]
-- work::title::software engineer::[4,5]
+- basic_info{tab}name{tab}melinda{tab}[0,3,4]
+- work{tab}title{tab}software engineer{tab}[4,5]
 
 每行代表一个事实或偏好，包含：
 1. TOPIC: 主题，表示该偏好的类别
 2. SUB_TOPIC: 详细主题，表示该偏好的具体类别
 3. MEMO: 提取的信息、事实或偏好
 4. CITES: 信息共享时的对话索引列表，`data_index` 将作为对话 XML 中的属性给出。
-这些元素应以 `::` 分隔，每行应以 `\n` 分隔，并以 "- " 开头。
+这些元素应以 `{tab}` 分隔，每行应以 `\n` 分隔，并以 "- " 开头。
 
 
 ## 示例
@@ -230,6 +231,7 @@ def get_prompt(already_topics: str) -> str:
         before_topics=already_topics,
         today=today,
         examples=examples,
+        tab=CONFIG.llm_tab_separator,
         user_profile_topics=zh_user_profile_topics.get_prompt(),
     )
 
