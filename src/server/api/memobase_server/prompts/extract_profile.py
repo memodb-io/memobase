@@ -205,7 +205,7 @@ Here are some few shot examples:
 Return the facts and preferences in a markdown list format as shown above.
 
 Remember the following:
-- Today is {today}.
+- Today is {today}, if the user mentions time-sensitive information, try to infer the specific date rather than using "today" or "yesterday" etc.
 - If you do not find anything relevant in the below conversation, you can return an empty list.
 - Make sure to return the response in the format mentioned in the formatting & examples section.
 - For each fact/preference you extracted, make sure you cite the right and relevant data_indexs where the information was shared.

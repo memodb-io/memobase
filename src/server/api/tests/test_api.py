@@ -127,7 +127,7 @@ async def test_api_user_profile(client, db_env):
         {"topic": "interest", "sub_topic": "sports"},
         {"topic": "education", "sub_topic": "level"},
     ]
-    p = await controllers.user.add_user_profiles(
+    p = await controllers.profile.add_user_profiles(
         u_id,
         _profiles,
         _attributes,

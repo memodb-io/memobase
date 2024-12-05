@@ -20,7 +20,7 @@ from ...prompts.utils import (
     parse_string_into_profiles,
     parse_string_into_merge_action,
 )
-from ..user import add_user_profiles, get_user_profiles, update_user_profile
+from ..profile import get_user_profiles, update_user_profile, add_user_profiles
 
 FactResponse = TypedDict(
     "Facts", {"topic": str, "sub_topic": str, "memo": str, "cites": list[int]}
