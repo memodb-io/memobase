@@ -160,10 +160,13 @@ EXAMPLES = [
     ),
 ]
 
-FACT_RETRIEVAL_PROMPT = """你是一位专业的心理学家。
+DEFAULT_JOB = """你是一位专业的心理学家。
 你的责任是仔细阅读用户与其他方的对话。然后提取相关且重要的事实、用户偏好，这些信息将有助于评估用户的状态。
 你不仅要提取明确陈述的信息，还要推断对话中隐含的信息。
 请注意，你要准确地提取和推断用户相关(user)的信息，而非其他方(assistant)的。
+"""
+
+FACT_RETRIEVAL_PROMPT = """{system_prompt}
 
 
 ## 你应该关注的主题
@@ -221,6 +224,7 @@ FACT_RETRIEVAL_PROMPT = """你是一位专业的心理学家。
 
 
 def get_prompt(already_topics: str) -> str:
+    sys_prompt = CONFIG.system_prompt or DEFAULT_JOB
     today = datetime.now().strftime("%Y-%m-%d")
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     examples = "\n\n".join(
@@ -228,6 +232,7 @@ def get_prompt(already_topics: str) -> str:
     )
     examples = examples.replace("$$TODAY$$", today).replace("$$YESTERDAY$$", yesterday)
     return FACT_RETRIEVAL_PROMPT.format(
+        system_prompt=sys_prompt,
         before_topics=already_topics,
         today=today,
         examples=examples,
