@@ -81,7 +81,7 @@ async def delete_user(user_id: str) -> BaseResponse:
 @router.get("/users/profile/{user_id}", tags=["user"])
 async def get_user_profile(user_id: str) -> res.UserProfileResponse:
     """Get the real-time user profiles for long term memory"""
-    p = await controllers.user.get_user_profiles(user_id)
+    p = await controllers.profile.get_user_profiles(user_id)
     return p.to_response(res.UserProfileResponse)
 
 

@@ -107,7 +107,7 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
 
     await controllers.buffer.flush_buffer(u_id, BlobType.chat)
 
-    p = await controllers.user.get_user_profiles(u_id)
+    p = await controllers.profile.get_user_profiles(u_id)
     assert p.ok()
     assert len(p.data().profiles) == 4
     print(p.data())
@@ -166,7 +166,7 @@ async def test_chat_merge_modal(db_env, mock_llm_complete):
     b_id2 = p.data().id
     await controllers.buffer.insert_blob_to_buffer(u_id, b_id2, blob2.to_blob())
 
-    p = await controllers.user.add_user_profiles(
+    p = await controllers.profile.add_user_profiles(
         u_id,
         PROFILES,
         PROFILE_ATTRS,
@@ -175,7 +175,7 @@ async def test_chat_merge_modal(db_env, mock_llm_complete):
     assert p.ok()
     await controllers.buffer.flush_buffer(u_id, BlobType.chat)
 
-    p = await controllers.user.get_user_profiles(u_id)
+    p = await controllers.profile.get_user_profiles(u_id)
     assert p.ok() and len(p.data().profiles) == len(PROFILES) + 2
     profiles = p.data().profiles
     assert profiles[-2].attributes == {"topic": "interest", "sub_topic": "foods"}
