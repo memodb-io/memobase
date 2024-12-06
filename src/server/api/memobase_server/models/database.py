@@ -9,6 +9,7 @@ from sqlalchemy import (
     Table,
     TEXT,
     Column,
+    Index,
 )
 from dataclasses import dataclass
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -32,6 +33,7 @@ class Base:
     id: Mapped[str] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
+        unique=True,
         default_factory=uuid.uuid4,
         init=False,
     )
@@ -43,6 +45,7 @@ class Base:
     )
 
 
+# TODO: add index for user id and ...
 @REG.mapped_as_dataclass
 class User(Base):
     __tablename__ = "users"
@@ -73,7 +76,9 @@ class GeneralBlob(Base):
 
     # Relationships
     user_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
     )
     user: Mapped[User] = relationship(
         "User", back_populates="related_general_blobs", init=False
@@ -95,6 +100,7 @@ class GeneralBlob(Base):
     additional_fields: Mapped[Optional[dict]] = mapped_column(
         JSONB, nullable=True, default=None
     )
+    __table_args__ = (Index("idx_general_blobs_user_id_id", "user_id", "id"),)
 
     # validate
     def __post_init__(self):
@@ -114,7 +120,9 @@ class BufferZone(Base):
 
     # Relationships
     user_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
     )
     user: Mapped[User] = relationship(
         "User", back_populates="related_buffers", init=False
@@ -122,7 +130,7 @@ class BufferZone(Base):
 
     blob_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("general_blobs.id", ondelete="CASCADE"),
+        ForeignKey("general_blobs.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
     blob: Mapped[GeneralBlob] = relationship(
@@ -146,7 +154,10 @@ class UserProfile(Base):
 
     # Relationships
     user_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        # Add index to this id
     )
     user: Mapped[User] = relationship(
         "User", back_populates="related_user_profiles", init=False
@@ -169,13 +180,13 @@ user_profile_blobs = Table(
     Column(
         "user_profile_id",
         UUID(as_uuid=True),
-        ForeignKey("user_profiles.id", ondelete="CASCADE"),
+        ForeignKey("user_profiles.id", ondelete="CASCADE", onupdate="CASCADE"),
         primary_key=True,
     ),
     Column(
         "blob_id",
         UUID(as_uuid=True),
-        ForeignKey("general_blobs.id", ondelete="CASCADE"),
+        ForeignKey("general_blobs.id", ondelete="CASCADE", onupdate="CASCADE"),
         primary_key=True,
     ),
 )

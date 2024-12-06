@@ -1,7 +1,7 @@
 import dotenv
 
 dotenv.load_dotenv()
-from sqlalchemy.schema import Table
+from sqlalchemy.schema import Table, CreateSchema, CreateIndex
 from sqlalchemy.schema import CreateTable
 import logging
 
