@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..connectors import get_redis_client
+from ..connectors import get_redis_client, PROJECT_ID
 
 
 def date_key():

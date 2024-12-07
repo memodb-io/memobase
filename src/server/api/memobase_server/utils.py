@@ -3,7 +3,7 @@ from datetime import timezone, datetime
 from functools import wraps
 from .env import ENCODER, LOG
 from .models.blob import Blob, BlobType, ChatBlob, DocBlob
-from .connectors import get_redis_client
+from .connectors import get_redis_client, PROJECT_ID
 
 
 def get_encoded_tokens(content: str):
@@ -52,7 +52,7 @@ def user_id_lock(scope):
         @wraps(func)
         async def wrapper(user_id, *args, **kwargs):
             redis_client = get_redis_client()
-            lock_key = f"user_lock:{scope}:{user_id}"
+            lock_key = f"user_lock:{PROJECT_ID}:{scope}:{user_id}"
             lock = redis_client.lock(lock_key, timeout=60)  # 30 seconds timeout
             try:
                 if not await lock.acquire(blocking=True):  # 5 seconds wait

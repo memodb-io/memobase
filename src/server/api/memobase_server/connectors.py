@@ -5,12 +5,17 @@ import redis.asyncio as redis
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
-import signal
+from uuid import uuid4
 from .env import LOG
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL")
+PROJECT_ID = os.getenv("PROJECT_ID")
 
+if PROJECT_ID is None:
+    LOG.warning(f"PROJECT_ID is not set, use a random UUID")
+    PROJECT_ID = str(uuid4())
+LOG.info(f"Project ID: {PROJECT_ID}")
 LOG.info(f"Database URL: {DATABASE_URL}")
 LOG.info(f"Redis URL: {REDIS_URL}")
 
@@ -60,7 +65,6 @@ async def close_connection():
 def init_redis_pool():
     global REDIS_POOL
     REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL)
-    print("!!!", REDIS_POOL)
 
 
 def get_redis_client() -> redis.Redis:
