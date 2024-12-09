@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 from uuid import uuid4
 from .env import LOG
+from .models.database import Base
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL")
@@ -29,7 +30,7 @@ DB_ENGINE = create_engine(
 REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL)
 
 Session = sessionmaker(bind=DB_ENGINE)
-
+Base.metadata.create_all(bind=DB_ENGINE)
 
 def db_health_check() -> bool:
     try:
