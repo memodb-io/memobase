@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 from uuid import uuid4
 from .env import LOG
-from .models.database import Base
+from .models.database import REG
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL")
@@ -30,7 +30,15 @@ DB_ENGINE = create_engine(
 REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL)
 
 Session = sessionmaker(bind=DB_ENGINE)
-Base.metadata.create_all(bind=DB_ENGINE)
+
+
+def create_tables():
+    REG.metadata.create_all(DB_ENGINE)
+    LOG.info("Database tables created successfully")
+
+
+create_tables()
+
 
 def db_health_check() -> bool:
     try:

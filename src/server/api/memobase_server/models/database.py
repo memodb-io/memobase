@@ -25,7 +25,6 @@ from .blob import BlobType
 
 REG = registry()
 
-Base = declarative_base()
 
 @dataclass
 class Base:
