@@ -20,7 +20,6 @@ from sqlalchemy.orm import (
     registry,
 )
 from sqlalchemy.sql import func
-from sqlalchemy.ext.declarative import declarative_base
 from .blob import BlobType
 
 REG = registry()
