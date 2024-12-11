@@ -46,8 +46,8 @@ class MemoBaseClient:
             return False
         return True
 
-    def add_user(self, data: dict = None) -> str:
-        r = unpack_response(self._client.post("/users", json={"data": data}))
+    def add_user(self, data: dict = None, id=None) -> str:
+        r = unpack_response(self._client.post("/users", json={"data": data, "id": id}))
         return r.data["id"]
 
     def update_user(self, user_id: str, data: dict = None) -> str:
@@ -68,7 +68,8 @@ class MemoBaseClient:
         try:
             return self.get_user(user_id)
         except ServerError:
-            self.add_user({"id": user_id})
+            print("create user")
+            self.add_user(id=user_id)
         return User(user_id=user_id, project_client=self)
 
     def delete_user(self, user_id: str) -> bool:
