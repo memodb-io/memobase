@@ -64,6 +64,13 @@ class MemoBaseClient:
             )
         return User(user_id=user_id, project_client=self)
 
+    def get_or_create_user(self, user_id: str) -> "User":
+        try:
+            return self.get_user(user_id)
+        except ServerError:
+            self.add_user({"id": user_id})
+        return User(user_id=user_id, project_client=self)
+
     def delete_user(self, user_id: str) -> bool:
         r = unpack_response(self._client.delete(f"/users/{user_id}"))
         return True

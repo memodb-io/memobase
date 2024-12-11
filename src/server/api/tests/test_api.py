@@ -69,6 +69,25 @@ def test_user_api_curd(client, db_env):
     print(d)
 
 
+def test_user_create_with_id(client, db_env):
+    import uuid
+    from time import time
+
+    fake_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"test{time()}"))
+    print(fake_id)
+    response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}, "id": fake_id})
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    u_id = d["data"]["id"]
+    assert u_id == fake_id
+
+    response = client.delete(f"{PREFIX}/users/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+
 def test_blob_api_curd(client, db_env):
     response = client.post(f"{PREFIX}/users", json={})
     d = response.json()

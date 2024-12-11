@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, UUID5
 from typing import Optional
 from datetime import datetime
 
@@ -18,7 +18,7 @@ class UserProfile:
 
 
 class UserProfileData(BaseModel):
-    id: UUID4
+    id: UUID4 | UUID5
     content: str
     attributes: dict
     related_blobs: list[str]

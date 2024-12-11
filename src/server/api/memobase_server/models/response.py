@@ -1,10 +1,12 @@
 from datetime import datetime
 from enum import IntEnum
 from typing import Optional
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, UUID5
 from .blob import BlobData
 from .claim import ClaimData
 from .action import ActionData
+
+UUID = UUID4 | UUID5
 
 
 class CODE(IntEnum):
@@ -41,17 +43,17 @@ class AIUserProfiles(BaseModel):
 
 # Return data format
 class IdData(BaseModel):
-    id: UUID4
+    id: UUID
 
 
 class IdsData(BaseModel):
-    ids: list[UUID4]
+    ids: list[UUID]
 
 
 class ProfileData(BaseModel):
-    id: UUID4
+    id: UUID
     content: str
-    related_blobs: list[UUID4]
+    related_blobs: list[UUID]
     created_at: datetime = None
     updated_at: datetime = None
     attributes: Optional[dict] = None
@@ -59,6 +61,7 @@ class ProfileData(BaseModel):
 
 class UserData(BaseModel):
     data: Optional[dict] = None
+    id: Optional[UUID] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

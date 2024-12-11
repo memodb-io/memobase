@@ -7,6 +7,8 @@ from ..connectors import Session
 async def create_user(data: UserData) -> Promise[IdData]:
     with Session() as session:
         db_user = User(additional_fields=data.data)
+        if data.id is not None:
+            db_user.id = str(data.id)
         session.add(db_user)
         session.commit()
         return Promise.resolve(IdData(id=db_user.id))

@@ -1,5 +1,7 @@
 import pytest
+from time import time
 from memobase.error import ServerError
+from memobase.utils import string_to_uuid
 
 
 def test_user_curd_client(api_client):
@@ -12,3 +14,7 @@ def test_user_curd_client(api_client):
     print(a.delete_user(u))
     with pytest.raises(ServerError):
         a.get_user(u)
+
+    new_uid = string_to_uuid(f"test{time()}")
+    ud = a.get_or_create_user(new_uid)
+    assert ud.user_id == new_uid
