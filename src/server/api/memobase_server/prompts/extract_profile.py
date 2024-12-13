@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from . import user_profile_topics
 from .utils import pack_profiles_into_string
 from ..models.response import AIUserProfiles
@@ -7,7 +6,7 @@ from ..env import CONFIG
 EXAMPLES = [
     (
         """
-<chat data_index=0>
+<chat data_index=0 date="2024/1/1">
     user: Hi, how is your day?
 </chat>
 """,
@@ -15,7 +14,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0 date="2024/1/1">
     user: I still can't believe we're married today!
     SiLei: I know, it will be the most amazing journey of my life.
 </chat>
@@ -32,7 +31,7 @@ EXAMPLES = [
                     {
                         "topic": "life_event",
                         "sub_topic": "Marriage",
-                        "memo": "Married to SiLei at $$TODAY$$",
+                        "memo": "Married to SiLei at 2024/1/1",
                         "cites": [0],
                     },
                 ]
@@ -41,7 +40,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/1/1">
     user: Hi, I am looking for a daily restaurant in San Francisco cause I live there.
 </chat>
 """,
@@ -60,7 +59,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/1/1">
     user: Can you give me a letter of references for my PhD applications?
     assistant: Got it, Melinda!...
     user: Thanks for remembering my name!
@@ -78,7 +77,7 @@ EXAMPLES = [
                     {
                         "topic": "education",
                         "sub_topic": "Degree",
-                        "memo": "user is applying PhD at the time: $$TODAY$$",
+                        "memo": "user is applying PhD at the time: 2024/1/1",
                         "cites": [0],
                     },
                 ]
@@ -87,7 +86,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/10/11">
     user: Yesterday, I had a meeting with John at 3pm. We discussed the new project.
 </chat>
 """,
@@ -97,7 +96,7 @@ EXAMPLES = [
                     {
                         "topic": "work",
                         "sub_topic": "Collaboration",
-                        "memo": "user is starting a project with John and already met once at $$YESTERDAY$$",
+                        "memo": "user is starting a project with John and already met once at 2024/10/10",
                         "cites": [0],
                     }
                 ]
@@ -106,7 +105,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/1/1">
     user: Hi, my name is John. I am a software engineer at MemoBase.
 </chat>
 """,
@@ -137,11 +136,11 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/1/1">
     user: Me favorite movies are Inception and Interstellar.
     assistant: Those are great movies, how about the movie: Tenet?
 </chat>
-<chat data_index=1>
+<chat data_index=1  date="2024/1/1">
     user: I have watched Tenet, I think that's my favorite in fact.
 </chat>
 """,
@@ -208,7 +207,8 @@ Here are some few shot examples:
 Return the facts and preferences in a markdown list format as shown above.
 
 Remember the following:
-- Today is {today}, if the user mentions time-sensitive information, try to infer the specific date rather than using "today" or "yesterday" etc.
+- If the user mentions time-sensitive information, try to infer the specific date from the data.
+- Use specific dates when possible, never use relative dates like "today" or "yesterday" etc.
 - If you do not find anything relevant in the below conversation, you can return an empty list.
 - Make sure to return the response in the format mentioned in the formatting & examples section.
 - For each fact/preference you extracted, make sure you cite the right and relevant data_indexs where the information was shared.
@@ -229,16 +229,12 @@ If you do not find anything relevant facts, user memories, and preferences in th
 
 def get_prompt(already_topics: str) -> str:
     sys_prompt = CONFIG.system_prompt or DEFAULT_JOB
-    today = datetime.now().strftime("%Y-%m-%d")
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     examples = "\n\n".join(
         [f"Input: {p[0]}Output:\n{pack_profiles_into_string(p[1])}" for p in EXAMPLES]
     )
-    examples = examples.replace("$$TODAY$$", today).replace("$$YESTERDAY$$", yesterday)
     return FACT_RETRIEVAL_PROMPT.format(
         system_prompt=sys_prompt,
         before_topics=already_topics,
-        today=today,
         examples=examples,
         tab=CONFIG.llm_tab_separator,
         user_profile_topics=user_profile_topics.get_prompt(),

@@ -3,6 +3,7 @@ from datetime import timezone, datetime
 from functools import wraps
 from .env import ENCODER, LOG
 from .models.blob import Blob, BlobType, ChatBlob, DocBlob
+from .models.database import GeneralBlob
 from .connectors import get_redis_client, PROJECT_ID
 
 
@@ -14,12 +15,13 @@ def get_decoded_tokens(tokens: list[int]):
     return ENCODER.decode(tokens)
 
 
-def pack_blob_from_db(blob_data: dict, blob_type: BlobType) -> Blob:
+def pack_blob_from_db(blob: GeneralBlob, blob_type: BlobType) -> Blob:
+    blob_data = blob.blob_data
     match blob_type:
         case BlobType.chat:
-            return ChatBlob(**blob_data)
+            return ChatBlob(**blob_data, created_at=blob.created_at)
         case BlobType.doc:
-            return DocBlob(**blob_data)
+            return DocBlob(**blob_data, created_at=blob.created_at)
         case _:
             raise ValueError(f"Unsupported Blob Type: {blob_type}")
 

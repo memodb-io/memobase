@@ -124,19 +124,22 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
             # 2. get all blobs data, convert it to string repr
             blob_ids = [b.blob_id for b in blob_buffers]
             blob_data = (
-                session.query(GeneralBlob.blob_data)
+                session.query(GeneralBlob.created_at, GeneralBlob.blob_data)
                 .filter(GeneralBlob.id.in_(blob_ids))
                 .all()
             )
-            blobs = [pack_blob_from_db(bd.blob_data, blob_type) for bd in blob_data]
-            for buffer in blob_buffers:
-                session.delete(buffer)
-            session.commit()
+            blobs = [pack_blob_from_db(bd, blob_type) for bd in blob_data]
         except Exception as e:
             LOG.error(f"Error in flush_buffer: {e}")
             return Promise.reject(
                 CODE.INTERNAL_SERVER_ERROR, f"Error in flush_buffer: {e}"
             )
+        finally:
+            # FIXME: when failed, the buffer will be deleted anyway. Add some rollback maybe
+            # final: delete waiting blobs in buffer
+            for buffer in blob_buffers:
+                session.delete(buffer)
+            session.commit()
     p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
     if not p.ok():
         return p

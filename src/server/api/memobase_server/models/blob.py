@@ -28,9 +28,10 @@ class BlobType(StrEnum):
 class Blob(BaseModel):
     type: BlobType
     fields: Optional[dict] = None
+    created_at: Optional[datetime] = None
 
     def get_blob_data(self):
-        return self.model_dump(exclude={"type", "fields"})
+        return self.model_dump(exclude={"type", "fields", "created_at"})
 
     def to_request(self):
         return {
@@ -76,9 +77,13 @@ class BlobData(BaseModel):
 
     def to_blob(self) -> Blob:
         if self.blob_type == BlobType.chat:
-            return ChatBlob(**self.blob_data, fields=self.fields)
+            return ChatBlob(
+                **self.blob_data, fields=self.fields, created_at=self.created_at
+            )
         elif self.blob_type == BlobType.doc:
-            return DocBlob(**self.blob_data, fields=self.fields)
+            return DocBlob(
+                **self.blob_data, fields=self.fields, created_at=self.created_at
+            )
         elif self.blob_type == BlobType.image:
             raise NotImplementedError("ImageBlob not implemented yet.")
         elif self.blob_type == BlobType.transcript:

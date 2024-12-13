@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from . import zh_user_profile_topics
 from ..models.response import AIUserProfiles
 from ..env import CONFIG
@@ -7,7 +6,7 @@ from .utils import pack_profiles_into_string
 EXAMPLES = [
     (
         """
-<chat data_index=0>
+<chat data_index=0 date="2024/1/1">
     user: 你好，今天过得怎么样？
 </chat>
 """,
@@ -15,7 +14,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0 date="2024/1/1">
     user: 我还是不敢相信我们今天结婚了！
     assistant: 我知道，这将是我人生中最美好的旅程。
 </chat>
@@ -26,7 +25,7 @@ EXAMPLES = [
                     {
                         "topic": "人口统计",
                         "sub_topic": "婚姻状况",
-                        "memo": "用户与assistant已婚, 结婚日期在$$TODAY$$",
+                        "memo": "用户与assistant已婚, 结婚日期在2024/1/1",
                         "cites": [0],
                     }
                 ]
@@ -35,7 +34,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0 date="2024/1/1">
     user: 你好，我住在旧金山，想找一家日常餐厅。
 </chat>
 """,
@@ -54,7 +53,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/1/1">
     user: 你能给我写一封博士申请推荐信吗？
     assistant: 明白了，Melinda！...
     user: 谢谢你记得我的名字！
@@ -72,7 +71,7 @@ EXAMPLES = [
                     {
                         "topic": "教育经历",
                         "sub_topic": "学历",
-                        "memo": "用户在$$TODAY$$正在申请博士学位",
+                        "memo": "用户在2024/1/1正在申请博士学位",
                         "cites": [0],
                     },
                 ]
@@ -81,7 +80,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/10/11">
     user: 昨天下午3点我和John开了个会，讨论了新项目。
 </chat>
 """,
@@ -91,7 +90,7 @@ EXAMPLES = [
                     {
                         "topic": "工作",
                         "sub_topic": "合作",
-                        "memo": "用户正在与John开始一个项目，已经在$$YESTERDAY$$见过一次面",
+                        "memo": "用户正在与John开始一个新项目，已经在2024/10/11见过一次面",
                         "cites": [0],
                     }
                 ]
@@ -100,7 +99,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/1/1">
     user: 你好，我叫John，我是MemoBase的软件工程师。
 </chat>
 """,
@@ -131,11 +130,11 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0>
+<chat data_index=0  date="2024/1/1">
     user: 我最喜欢的电影是《盗梦空间》和《星际穿越》。
     assistant: 这些都是很棒的电影，你看过《信条》吗？
 </chat>
-<chat data_index=1>
+<chat data_index=1  date="2024/1/1">
     user: 我看过《信条》，事实上那是我最喜欢的。
 </chat>
 """,
@@ -202,7 +201,8 @@ FACT_RETRIEVAL_PROMPT = """{system_prompt}
 请按上述格式返回事实和偏好。
 
 请记住以下几点：
-- 今天是 {today}，如果用户有提到时间敏感的信息，试图推理出具体的日期，而不是使用“今天”或“昨天”等相对时间。
+- 如果用户有提到时间敏感的信息，试图推理出具体的日期.
+- 当可能时，请使用具体日期，而不是使用“今天”或“昨天”等相对时间。
 - 如果在以下对话中没有找到任何相关信息，可以返回空列表。
 - 确保按照格式和示例部分中提到的格式返回响应。
 - 对于提取的每个事实/偏好，确保引用信息共享时的正确且相关的 data_index。
@@ -225,16 +225,12 @@ FACT_RETRIEVAL_PROMPT = """{system_prompt}
 
 def get_prompt(already_topics: str) -> str:
     sys_prompt = CONFIG.system_prompt or DEFAULT_JOB
-    today = datetime.now().strftime("%Y-%m-%d")
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     examples = "\n\n".join(
         [f"Input: {p[0]}Output:\n{pack_profiles_into_string(p[1])}" for p in EXAMPLES]
     )
-    examples = examples.replace("$$TODAY$$", today).replace("$$YESTERDAY$$", yesterday)
     return FACT_RETRIEVAL_PROMPT.format(
         system_prompt=sys_prompt,
         before_topics=already_topics,
-        today=today,
         examples=examples,
         tab=CONFIG.llm_tab_separator,
         user_profile_topics=zh_user_profile_topics.get_prompt(),

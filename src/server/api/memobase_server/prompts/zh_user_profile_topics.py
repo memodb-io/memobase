@@ -87,8 +87,6 @@ CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic] = [
 
 
 CANDIDATE_PROFILE_TOPICS = modify_default_user_profile(CANDIDATE_PROFILE_TOPICS)
-if CONFIG.language == "zh":
-    LOG.info(f"User profiles: {CANDIDATE_PROFILE_TOPICS}")
 
 
 def get_prompt():
@@ -97,6 +95,9 @@ def get_prompt():
         + "\n..."
     )
 
+
+if CONFIG.language == "zh":
+    LOG.info(f"User profiles: \n{get_prompt()}")
 
 if __name__ == "__main__":
     print(get_prompt())

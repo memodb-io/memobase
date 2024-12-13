@@ -15,7 +15,7 @@ from ...prompts import (
     zh_merge_profile,
 )
 from ...prompts.utils import (
-    tag_strings_in_order_xml,
+    tag_blobs_in_order_xml,
     attribute_unify,
     parse_string_into_profiles,
     parse_string_into_merge_action,
@@ -73,9 +73,7 @@ async def process_blobs(
     else:
         already_topics_prompt = ""
 
-    blob_strs = tag_strings_in_order_xml(
-        [get_blob_str(b) for b in blobs], tag_name="chat"
-    )
+    blob_strs = tag_blobs_in_order_xml(blobs, tag_name="chat")
     p = await llm_complete(
         blob_strs,
         system_prompt=PROMPTS[CONFIG.language]["extract"].get_prompt(
