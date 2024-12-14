@@ -4,7 +4,6 @@ Initialize logger, encoder, and config.
 
 import os
 from rich.logging import RichHandler
-from rich import print as pprint
 import yaml
 import logging
 import tiktoken
@@ -14,6 +13,13 @@ from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+class TelemetryKeyName:
+    insert_blob_request = "insert_blob_request"
+    insert_blob_success_request = "insert_blob_success_request"
+    llm_input_tokens = "llm_input_tokens"
+    llm_output_tokens = "llm_output_tokens"
 
 
 @dataclass

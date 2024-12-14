@@ -1,7 +1,7 @@
 import asyncio
 from typing import TypedDict
 import pydantic
-from ...env import CONFIG, LOG, pprint
+from ...env import CONFIG, LOG
 from ...utils import get_blob_str, get_encoded_tokens
 from ...models.utils import Promise
 from ...models.blob import Blob, BlobType
