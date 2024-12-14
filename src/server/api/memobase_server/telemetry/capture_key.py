@@ -6,8 +6,12 @@ def date_key():
     return datetime.now().strftime("%Y-%m-%d")
 
 
+def head_key():
+    return f"memobase_telemetry::{PROJECT_ID}"
+
+
 async def capture_int_key(name, value: int = 1):
-    key = f"memobase_dashboard::{name}:{date_key()}"
+    key = f"{head_key()}::{name}::{date_key()}"
     async with get_redis_client() as r_c:
         await r_c.incrby(key, value)
 

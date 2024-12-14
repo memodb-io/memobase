@@ -18,6 +18,7 @@ from memobase_server.models.blob import BlobType
 from memobase_server.models import response as res
 from memobase_server import controllers
 from memobase_server.env import LOG
+from memobase_server.telemetry.capture_key import capture_int_key
 
 
 @asynccontextmanager
@@ -96,16 +97,19 @@ async def flush_buffer(user_id: str, buffer_type: BlobType) -> res.BaseResponse:
 async def insert_blob(
     user_id: str, blob_data: res.BlobData, background_tasks: BackgroundTasks
 ) -> res.IdResponse:
+    background_tasks.add_task(capture_int_key, "insert_request")
+
     p = await controllers.blob.insert_blob(user_id, blob_data)
     if not p.ok():
         return p.to_response(res.IdResponse)
 
-    background_tasks.add_task(
-        controllers.buffer.insert_blob_to_buffer,
-        user_id,
-        p.data().id,
-        blob_data.to_blob(),
+    pb = await controllers.buffer.insert_blob_to_buffer(
+        user_id, p.data().id, blob_data.to_blob()
     )
+    if not pb.ok():
+        return pb.to_response(res.IdResponse)
+
+    background_tasks.add_task(capture_int_key, "insert_blob_success_request")
     return p.to_response(res.IdResponse)
 
 

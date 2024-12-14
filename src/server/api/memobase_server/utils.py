@@ -55,9 +55,11 @@ def user_id_lock(scope):
         async def wrapper(user_id, *args, **kwargs):
             redis_client = get_redis_client()
             lock_key = f"user_lock:{PROJECT_ID}:{scope}:{user_id}"
-            lock = redis_client.lock(lock_key, timeout=60)  # 30 seconds timeout
+            lock = redis_client.lock(lock_key, timeout=30)
             try:
-                if not await lock.acquire(blocking=True):  # 5 seconds wait
+                if not await lock.acquire(
+                    blocking=True, blocking_timeout=60
+                ):  # 30 seconds wait
                     raise TimeoutError("Could not acquire lock")
                 return await func(user_id, *args, **kwargs)
             finally:

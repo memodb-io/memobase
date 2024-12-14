@@ -136,7 +136,6 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
             )
         finally:
             # FIXME: when failed, the buffer will be deleted anyway. Add some rollback maybe
-            # final: delete waiting blobs in buffer
             for buffer in blob_buffers:
                 session.delete(buffer)
             session.commit()
