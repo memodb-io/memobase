@@ -161,6 +161,18 @@ async def test_api_user_profile(client, db_env):
     assert len(d["data"]["profiles"]) == 2
     assert [dp["content"] for dp in d["data"]["profiles"]] == _profiles
     assert [dp["attributes"] for dp in d["data"]["profiles"]] == _attributes
+    id1, id2 = d["data"]["profiles"][0]["id"], d["data"]["profiles"][1]["id"]
+
+    response = client.delete(f"{PREFIX}/users/profile/{u_id}/{id1}")
+    d = response.json()
+    assert response.status_code == 200
+
+    response = client.get(f"{PREFIX}/users/profile/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["profiles"]) == 1
+    assert d["data"]["profiles"][0]["id"] == id2
 
     response = client.delete(f"{PREFIX}/users/{u_id}")
     d = response.json()

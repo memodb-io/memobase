@@ -212,8 +212,8 @@ async def merge_or_add_new_memos(
             p = await update_user_profile(
                 user_id,
                 old_p.id,
-                old_p.attributes,
                 update_response["memo"],
+                old_p.attributes,
                 old_new_profile["new_profile"]["related_blobs"],
             )
             update_replace_profile_count += 1
@@ -221,8 +221,8 @@ async def merge_or_add_new_memos(
             p = await update_user_profile(
                 user_id,
                 old_p.id,
-                old_p.attributes,
                 update_response["memo"],
+                old_p.attributes,
                 old_p.related_blobs + old_new_profile["new_profile"]["related_blobs"],
             )
             update_merge_profile_count += 1

@@ -56,9 +56,9 @@ async def add_user_profiles(
 async def update_user_profile(
     user_id: str,
     profile_id: str,
-    attributes: dict,
     content: str,
-    related_blobs: list[str],
+    attributes: dict = None,
+    related_blobs: list[str] = None,
 ):
     with Session() as session:
         db_profile = (
@@ -71,10 +71,15 @@ async def update_user_profile(
                 CODE.NOT_FOUND, f"Profile {profile_id} not found for user {user_id}"
             )
         db_profile.content = content
-        db_profile.attributes = attributes
-        db_profile.related_blobs = (
-            session.query(GeneralBlob).filter(GeneralBlob.id.in_(related_blobs)).all()
-        )
+
+        if attributes is not None:
+            db_profile.attributes = attributes
+        if related_blobs is not None:
+            db_profile.related_blobs = (
+                session.query(GeneralBlob)
+                .filter(GeneralBlob.id.in_(related_blobs))
+                .all()
+            )
         session.commit()
         return Promise.resolve(IdData(id=db_profile.id))
 

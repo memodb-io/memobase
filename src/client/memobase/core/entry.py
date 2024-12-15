@@ -116,3 +116,11 @@ class User:
         )
         data = r.data["profiles"]
         return [UserProfileData.model_validate(p).to_ds() for p in data]
+
+    def delete_profile(self, profile_id: str) -> bool:
+        r = unpack_response(
+            self.project_client.client.delete(
+                f"/users/profile/{self.user_id}/{profile_id}"
+            )
+        )
+        return True

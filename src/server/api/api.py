@@ -79,20 +79,6 @@ async def delete_user(user_id: str) -> BaseResponse:
     return p.to_response(BaseResponse)
 
 
-@router.get("/users/profile/{user_id}", tags=["user"])
-async def get_user_profile(user_id: str) -> res.UserProfileResponse:
-    """Get the real-time user profiles for long term memory"""
-    p = await controllers.profile.get_user_profiles(user_id)
-    return p.to_response(res.UserProfileResponse)
-
-
-@router.post("/users/buffer/{user_id}/{buffer_type}", tags=["user"])
-async def flush_buffer(user_id: str, buffer_type: BlobType) -> res.BaseResponse:
-    """Get the real-time user profiles for long term memory"""
-    p = await controllers.buffer.wait_insert_done_then_flush(user_id, buffer_type)
-    return p.to_response(res.BaseResponse)
-
-
 @router.post("/blobs/insert/{user_id}", tags=["user"])
 async def insert_blob(
     user_id: str, blob_data: res.BlobData, background_tasks: BackgroundTasks
@@ -103,7 +89,7 @@ async def insert_blob(
     if not p.ok():
         return p.to_response(res.IdResponse)
 
-    # TODO single user insert too fast will cause random order insert to buffer
+    # TODO if single user insert too fast will cause random order insert to buffer
     # So no background task for insert buffer yet
     pb = await controllers.buffer.insert_blob_to_buffer(
         user_id, p.data().id, blob_data.to_blob()
@@ -127,6 +113,27 @@ async def get_blob(user_id: str, blob_id: str) -> res.BlobDataResponse:
 async def delete_blob(user_id: str, blob_id: str) -> res.BaseResponse:
     p = await controllers.blob.remove_blob(user_id, blob_id)
     return p.to_response(res.BaseResponse)
+
+
+@router.get("/users/profile/{user_id}", tags=["user"])
+async def get_user_profile(user_id: str) -> res.UserProfileResponse:
+    """Get the real-time user profiles for long term memory"""
+    p = await controllers.profile.get_user_profiles(user_id)
+    return p.to_response(res.UserProfileResponse)
+
+
+@router.post("/users/buffer/{user_id}/{buffer_type}", tags=["user"])
+async def flush_buffer(user_id: str, buffer_type: BlobType) -> res.BaseResponse:
+    """Get the real-time user profiles for long term memory"""
+    p = await controllers.buffer.wait_insert_done_then_flush(user_id, buffer_type)
+    return p.to_response(res.BaseResponse)
+
+
+@router.delete("/users/profile/{user_id}/{profile_id}", tags=["user"])
+async def delete_user_profile(user_id: str, profile_id: str) -> res.BaseResponse:
+    """Get the real-time user profiles for long term memory"""
+    p = await controllers.profile.delete_user_profile(user_id, profile_id)
+    return p.to_response(res.IdResponse)
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
