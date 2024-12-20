@@ -93,7 +93,10 @@ class GeneralBlob(Base):
     additional_fields: Mapped[Optional[dict]] = mapped_column(
         JSONB, nullable=True, default=None
     )
-    __table_args__ = (Index("idx_general_blobs_user_id_id", "user_id", "id"),)
+    __table_args__ = (
+        Index("idx_general_blobs_user_id", "user_id"),
+        Index("idx_general_blobs_user_id_id", "user_id", "id"),
+    )
 
     # validate
     def __post_init__(self):
@@ -130,6 +133,10 @@ class BufferZone(Base):
         "GeneralBlob", back_populates="related_buffers", init=False
     )
 
+    __table_args__ = (
+        Index("idx_buffer_zones_user_id_blob_type", "user_id", "blob_type"),
+    )
+
     # validate
     def __post_init__(self):
         assert isinstance(
@@ -157,3 +164,8 @@ class UserProfile(Base):
     )
 
     attributes: Mapped[dict] = mapped_column(JSONB, nullable=True, default=None)
+
+    __table_args__ = (
+        Index("idx_user_profiles_user_id", "user_id"),
+        Index("idx_user_profiles_user_id_id", "user_id", "id"),
+    )
