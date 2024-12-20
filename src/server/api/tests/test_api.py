@@ -29,7 +29,7 @@ def mock_llm_complete():
     with patch("memobase_server.controllers.modal.chat.llm_complete") as mock_llm:
         mock_client1 = AsyncMock()
         mock_client1.ok = Mock(return_value=True)
-        mock_client1.data = Mock(return_value="- basic_info::name::Gus::[0,1]")
+        mock_client1.data = Mock(return_value="- basic_info::name::Gus")
 
         mock_llm.side_effect = [mock_client1]
         yield mock_llm
@@ -146,12 +146,7 @@ async def test_api_user_profile(client, db_env):
         {"topic": "interest", "sub_topic": "sports"},
         {"topic": "education", "sub_topic": "level"},
     ]
-    p = await controllers.profile.add_user_profiles(
-        u_id,
-        _profiles,
-        _attributes,
-        [[] for _ in range(len(_attributes))],
-    )
+    p = await controllers.profile.add_user_profiles(u_id, _profiles, _attributes)
     assert p.ok()
 
     response = client.get(f"{PREFIX}/users/profile/{u_id}")

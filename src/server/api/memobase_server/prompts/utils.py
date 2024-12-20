@@ -12,15 +12,14 @@ INT_INT_PATTERN = re.compile(r"\[(\d+)\]")
 def tag_blobs_in_order_xml(
     blobs: list[Blob],
     tag_name: str = "doc",
-    index_offset: int = 0,
 ):
     dates = [
         b.created_at.strftime("%Y/%m/%d %I:%M%p") if b.created_at else None
         for b in blobs
     ]
     return "\n".join(
-        f'<{tag_name} data_index={i+index_offset} date="{d}">\n{get_blob_str(b)}\n</{tag_name}>'
-        for i, (b, d) in enumerate(zip(blobs, dates))
+        f'<{tag_name} date="{d}">\n{get_blob_str(b)}\n</{tag_name}>'
+        for b, d in zip(blobs, dates)
     )
 
 
@@ -140,7 +139,7 @@ def parse_string_into_merge_action(results: str) -> dict | None:
 
 def pack_profiles_into_string(profiles: AIUserProfiles) -> str:
     lines = [
-        f"- {attribute_unify(p.topic)}{CONFIG.llm_tab_separator}{attribute_unify(p.sub_topic)}{CONFIG.llm_tab_separator}{p.memo.strip()}{CONFIG.llm_tab_separator}{p.cites}"
+        f"- {attribute_unify(p.topic)}{CONFIG.llm_tab_separator}{attribute_unify(p.sub_topic)}{CONFIG.llm_tab_separator}{p.memo.strip()}"
         for p in profiles.facts
     ]
     if not len(lines):
@@ -161,30 +160,16 @@ def parse_line_into_profile(line: str) -> AIUserProfile | None:
         return None
     line = line[2:]
     parts = line.split(CONFIG.llm_tab_separator)
-    if not len(parts) == 4:
+    if not len(parts) == 3:
         return None
-    topic, sub_topic, memo, cites = parts
-    cites = parse_string_into_cites(cites)
+    topic, sub_topic, memo = parts
     return AIUserProfile(
         topic=attribute_unify(topic),
         sub_topic=attribute_unify(sub_topic),
         memo=memo.strip(),
-        cites=cites,
     )
 
 
-def parse_string_into_cites(response: str) -> list[int] | None:
-    normal_list = LIST_INT_PATTERN.search(response)
-    if normal_list is not None:
-        return json.loads(normal_list.group())
-
-    int_bracket_list = INT_INT_PATTERN.findall(response)
-    if len(int_bracket_list):
-        return [int(i) for i in int_bracket_list]
-    LOG.warning(f"No cites found in the response: {response}")
-    return []
-
-
 if __name__ == "__main__":
-    print(parse_line_into_profile("- basic_info::name::Gus::[0, 1]"))
+    print(parse_line_into_profile("- basic_info::name::Gus"))
     print(parse_string_into_merge_action("- REPLACE::G"))
