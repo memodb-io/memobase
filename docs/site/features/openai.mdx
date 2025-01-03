@@ -1,0 +1,118 @@
+---
+title: OpenAI API with Memory
+---
+
+
+MemoBase supports OpenAI API integration. 
+This allows you to "patch" MemoBase's memory capabilities to OpenAI chat completion
+(or any LLM provider that is compatible to openai SDK) without changing the original code.
+
+
+## Setup
+1. Make sure you install MemoBase python SDK and OpenAI python SDK
+```bash
+pip install memobase openai
+```
+
+2. Initialize OpenAI and MemoBaseClient
+```python
+from openai import OpenAI
+from memobase import MemoBaseClient
+
+client = OpenAI()
+mb_client = MemoBaseClient(
+    project_url=ENDPOINT,
+    api_key=TOKEN,
+)
+```
+Make sure you have the MemoBase Endpoint and Token ready, check [here](/quickstart#get-prepared)
+
+## Patch Memory 
+```python
+from memobase.patch.openai import openai_memory
+
+client = openai_memory(client, mb_client)
+```
+You're all set!
+
+
+## How to use OpenAI with Memory?
+1. You can use OpenAI API as you normally would but simply add `user_id` to the request.
+
+<CodeGroup>
+```python OpenAI
+client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "I'm Gus"},
+    ],
+    model="gpt-4o"
+)
+```
+```python OpenAI with Memory
+client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "I'm Gus"},
+    ],
+    model="gpt-4o",
+    user_id="test",
+)
+```
+</CodeGroup>
+
+2. If no `user_id` is passed, the client will act just like the original OpenAI client.
+3. If `user_id` is passed, the client will use MemoBase automatically.
+4. The memory processing of the user won't be trigger immediately, there is a buffer zone to collect the recent messages.
+However, you can manually trigger the process by
+```python
+client.flush("test")
+```
+
+## Make sure the memory is retained
+<CodeGroup>
+```python OpenAI
+client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "Who'm I?"},
+    ],
+    model="gpt-4o"
+)
+
+# I'm sorry, I can't determine your identity...
+```
+```python OpenAI with Memory
+client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "Who'm I?"},
+    ],
+    model="gpt-4o",
+    user_id="test",
+)
+
+# You're Gus! If you need anything specific...
+```
+</CodeGroup>
+
+## How it works?
+
+1. The `openai_memory` function patches the OpenAI client to call MemoBase SDK before and after the chat completion.
+2. **Only the latest** user query and assistant response will be inserted into the memory.
+    - If your messages are:
+    ```json
+    [
+        {"role": "user", "content": "I'm Gus"},
+        {"role": "assistant", "content": "Hello Gus! How can I help you?"},
+        {"role": "user", "content": "Who'm I?"},
+    ]
+    ```
+    And the response is `You'r Gus!`. 
+    - Then the only the latest query and response will be inserted, equivalent to:
+    ```python
+    u.insert(
+        ChatBlob(messages=[
+            {"role": "user", "content": "Who'm I?"},
+            {"role": "assistant", "content": "You're Gus!"},
+        ]
+    ))
+    ```
+3. So you don't really change the way you're currently using OpenAI API, you can still keep the recent messages when you call the chat completion API.
+And MemoBase won't repeatedly insert the same messages into the memory.

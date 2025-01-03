@@ -1,0 +1,55 @@
+---
+title: Details
+---
+
+## Full Explanation of `config.yaml`
+We use a single `config.yaml` file as the source to configure MemoBase Backend. An example is like this:
+
+```yaml
+max_chat_blob_buffer_token_size: 1024
+buffer_flush_interval: 3600
+
+llm_api_key: YOUR-KEY
+llm_base_url: https://api.openai.com/v1/
+
+best_llm_model: gpt-4o
+
+additional_user_profiles:
+  - topic: "gaming"
+    sub_topics:
+      - "Soul-Like"
+...
+```
+
+
+
+### Basic Config
+- `max_chat_blob_buffer_token_size`: int, default to `1024`. This is the parameter to control the buffer size of MemoBase. Large the number, lower your LLM cost will be, but more lagging of profile update.
+- `max_pre_profile_token_size`: int, default to `256`. The maximum token size of one profile slot can be. When a profile slot is larger than this, it will be trigger a re-summary.
+
+### Profile Config
+Check what is profile in MemoBase in [here](/features/customization/profile)
+- `additional_user_profiles`: list, default to `[]`. This is the parameter to add additional user profiles. Each profile should have a `topic` and a list of `sub_topics`.
+    - For `topic`, it must have a `topic` field and maybe a `description` field:
+    ```yaml
+    additional_user_profiles:
+      - topic: "gaming"
+        # description: "User's gaming interests"
+        sub_topics:
+          ...
+    ```
+    - For each `sub_topic`, it must have a `name` field(or just a `string`) and maybe a `description` field:
+    ```yaml
+    sub_topics:
+      - "SP1"
+      - name: "SP2"
+        description: "Sub-Profile 2" 
+    ```
+- `overwrite_user_profiles`: list, default to `null`. The format is the same as `additional_user_profiles`.
+MemoBase will have some built-in profile slots like `work_title`, `name` etc. If you want full control of the slots, you can use this parameter.
+The final profiles slots will be those you defined in here.
+
+### LLM Config
+- `language`: string, default to `en`, available options `{'en', 'zh'}`. The prompt language of MemoBase you like to use.
+- `llm_base_url`: string, default to `https://api.openai.com/v1/`. The base URL of any OpenAI-Compatible API.
+- `llm_api_key`: string, default to `null`. Your LLM API key.

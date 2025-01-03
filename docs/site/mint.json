@@ -48,6 +48,19 @@
         "features",
         "cost"
       ]
+    },
+    {
+      "group": "Features",
+      "pages": [
+        "features/openai",
+        {
+          "group": "Customization",
+          "pages": [
+            "features/customization/profile",
+            "features/customization/full"
+          ]
+        }
+      ]
     }
   ],
   "footerSocials": {

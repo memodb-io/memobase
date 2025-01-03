@@ -1,6 +1,14 @@
 ---
 title: Performance
 ---
+## Overview
+- MemoBase is extremely fast when comes to query, because it simply return the full profiles of users.
+- The final total tokens of a user profile is controllable: #profile slots X #maximum tokens size of each slots.
+    - [Here](features/customization/profile) to see how to design your profile slots.
+    - [Here](features/customization/full#basic-config) to see how to control the maximum tokens size of each slots.
+- Insertion is relatively fast and cheap, because MemoBase uses a online buffer to aggregate the recent messages and process them together.
+So the overhead prompt cost is amortized.
+    - [Here](features/customization/full) to see how to control the buffer token size.
 
 ## Comparing with other solutions
 #### MemoBase vs. [mem0](https://github.com/mem0ai/mem0)

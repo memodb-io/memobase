@@ -4,11 +4,14 @@ title: 'Quickstart'
 
 
 <CardGroup cols={2}>
-  <Card title="Client Side" icon="code-branch" href="#mem0-open-source">
-    Integrate MemoBase in your Apps
+  <Card title="Patch OpenAI" icon="webhook" href="features/openai">
+    Use OpenAI API with Memory, powered by MemoBase
+  </Card>
+  <Card title="Client Side" icon="code-branch" href="#memobase-client">
+    Use SDK or APIs to connect to MemoBase Backend
   </Card>
   <Card title="Server Side" icon="chart-simple" href="#memobase-backend">
-    Launch MemoBase backend with docker
+    Launch MemoBase Backend
   </Card>
 </CardGroup>
 
@@ -186,7 +189,7 @@ bid = u.insert(b)
 curl -X POST "$PROJECT_URL/api/v1/blobs/insert/{uid}" \
      -H "Authorization: Bearer $PROJECT_TOKEN" \
      -H "Content-Type: application/json" \
-     -d '{ "blob_type": "chat", "blob_data": { "messages": [ {"role": "user","content": "Hi, Im here again"}, {"role": "assistant", "content": "Hi, Gus! How can I help you?"}] }}'
+     -d '{ "blob_type": "chat", "blob_data": { "messages": [ {"role": "user","content": "Hi, Im here again"}, {"role": "assistant", "content": "Hi, Gus! How can I help you?", "alias": "Character"}] }}'
 ```
 
 ```json Output
@@ -313,7 +316,6 @@ curl -X GET "$PROJECT_URL/api/v1/users/profile/{uid}" \
 Below are the user profile:
 * basic_info: name - 오*영
 * basic_info: language_spoken - User uses both English and Korean.
-* contact_info: email - s****2@ca**rp.com
 * education:  - User had an English teacher who emphasized capitalization rules during school days.
 * education: major - 국어국문학과 (Korean Language and Literature)
 * demographics: marital_status - user is married
@@ -326,4 +328,3 @@ You should be aware of these information when you talk to the user.
 
 ## MemoBase Backend
 MemoBase offers a open-source solution with a docker backend to launch your own instance.
-TODO

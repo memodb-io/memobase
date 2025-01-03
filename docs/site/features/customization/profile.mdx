@@ -1,0 +1,49 @@
+---
+title: Customize User Profile
+---
+MemoBase is a [user profile](/features#user-profile-as-memory) backend for LLM Apps, that means it tracks the certain slots of user profile and updates them accordingly.
+By default, MemoBase has a built-in user profile slots for general use cases.
+But it allows you to customize the user profile to control the memory your App want to collect. 
+
+### Locate the `config.yaml` file of self-hosted MemoBase
+MemoBase uses a `config.yaml` file to configure the backend. 
+Find your `config.yaml` file in `src/server/api/config.yaml`, normally it looks like this:
+
+```yaml
+max_chat_blob_buffer_token_size: 1024
+buffer_flush_interval: 3600
+llm_api_key: sk-...
+best_llm_model: gpt-4o-mini
+...
+
+```
+## Understand the user profile slots
+By default, MemoBase has a built-in user profile slots, something like:
+```markdown
+- basic_info
+    - name
+    - gender
+    ...
+- education
+    - school
+    - major
+    ...
+```
+If you like to add more slots, you can add them in the `additional_user_profiles` field in `config.yaml`:
+```yaml
+additional_user_profiles:
+    - topic: "Gaming"
+    description: "Track the gaming preferences/achievements of the user."
+    sub_topics:
+        - name: "FPS"
+        description: "Games like CSGO, Valorant, etc."
+        - "LOL"
+    - topic: "Whatever"
+    sub_topics:
+        - "whatever 1"
+        - "whatever 2"
+```
+MemoBase will track the additional slots and fill/update the user profile accordingly.  
+Also, if you like to completely control the slots, you can use `overwrite_user_profiles` to place your own slots.
+
+Check detailed format in [here](/features/customization/full#profile-config)
