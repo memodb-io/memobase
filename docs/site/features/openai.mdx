@@ -3,13 +3,13 @@ title: OpenAI API with Memory
 ---
 
 
-MemoBase supports OpenAI API integration. 
-This allows you to "patch" MemoBase's memory capabilities to OpenAI chat completion
+Memobase supports OpenAI API integration. 
+This allows you to "patch" Memobase's memory capabilities to OpenAI chat completion
 (or any LLM provider that is compatible to openai SDK) without changing the original code.
 
 
 ## Setup
-1. Make sure you install MemoBase python SDK and OpenAI python SDK
+1. Make sure you install Memobase python SDK and OpenAI python SDK
 ```bash
 pip install memobase openai
 ```
@@ -25,7 +25,7 @@ mb_client = MemoBaseClient(
     api_key=TOKEN,
 )
 ```
-Make sure you have the MemoBase Endpoint and Token ready, check [here](/quickstart#get-prepared)
+Make sure you have the Memobase Endpoint and Token ready, check [here](/quickstart#get-prepared)
 
 ## Patch Memory 
 ```python
@@ -60,7 +60,7 @@ client.chat.completions.create(
 </CodeGroup>
 
 2. If no `user_id` is passed, the client will act just like the original OpenAI client.
-3. If `user_id` is passed, the client will use MemoBase automatically.
+3. If `user_id` is passed, the client will use Memobase automatically.
 4. The memory processing of the user won't be trigger immediately, there is a buffer zone to collect the recent messages.
 However, you can manually trigger the process by
 ```python
@@ -94,7 +94,7 @@ client.chat.completions.create(
 
 ## How it works?
 
-1. The `openai_memory` function patches the OpenAI client to call MemoBase SDK before and after the chat completion.
+1. The `openai_memory` function patches the OpenAI client to call Memobase SDK before and after the chat completion.
 2. **Only the latest** user query and assistant response will be inserted into the memory.
     - If your messages are:
     ```json
@@ -115,4 +115,4 @@ client.chat.completions.create(
     ))
     ```
 3. So you don't really change the way you're currently using OpenAI API, you can still keep the recent messages when you call the chat completion API.
-And MemoBase won't repeatedly insert the same messages into the memory.
+And Memobase won't repeatedly insert the same messages into the memory.

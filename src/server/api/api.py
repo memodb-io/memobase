@@ -29,9 +29,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    summary="APIs for MemoBase, a user memory system for LLM Apps",
+    summary="APIs for Memobase, a user memory system for LLM Apps",
     version=memobase_server.__version__,
-    title="MemoBase API",
+    title="Memobase API",
     lifespan=lifespan,
 )
 router = APIRouter(prefix="/api/v1")

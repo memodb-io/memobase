@@ -1,16 +1,16 @@
->  Use a 900~ turns of chats from ShareGPT dataset to evaulate MemoBase
+>  Use a 900~ turns of chats from ShareGPT dataset to evaulate Memobase
 
 ## Setup
 
 - We choose the longest chats from [ShareGPT dataset](https://huggingface.co/datasets/RyokoAI/ShareGPT52K/tree/main/old) (`sg_90k_part1.json`)
   - ID "7uOhOjo". Check the chats in this file: `./sharegpt_test_7uOhOjo.json`.
-- Make sure you have [set up the MemoBase Backend](../../../src/server/readme.md)
+- Make sure you have [set up the Memobase Backend](../../../src/server/readme.md)
 - `pip install memobase rich`
 - We use OpenAI **gpt-4o-mini** as default model, make sure you have a OpenAI key. Place it to `config.yaml`
 - Run `python run.py`, it will take a while.
 - For a reference, we also compare with a greate memory layer solution [mem0](https://github.com/mem0ai/mem0) (version 0.1.2), the code is `./run_mem0.py`, its default model is also gpt-4o-mini.
-  - Welcome to raise issues about `run_mem0.py`, we write this script based on the [basic docs](https://docs.mem0.ai/open-source/quickstart) and maybe not the best practice. Nevertheless, we keep the process of MemoBase as basic as possible for a fair comparison.
-- To simulate the real results, we pack one user+assistant chat as a turn to insert to both MemoBase and Mem0.
+  - Welcome to raise issues about `run_mem0.py`, we write this script based on the [basic docs](https://docs.mem0.ai/open-source/quickstart) and maybe not the best practice. Nevertheless, we keep the process of Memobase as basic as possible for a fair comparison.
+- To simulate the real results, we pack one user+assistant chat as a turn to insert to both Memobase and Mem0.
 
 
 
@@ -19,9 +19,9 @@
 - We use `tiktoken` to count tokens (model `gpt-4o`)
 - Number of Raw Messages' tokens is 63736 
 
-#### MemoBase
+#### Memobase
 
-- MemoBase will cost:
+- Memobase will cost:
   - #Input token: 220000~
   - #Output token: 15000~
 - Based on the DashBoard results of OpenAI, a user of 900 turns of chat will cost you **0.042$**(llm)
@@ -34,15 +34,15 @@
 
 ### Why
 
-- Mem0 uses hot-path update, that means each update will trigger a memory flush. When using `Memory.add` of Mem0, you should manually manage how many data you should insert so that the memory flush won't happen too many times. MemoBase has a buffer zone to automatically manage your inserted data, so you don't need to worry about this.
-  - This leads to Mem0 calls LLM much more than MemoBase, so it will be slower and cost more.
-- Also, Mem0 computes embeddings for each memory and retrieve them on each time you insert, while MemoBase doesn't use embeddings for user memory. We use dynamic profiling to generate first and secondary index for users, when we retrieve memories for updating, we only use SQL.
+- Mem0 uses hot-path update, that means each update will trigger a memory flush. When using `Memory.add` of Mem0, you should manually manage how many data you should insert so that the memory flush won't happen too many times. Memobase has a buffer zone to automatically manage your inserted data, so you don't need to worry about this.
+  - This leads to Mem0 calls LLM much more than Memobase, so it will be slower and cost more.
+- Also, Mem0 computes embeddings for each memory and retrieve them on each time you insert, while Memobase doesn't use embeddings for user memory. We use dynamic profiling to generate first and secondary index for users, when we retrieve memories for updating, we only use SQL.
 
 
 
 ## What will you get?
 
-#### MemoBase
+#### Memobase
 
 User profile is below (mask sensitive information as **):
 
@@ -91,11 +91,11 @@ The full results is in [here](./full_mem0.txt).
 
 
 
-## Does MemoBase hallucinate?
+## Does Memobase hallucinate?
 
-One thing is worse than no memory is wrong memory, we can't guarantee the absolute right of the profiles(because we rely on LLM), but MemoBase left a chance to correct it because we save links between a memory and its raw sources.
+One thing is worse than no memory is wrong memory, we can't guarantee the absolute right of the profiles(because we rely on LLM), but Memobase left a chance to correct it because we save links between a memory and its raw sources.
 
-In the above section, MemoBase said the user is married, **but the words "married" or "marry" never occur in this dataset**. let's find out if MemoBase is hallucinating. We can output this profiles' related blobs, below is the three related blobs' messages:
+In the above section, Memobase said the user is married, **but the words "married" or "marry" never occur in this dataset**. let's find out if Memobase is hallucinating. We can output this profiles' related blobs, below is the three related blobs' messages:
 
 ---
 

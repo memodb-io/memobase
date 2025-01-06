@@ -28,7 +28,7 @@ setuptools.setup(
     version=vars2readme["__version__"],
     author=vars2readme["__author__"],
     license=vars2readme["__license__"],
-    description="Client library of MemoBase: manage user memory for your LLM applications",
+    description="Client library of Memobase: manage user memory for your LLM applications",
     long_description=long_description,
     long_description_content_type="text/markdown",
     package_dir={"": "src/client"},

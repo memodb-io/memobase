@@ -1,8 +1,8 @@
-# MemoBase Architecture Guide
+# Memobase Architecture Guide
 
 ## Project Overview
 
-MemoBase is a user memory system for LLM applications that maintains persistent user context and memory. This guide will help you understand the system architecture and navigate the codebase.
+Memobase is a user memory system for LLM applications that maintains persistent user context and memory. This guide will help you understand the system architecture and navigate the codebase.
 
 ## System Architecture
 

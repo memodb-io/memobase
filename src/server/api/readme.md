@@ -1,6 +1,6 @@
-# MemoBase Backend API
+# Memobase Backend API
 
-MemoBase is a user memory system designed for LLM Applications. It provides a FastAPI-based server that manages user profiles, memories, and various types of data blobs. Details of developing it in [here](./DEVELOPMENT.md).
+Memobase is a user memory system designed for LLM Applications. It provides a FastAPI-based server that manages user profiles, memories, and various types of data blobs. Details of developing it in [here](./DEVELOPMENT.md).
 
 ## Core Components
 
@@ -113,4 +113,4 @@ Key configuration options in `config.yaml`:
 - Structured error responses
 - Validation error handling
 
-This documentation provides a high-level overview of the MemoBase system. For specific implementation details, refer to the individual module documentation and code comments.
+This documentation provides a high-level overview of the Memobase system. For specific implementation details, refer to the individual module documentation and code comments.

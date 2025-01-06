@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "MemoBase",
+  "name": "Memobase",
   "favicon": "/logo/favicon.png",
   "logo": {
     "dark": "/logo/dark.svg",

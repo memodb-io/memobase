@@ -75,7 +75,7 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
                 {"role": "user", "content": "Hi, nice to meet you, I am Gus"},
                 {
                     "role": "assistant",
-                    "content": "Great! I'm MemoBase Assistant, how can I help you?",
+                    "content": "Great! I'm Memobase Assistant, how can I help you?",
                 },
                 {"role": "user", "content": "I really dig into Chinese food"},
                 {"role": "assistant", "content": "Got it, Gus!"},

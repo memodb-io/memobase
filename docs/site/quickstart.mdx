@@ -5,18 +5,18 @@ title: 'Quickstart'
 
 <CardGroup cols={2}>
   <Card title="Patch OpenAI" icon="webhook" href="features/openai">
-    Use OpenAI API with Memory, powered by MemoBase
+    Use OpenAI API with Memory, powered by Memobase
   </Card>
   <Card title="Client Side" icon="code-branch" href="#memobase-client">
-    Use SDK or APIs to connect to MemoBase Backend
+    Use SDK or APIs to connect to Memobase Backend
   </Card>
   <Card title="Server Side" icon="chart-simple" href="#memobase-backend">
-    Launch MemoBase Backend
+    Launch Memobase Backend
   </Card>
 </CardGroup>
 
 
-## MemoBase Client
+## Memobase Client
 
 ### Get Prepared
 
@@ -33,12 +33,12 @@ pip install memobase
 </Accordion>
 <Accordion title="Your Project URL and TOKEN">
 Cloud Service is still under development, below steps are for future reference.
-> 1. Sign up at [MemoBase](https://memobase.io)
+> 1. Sign up at [Memobase](https://memobase.io)
 > 2. Create a [new project](https://dashboard.memobase.io), and get your project url, token.
 </Accordion>
 </AccordionGroup>
 
-### Connect to MemoBase Backend
+### Connect to Memobase Backend
 
 <AccordionGroup>
 <Accordion title="Instantiate client">
@@ -250,7 +250,7 @@ curl -X DELETE "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 </AccordionGroup>
 
 ### Memory Operations
-MemoBase provides memory extraction and storage for each user：
+Memobase provides memory extraction and storage for each user：
 1. `flush`: User Data will stay in buffer until the buffer is too big or IDLE for too long. You can flush the buffer to trigger the memory extraction manually
 
 <Accordion title="Flush" description="e.g. After a chat session is closed">
@@ -326,5 +326,5 @@ You should be aware of these information when you talk to the user.
 </Accordion>
 
 
-## MemoBase Backend
-MemoBase offers a open-source solution with a docker backend to launch your own instance.
+## Memobase Backend
+Memobase offers a open-source solution with a docker backend to launch your own instance.

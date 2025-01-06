@@ -106,7 +106,7 @@ EXAMPLES = [
     (
         """
 <chat data_index=0  date="2024/1/1">
-    user: Hi, my name is John. I am a software engineer at MemoBase.
+    user: Hi, my name is John. I am a software engineer at Memobase.
 </chat>
 """,
         AIUserProfiles(
@@ -127,7 +127,7 @@ EXAMPLES = [
                     {
                         "topic": "work",
                         "sub_topic": "Company",
-                        "memo": "user works at MemoBase",
+                        "memo": "user works at Memobase",
                         "cites": [0],
                     },
                 ]
@@ -244,6 +244,6 @@ def get_prompt(already_topics: str) -> str:
 if __name__ == "__main__":
     print(
         get_prompt(
-            "basic_info: Name: John\nwork: Title: Software engineer\nwork: Company: MemoBase"
+            "basic_info: Name: John\nwork: Title: Software engineer\nwork: Company: Memobase"
         )
     )

@@ -2,7 +2,7 @@
     <a href="https://memobase.io">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://assets.memodb.io/memobase-dark.svg">
-      <img alt="Shows the MemoBase logo" src="https://assets.memodb.io/memobase-light.svg" width="424">
+      <img alt="Shows the Memobase logo" src="https://assets.memodb.io/memobase-light.svg" width="424">
     </picture>
   </a>
   <p><strong>Manage user profile/memory for your LLM applications</strong></p>
@@ -18,23 +18,23 @@
 🌬️ **Does your AI forget your users?** 
 
 
-> MemoBase maintains long-term memory of your users, for your product.
+> Memobase maintains long-term memory of your users, for your product.
 
 🖼️ **Do you understand the customers that using your AI?** 
 
-> MemoBase offers accurate user profile, involving many aspects of your users: Age, Education, Interests, Opinions...
+> Memobase offers accurate user profile, involving many aspects of your users: Age, Education, Interests, Opinions...
 > 
-> [Customize](./src/server/readme.md/#Customization) the aspects you want MemoBase to collect.
+> [Customize](./src/server/readme.md/#Customization) the aspects you want Memobase to collect.
 
 ⌛️ **Do you want users spend more time on your Apps?** 
 
-> MemoBase is working with some AI companion startups. They have observated increased chatting turns after adopting MemoBase, leading to higher user retention and subscription rate.
+> Memobase is working with some AI companion startups. They have observated increased chatting turns after adopting Memobase, leading to higher user retention and subscription rate.
 
 
 
 ## Get Started
 
-1. [Start your MemoBase Backend](./src/server/readme.md), you should have the below two things to continue:
+1. [Start your Memobase Backend](./src/server/readme.md), you should have the below two things to continue:
    1. A project url. default to `http://localhost:8019` 
 
    2. A project token. default to `secret`
@@ -66,7 +66,7 @@ print(u)
 
 ### Single User Data
 
-> In MemoBase, all types of data are blobs to a user that can insert, get and delete:
+> In Memobase, all types of data are blobs to a user that can insert, get and delete:
 
 ```python
 messages = [
@@ -103,15 +103,15 @@ print(u.profile())
 <details>
 <summary> Why need a flush?</summary>
 
-In MemoBase, we don't memoize users in [hot path](https://langchain-ai.github.io/langgraph/concepts/memory/#writing-memories-in-the-hot-path). We use buffer zones for the recent inserted blobs.
+In Memobase, we don't memoize users in [hot path](https://langchain-ai.github.io/langgraph/concepts/memory/#writing-memories-in-the-hot-path). We use buffer zones for the recent inserted blobs.
 
-When the buffer zone is too large (*e.g.* 1024 tokens) or idle for a long time (*e.g.* 1 hour), MemoBase will flush the whole buffer into the memory. 
+When the buffer zone is too large (*e.g.* 1024 tokens) or idle for a long time (*e.g.* 1 hour), Memobase will flush the whole buffer into the memory. 
 Or you can just manually decide when to flush (*e.g.* A chat session is closed in your App)
 </details>
 
 
 
-## Why/Where should I use MemoBase?
+## Why/Where should I use Memobase?
 
 ### Remember the users 
 
