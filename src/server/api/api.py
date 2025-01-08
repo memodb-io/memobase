@@ -19,6 +19,7 @@ from memobase_server.models import response as res
 from memobase_server import controllers
 from memobase_server.env import LOG, TelemetryKeyName
 from memobase_server.telemetry.capture_key import capture_int_key
+from uvicorn.config import LOGGING_CONFIG
 
 
 @asynccontextmanager
@@ -35,6 +36,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 router = APIRouter(prefix="/api/v1")
+
+LOGGING_CONFIG["formatters"]["default"][
+    "fmt"
+] = "%(levelprefix)s %(asctime)s %(message)s"
+LOGGING_CONFIG["formatters"]["access"][
+    "fmt"
+] = "%(levelprefix)s %(asctime)s %(client_addr)s - %(request_line)s %(status_code)s"
+LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
+LOGGING_CONFIG["formatters"]["access"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 
 
 @router.get("/healthcheck", tags=["chore"])
