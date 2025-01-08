@@ -36,6 +36,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 router = APIRouter(prefix="/api/v1")
+LOGGING_CONFIG["formatters"]["default"][
+    "fmt"
+] = "%(levelprefix)s %(asctime)s %(message)s"
+LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 
 LOGGING_CONFIG["formatters"]["default"][
     "fmt"
