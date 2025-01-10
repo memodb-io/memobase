@@ -1,3 +1,4 @@
+import yaml
 from dataclasses import dataclass, field
 from typing import TypedDict, Optional
 
@@ -58,3 +59,19 @@ def modify_default_user_profile(CANDIDATE_PROFILE_TOPICS):
         ]
         CANDIDATE_PROFILE_TOPICS.extend(_addon_user_profiles)
     return CANDIDATE_PROFILE_TOPICS
+
+
+def export_user_profile_to_yaml(profiles: list[UserProfileTopic]):
+    final_results = {"profiles": []}
+    for p in profiles:
+        res = {"topic": p.topic}
+        if p.description:
+            res["description"] = p.description
+        res["sub_topics"] = []
+        for sp in p.sub_topics:
+            res["sub_topics"].append(
+                {"name": sp["name"], "description": sp["description"]}
+            )
+        final_results["profiles"].append(res)
+    print(final_results)
+    return yaml.dump(final_results, allow_unicode=True)
