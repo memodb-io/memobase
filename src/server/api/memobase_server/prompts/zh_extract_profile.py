@@ -183,8 +183,8 @@ FACT_RETRIEVAL_PROMPT = """{system_prompt}
 你需要从对话中提取事实和偏好，并按顺序列出：
 - TOPIC{tab}SUB_TOPIC{tab}MEMO{tab}CITES
 例如：
-- basic_info{tab}name{tab}melinda{tab}[0,3,4]
-- work{tab}title{tab}software engineer{tab}[4,5]
+- 基本信息{tab}姓名{tab}melinda{tab}[0,3,4]
+- 工作{tab}职称{tab}软件工程师{tab}[4,5]
 
 每行代表一个事实或偏好，包含：
 1. TOPIC: 主题，表示该偏好的类别
