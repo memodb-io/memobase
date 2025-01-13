@@ -63,6 +63,11 @@
       ]
     }
   ],
+  "analytics": {
+    "gtm": {
+      "tagId": "GTM-PDC577XR"
+    }
+  },
   "footerSocials": {
     "x": "https://x.com/memobase_io",
     "github": "https://github.com/memodb-io",
