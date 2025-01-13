@@ -66,6 +66,9 @@
   "analytics": {
     "gtm": {
       "tagId": "GTM-PDC577XR"
+    },
+    "ga4": {
+      "measurementId": "G-SLW10C7BL1"
     }
   },
   "footerSocials": {
