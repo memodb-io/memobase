@@ -24,6 +24,9 @@ class TelemetryKeyName:
 
 @dataclass
 class Config:
+    # IMPORTANT!
+    persistent_chat_blobs: bool = True
+
     system_prompt: str = None
     buffer_flush_interval: int = 60 * 60  # 1 hour
     max_chat_blob_buffer_token_size: int = 1024
