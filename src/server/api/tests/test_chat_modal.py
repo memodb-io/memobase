@@ -115,6 +115,10 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
     p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
     assert p.ok() and p.data() == 0
 
+    # persistent_chat_blobs default to False
+    p = await controllers.user.get_user_all_blobs(u_id)
+    assert p.ok() and len(p.data().ids) == 0
+
     p = await controllers.user.delete_user(u_id)
     assert p.ok()
 
