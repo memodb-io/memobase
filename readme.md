@@ -11,8 +11,12 @@
     <a href="https://pypi.org/project/memobase/">
       <img src="https://img.shields.io/pypi/v/memobase.svg">
     </a>
+    <a href="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml">
+      <img src="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml/badge.svg">
+    </a>
   </p>
 </div>
+
 
 
 🌬️ **Does your AI forget your users?** 
