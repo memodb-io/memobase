@@ -98,6 +98,14 @@ class User:
         )
         return BlobData.model_validate(r.data).to_blob()
 
+    def get_all(self, blob_type: BlobType, page: int = 0, page_size: int = 10) -> Blob:
+        r = unpack_response(
+            self.project_client.client.get(
+                f"/users/blobs/{self.user_id}/{blob_type}?page={page}&page_size={page_size}"
+            )
+        )
+        return r.data["ids"]
+
     def delete(self, blob_id: str) -> bool:
         r = unpack_response(
             self.project_client.client.delete(f"/blobs/{self.user_id}/{blob_id}")

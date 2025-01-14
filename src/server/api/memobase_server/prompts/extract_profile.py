@@ -6,7 +6,7 @@ from ..env import CONFIG
 EXAMPLES = [
     (
         """
-<chat data_index=0 date="2024/1/1">
+<chat date="2024/1/1">
     user: Hi, how is your day?
 </chat>
 """,
@@ -14,7 +14,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0 date="2024/1/1">
+<chat date="2024/1/1">
     user: I still can't believe we're married today!
     SiLei: I know, it will be the most amazing journey of my life.
 </chat>
@@ -26,13 +26,11 @@ EXAMPLES = [
                         "topic": "demographics",
                         "sub_topic": "marital_status",
                         "memo": "user is married to SiLei",
-                        "cites": [0],
                     },
                     {
                         "topic": "life_event",
                         "sub_topic": "Marriage",
                         "memo": "Married to SiLei at 2024/1/1",
-                        "cites": [0],
                     },
                 ]
             }
@@ -40,7 +38,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0  date="2024/1/1">
+<chat  date="2024/1/1">
     user: Hi, I am looking for a daily restaurant in San Francisco cause I live there.
 </chat>
 """,
@@ -51,7 +49,6 @@ EXAMPLES = [
                         "topic": "contact_info",
                         "sub_topic": "city",
                         "memo": "San Francisco",
-                        "cites": [0],
                     }
                 ]
             }
@@ -59,7 +56,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0  date="2024/1/1">
+<chat  date="2024/1/1">
     user: Can you give me a letter of references for my PhD applications?
     assistant: Got it, Melinda!...
     user: Thanks for remembering my name!
@@ -72,13 +69,11 @@ EXAMPLES = [
                         "topic": "basic_info",
                         "sub_topic": "Name",
                         "memo": "Referred as Melinda",
-                        "cites": [0],
                     },
                     {
                         "topic": "education",
                         "sub_topic": "Degree",
                         "memo": "user is applying PhD at the time: 2024/1/1",
-                        "cites": [0],
                     },
                 ]
             }
@@ -86,7 +81,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0  date="2024/10/11">
+<chat  date="2024/10/11">
     user: Yesterday, I had a meeting with John at 3pm. We discussed the new project.
 </chat>
 """,
@@ -97,7 +92,6 @@ EXAMPLES = [
                         "topic": "work",
                         "sub_topic": "Collaboration",
                         "memo": "user is starting a project with John and already met once at 2024/10/10",
-                        "cites": [0],
                     }
                 ]
             }
@@ -105,7 +99,7 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0  date="2024/1/1">
+<chat  date="2024/1/1">
     user: Hi, my name is John. I am a software engineer at Memobase.
 </chat>
 """,
@@ -116,19 +110,16 @@ EXAMPLES = [
                         "topic": "basic_info",
                         "sub_topic": "Name",
                         "memo": "John",
-                        "cites": [0],
                     },
                     {
                         "topic": "work",
                         "sub_topic": "Title",
                         "memo": "user is a Software engineer",
-                        "cites": [0],
                     },
                     {
                         "topic": "work",
                         "sub_topic": "Company",
                         "memo": "user works at Memobase",
-                        "cites": [0],
                     },
                 ]
             }
@@ -136,11 +127,11 @@ EXAMPLES = [
     ),
     (
         """
-<chat data_index=0  date="2024/1/1">
+<chat date="2024/1/1">
     user: Me favorite movies are Inception and Interstellar.
     assistant: Those are great movies, how about the movie: Tenet?
 </chat>
-<chat data_index=1  date="2024/1/1">
+<chat date="2024/1/1">
     user: I have watched Tenet, I think that's my favorite in fact.
 </chat>
 """,
@@ -151,13 +142,11 @@ EXAMPLES = [
                         "topic": "interest",
                         "sub_topic": "Movie",
                         "memo": "Inception, Interstellar and Tenet; favorite movie is Tenet",
-                        "cites": [0, 1],
                     },
                     {
                         "topic": "interest",
                         "sub_topic": "movie_director",
                         "memo": "user seems to be a Big fan of director Christopher Nolan",
-                        "cites": [1],
                     },
                 ]
             }
@@ -179,24 +168,18 @@ Below are some example topics/sub_topics you can refer to:
 {user_profile_topics}
 You can create your own topics/sub_topics if you find it necessary, Anything valuable to evaluate the user's state is welcomed.
 
-
-## Cite the sources
-For each piece of information, you should cite the conversation index `data_index` where the information was shared.
-Be careful to cite the correct `data_index` for each piece of information, it will help you understand the user better later.
-
 ## Formatting
 ### Output
 You need to extract the facts and preferences from the conversation and place them in order list:
-- TOPIC{tab}SUB_TOPIC{tab}MEMO{tab}CITES
+- TOPIC{tab}SUB_TOPIC{tab}MEMO
 For example:
-- basic_info{tab}name{tab}melinda{tab}[0,3,4]
-- work{tab}title{tab}software engineer{tab}[4,5]
+- basic_info{tab}name{tab}melinda
+- work{tab}title{tab}software engineer
 
 For each line is a fact or preference, containing:
 1. TOPIC: topic represents of this preference
 2. SUB_TOPIC: the detailed topic of this preference
 3. MEMO: the extracted infos, facts or preferences of `user`
-4. CITES: the list of data_indexs where the information was shared, `data_index` will be given as an attribute in conversation XML.
 those elements should be separated by `{tab}` and each line should be separated by `\n` and started with "- ".
 
 
@@ -211,7 +194,6 @@ Remember the following:
 - Use specific dates when possible, never use relative dates like "today" or "yesterday" etc.
 - If you do not find anything relevant in the below conversation, you can return an empty list.
 - Make sure to return the response in the format mentioned in the formatting & examples section.
-- For each fact/preference you extracted, make sure you cite the right and relevant data_indexs where the information was shared.
 - You should infer what's implied from the conversation, not just what's explicitly stated.
 - Place all content related to this topic/sub_topic in one element, no repeat.
 

@@ -7,10 +7,10 @@ from memobase_server.models.utils import Promise
 
 
 GD_FACTS = """
-- basic_info::name::Gus::[0,1]
-- interest::foods::Chinese food::[1]
-- education::level::High School::[1]
-- psychological::emotional_state::Feels bored with high school::[1]
+- basic_info::name::Gus
+- interest::foods::Chinese food
+- education::level::High School
+- psychological::emotional_state::Feels bored with high school
 """
 
 PROFILES = [
@@ -115,6 +115,10 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
     p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
     assert p.ok() and p.data() == 0
 
+    # persistent_chat_blobs default to False
+    p = await controllers.user.get_user_all_blobs(u_id, BlobType.chat)
+    assert p.ok() and len(p.data().ids) == 0
+
     p = await controllers.user.delete_user(u_id)
     assert p.ok()
 
@@ -166,12 +170,7 @@ async def test_chat_merge_modal(db_env, mock_llm_complete):
     b_id2 = p.data().id
     await controllers.buffer.insert_blob_to_buffer(u_id, b_id2, blob2.to_blob())
 
-    p = await controllers.profile.add_user_profiles(
-        u_id,
-        PROFILES,
-        PROFILE_ATTRS,
-        [[] for _ in range(len(PROFILES))],
-    )
+    p = await controllers.profile.add_user_profiles(u_id, PROFILES, PROFILE_ATTRS)
     assert p.ok()
     await controllers.buffer.flush_buffer(u_id, BlobType.chat)
 
@@ -180,10 +179,8 @@ async def test_chat_merge_modal(db_env, mock_llm_complete):
     profiles = p.data().profiles
     assert profiles[-2].attributes == {"topic": "interest", "sub_topic": "foods"}
     assert profiles[-2].content == "user likes Chinese and Japanese food"
-    assert profiles[-2].related_blobs == [b_id2]
     assert profiles[-1].attributes == {"topic": "education", "sub_topic": "level"}
     assert profiles[-1].content == "High School"
-    assert profiles[-1].related_blobs == [b_id2]
 
     p = await controllers.user.delete_user(u_id)
     assert p.ok()

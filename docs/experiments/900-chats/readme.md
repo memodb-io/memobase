@@ -61,15 +61,10 @@ Take a look at a more structured profiles:
 ```python
 [
   UserProfile(
-      updated_at=datetime.datetime(2024, 11, 16, 9, 10, 45, 554319),
       topic='demographics',
       sub_topic='marital_status',
-      content='user is married',
-      related_blob_ids=[
-          'f948a3a4-8a0d-4258-bfe6-69e22d34f3ba',
-          'd5723cdc-601e-4054-9ba5-891cba1b5adb',
-          '3fc817be-4453-439e-965b-98974baf05d9'
-      ]
+      content='user is married'
+      ...
   )
   ...
 ]
@@ -88,25 +83,3 @@ We list some of the memories below(`Memory.get_all`):
 ```
 
 The full results is in [here](./full_mem0.txt).
-
-
-
-## Does Memobase hallucinate?
-
-One thing is worse than no memory is wrong memory, we can't guarantee the absolute right of the profiles(because we rely on LLM), but Memobase left a chance to correct it because we save links between a memory and its raw sources.
-
-In the above section, Memobase said the user is married, **but the words "married" or "marry" never occur in this dataset**. let's find out if Memobase is hallucinating. We can output this profiles' related blobs, below is the three related blobs' messages:
-
----
-
-- user: 1 / 1You can do well from now on, right?
-- assistant: <div><p>As an AI language model, I don't have feelings, but I'm always ready to assist you with your questions and concerns. If you have any further questions, please feel free to ask!</p></div>
-- user: 1 / 1[check this sentences]
-  <i></i>
-- assistant: <div><p>**As an AI language model, I cannot know your wife's personal preferences.** You would know better than anyone else whether or not your wife would enjoy the special decoration for her birthday party. However, it's a thoughtful gesture to arrange for a special decoration to make her birthday celebration more memorable.</p></div>
-- user: 1 / 1[check my sentence]
-- assistant: <div><p>The sentence is grammatically correct.</p></div>
-
----
-
-Seem like this guy has a wife😂 and he/she does get married.

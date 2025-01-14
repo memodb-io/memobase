@@ -34,7 +34,6 @@ class AIUserProfile(BaseModel):
     topic: str
     sub_topic: str
     memo: str
-    cites: list[int]
 
 
 class AIUserProfiles(BaseModel):
@@ -53,7 +52,6 @@ class IdsData(BaseModel):
 class ProfileData(BaseModel):
     id: UUID
     content: str
-    related_blobs: list[UUID]
     created_at: datetime = None
     updated_at: datetime = None
     attributes: Optional[dict] = None
@@ -84,6 +82,10 @@ class BaseResponse(BaseModel):
 
 class IdResponse(BaseResponse):
     data: Optional[IdData] = None
+
+
+class IdsResponse(BaseResponse):
+    data: Optional[IdsData] = None
 
 
 class UserDataResponse(BaseResponse):

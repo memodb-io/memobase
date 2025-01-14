@@ -22,9 +22,7 @@ from ...prompts.utils import (
 )
 from ..profile import get_user_profiles, update_user_profile, add_user_profiles
 
-FactResponse = TypedDict(
-    "Facts", {"topic": str, "sub_topic": str, "memo": str, "cites": list[int]}
-)
+FactResponse = TypedDict("Facts", {"topic": str, "sub_topic": str, "memo": str})
 UpdateResponse = TypedDict("Facts", {"action": str, "memo": str})
 
 
@@ -41,7 +39,6 @@ def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
         if key in topic_subtopic:
             if isinstance(nf["memo"], str):
                 topic_subtopic[key]["memo"] += f"; {nf['memo']}"
-                topic_subtopic[key]["cites"] += nf["cites"]
                 continue
         topic_subtopic[key] = nf
     return list(topic_subtopic.values())
@@ -95,7 +92,6 @@ async def process_blobs(
         nf["sub_topic"] = attribute_unify(nf["sub_topic"])
     new_facts = merge_by_topic_sub_topics(new_facts)
 
-    related_blob_ids = []
     fact_contents = []
     fact_attributes = []
 
@@ -108,10 +104,7 @@ async def process_blobs(
                 "sub_topic": nf["sub_topic"],
             }
         )
-        related_blob_ids.append([blob_ids[i] for i in nf["cites"] if i < len(blob_ids)])
-    p = await merge_or_add_new_memos(
-        user_id, fact_contents, fact_attributes, related_blob_ids, profiles
-    )
+    p = await merge_or_add_new_memos(user_id, fact_contents, fact_attributes, profiles)
     if not p.ok():
         return p
     return Promise.resolve(None)
@@ -121,21 +114,18 @@ async def merge_or_add_new_memos(
     user_id: str,
     fact_contents: list[str],
     fact_attributes: list[dict],
-    related_blob_ids: list[list[str]],
     profiles: list[ProfileData],
 ) -> Promise[None]:
     if not len(profiles):
-        p = await add_user_profiles(
-            user_id, fact_contents, fact_attributes, related_blob_ids
-        )
+        p = await add_user_profiles(user_id, fact_contents, fact_attributes)
         if not p.ok():
             return p
         return Promise.resolve(None)
 
     new_facts_to_add = []
     facts_to_update = []
-    for f_c, f_a, r_b in zip(fact_contents, fact_attributes, related_blob_ids):
-        new_p = {"content": f_c, "attributes": f_a, "related_blobs": r_b}
+    for f_c, f_a in zip(fact_contents, fact_attributes):
+        new_p = {"content": f_c, "attributes": f_a}
         same_topic_p = [
             p
             for p in profiles
@@ -160,7 +150,6 @@ async def merge_or_add_new_memos(
         user_id,
         [p["content"] for p in new_facts_to_add],
         [p["attributes"] for p in new_facts_to_add],
-        [p["related_blobs"] for p in new_facts_to_add],
     )
     if not p.ok():
         return p
@@ -210,11 +199,7 @@ async def merge_or_add_new_memos(
             update_response["memo"] = sum_memo.data()
         if update_response["action"] == "REPLACE":
             p = await update_user_profile(
-                user_id,
-                old_p.id,
-                update_response["memo"],
-                old_p.attributes,
-                old_new_profile["new_profile"]["related_blobs"],
+                user_id, old_p.id, update_response["memo"], old_p.attributes
             )
             update_replace_profile_count += 1
         elif update_response["action"] == "MERGE":
@@ -223,7 +208,6 @@ async def merge_or_add_new_memos(
                 old_p.id,
                 update_response["memo"],
                 old_p.attributes,
-                old_p.related_blobs + old_new_profile["new_profile"]["related_blobs"],
             )
             update_merge_profile_count += 1
         else:

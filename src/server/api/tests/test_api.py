@@ -29,7 +29,7 @@ def mock_llm_complete():
     with patch("memobase_server.controllers.modal.chat.llm_complete") as mock_llm:
         mock_client1 = AsyncMock()
         mock_client1.ok = Mock(return_value=True)
-        mock_client1.data = Mock(return_value="- basic_info::name::Gus::[0,1]")
+        mock_client1.data = Mock(return_value="- basic_info::name::Gus")
 
         mock_llm.side_effect = [mock_client1]
         yield mock_llm
@@ -116,6 +116,30 @@ def test_blob_api_curd(client, db_env):
     assert d["data"]["blob_data"]["content"] == "Hello world"
     assert d["data"]["fields"]["from"] == "happy"
 
+    client.post(
+        f"{PREFIX}/blobs/insert/{u_id}",
+        json={
+            "blob_type": "doc",
+            "blob_data": {"content": "Hello world"},
+            "fields": {"from": "happy"},
+        },
+    )
+    response = client.get(
+        f"{PREFIX}/users/blobs/{u_id}/{BlobType.doc}?page=0&page_size=1"
+    )
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["ids"]) == 1
+
+    response = client.get(
+        f"{PREFIX}/users/blobs/{u_id}/{BlobType.doc}?page=0&page_size=2"
+    )
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["ids"]) == 2
+
     response = client.delete(f"{PREFIX}/blobs/{u_id}/{b_id}")
     d = response.json()
     assert response.status_code == 200
@@ -146,12 +170,7 @@ async def test_api_user_profile(client, db_env):
         {"topic": "interest", "sub_topic": "sports"},
         {"topic": "education", "sub_topic": "level"},
     ]
-    p = await controllers.profile.add_user_profiles(
-        u_id,
-        _profiles,
-        _attributes,
-        [[] for _ in range(len(_attributes))],
-    )
+    p = await controllers.profile.add_user_profiles(u_id, _profiles, _attributes)
     assert p.ok()
 
     response = client.get(f"{PREFIX}/users/profile/{u_id}")

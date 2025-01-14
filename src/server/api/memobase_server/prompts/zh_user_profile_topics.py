@@ -100,4 +100,7 @@ if CONFIG.language == "zh":
     LOG.info(f"User profiles: \n{get_prompt()}")
 
 if __name__ == "__main__":
-    print(get_prompt())
+    from .types import export_user_profile_to_yaml
+
+    # print(get_prompt())
+    print(export_user_profile_to_yaml(CANDIDATE_PROFILE_TOPICS))

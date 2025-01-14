@@ -10,6 +10,7 @@ from sqlalchemy import (
     TEXT,
     Column,
     Index,
+    Boolean,
 )
 from dataclasses import dataclass
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -88,19 +89,15 @@ class GeneralBlob(Base):
         "BufferZone", back_populates="blob", cascade="all, delete-orphan", init=False
     )
 
-    # In GeneralBlob class, add this relationship
-    related_profiles: Mapped[list["UserProfile"]] = relationship(
-        "UserProfile",
-        secondary="user_profile_blobs",
-        back_populates="related_blobs",
-        init=False,
-    )
-
     # Default columns
     additional_fields: Mapped[Optional[dict]] = mapped_column(
         JSONB, nullable=True, default=None
     )
-    __table_args__ = (Index("idx_general_blobs_user_id_id", "user_id", "id"),)
+    __table_args__ = (
+        Index("idx_general_blobs_user_id", "user_id"),
+        Index("idx_general_blobs_user_id_id", "user_id", "id"),
+        Index("idx_general_blobs_user_id_blob_type", "user_id", "blob_type"),
+    )
 
     # validate
     def __post_init__(self):
@@ -137,6 +134,10 @@ class BufferZone(Base):
         "GeneralBlob", back_populates="related_buffers", init=False
     )
 
+    __table_args__ = (
+        Index("idx_buffer_zones_user_id_blob_type", "user_id", "blob_type"),
+    )
+
     # validate
     def __post_init__(self):
         assert isinstance(
@@ -162,31 +163,10 @@ class UserProfile(Base):
     user: Mapped[User] = relationship(
         "User", back_populates="related_user_profiles", init=False
     )
-    # Relationships with blobs
-    related_blobs: Mapped[list[GeneralBlob]] = relationship(
-        "GeneralBlob",
-        secondary="user_profile_blobs",
-        back_populates="related_profiles",
-        init=False,
-    )
 
     attributes: Mapped[dict] = mapped_column(JSONB, nullable=True, default=None)
 
-
-# Add this association table before the class definitions
-user_profile_blobs = Table(
-    "user_profile_blobs",
-    REG.metadata,
-    Column(
-        "user_profile_id",
-        UUID(as_uuid=True),
-        ForeignKey("user_profiles.id", ondelete="CASCADE", onupdate="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "blob_id",
-        UUID(as_uuid=True),
-        ForeignKey("general_blobs.id", ondelete="CASCADE", onupdate="CASCADE"),
-        primary_key=True,
-    ),
-)
+    __table_args__ = (
+        Index("idx_user_profiles_user_id", "user_id"),
+        Index("idx_user_profiles_user_id_id", "user_id", "id"),
+    )
