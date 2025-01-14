@@ -1,6 +1,7 @@
 import pytest
 from memobase.core.blob import DocBlob, ChatBlob
 from memobase.error import ServerError
+from memobase.core.blob import BlobType
 
 
 def test_blob_curd_client(api_client):
@@ -15,6 +16,25 @@ def test_blob_curd_client(api_client):
     print(ud.delete(b))
     with pytest.raises(ServerError):
         ud.get(b)
+
+
+def test_blob_get_all(api_client):
+    a = api_client
+    blob = DocBlob(content="test", fields={"1": "fool"})
+    u = a.add_user()
+    print(u)
+    ud = a.get_user(u)
+
+    b = ud.insert(blob)
+    b = ud.insert(blob)
+    b = ud.insert(blob)
+    b = ud.insert(blob)
+    r = ud.get_all(BlobType.doc)
+    print(ud.delete(b))
+    assert len(r) == 4
+    with pytest.raises(ServerError):
+        ud.get(b)
+    a.delete_user(u)
 
 
 def test_flush_curd_client(api_client):

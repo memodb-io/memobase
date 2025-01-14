@@ -103,6 +103,9 @@ async def detect_buffer_idle_or_not(user_id: str, blob_type: BlobType) -> Promis
 
 async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
     # FIXME: parallel calling will cause duplicated flush
+    if blob_type not in BLOBS_PROCESS:
+        return Promise.reject(CODE.BAD_REQUEST, f"Blob type {blob_type} not supported")
+
     with Session() as session:
         blob_buffers_trans = session.query(BufferZone).filter_by(
             user_id=user_id, blob_type=str(blob_type)

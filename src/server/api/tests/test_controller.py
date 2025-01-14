@@ -109,7 +109,7 @@ async def test_user_blob_curd(db_env):
     assert p.ok()
     b_id2 = p.data().id
 
-    p = await controllers.user.get_user_all_blobs(u_id)
+    p = await controllers.user.get_user_all_blobs(u_id, BlobType.chat)
     assert p.ok()
     assert len(p.data().ids) == 2
 
@@ -121,5 +121,5 @@ async def test_user_blob_curd(db_env):
     p = await controllers.blob.get_blob(u_id, b_id2)
     assert not p.ok()
 
-    p = await controllers.user.get_user_all_blobs(u_id)
+    p = await controllers.user.get_user_all_blobs(u_id, BlobType.chat)
     assert len(p.data().ids) == 0

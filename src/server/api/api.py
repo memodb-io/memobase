@@ -93,11 +93,11 @@ async def delete_user(user_id: str) -> BaseResponse:
     return p.to_response(BaseResponse)
 
 
-@router.get("/users/blobs/{user_id}", tags=["blob"])
+@router.get("/users/blobs/{user_id}/{blob_type}", tags=["user"])
 async def get_user_all_blobs(
-    user_id: str, page: int = 0, page_size: int = 10
+    user_id: str, blob_type: BlobType, page: int = 0, page_size: int = 10
 ) -> res.IdsResponse:
-    p = await controllers.user.get_user_all_blobs(user_id, page, page_size)
+    p = await controllers.user.get_user_all_blobs(user_id, blob_type, page, page_size)
     return p.to_response(res.IdsResponse)
 
 

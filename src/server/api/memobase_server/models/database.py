@@ -96,6 +96,7 @@ class GeneralBlob(Base):
     __table_args__ = (
         Index("idx_general_blobs_user_id", "user_id"),
         Index("idx_general_blobs_user_id_id", "user_id", "id"),
+        Index("idx_general_blobs_user_id_blob_type", "user_id", "blob_type"),
     )
 
     # validate
