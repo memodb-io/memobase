@@ -87,7 +87,7 @@ bid = u.insert(ChatBlob(messages=messages))
 print(u.get(bid))
 ```
 
-*Delete*: `u.delete(bid)`. Delete a blob will cause forgetting memories that only related to this blob.
+*Delete*: `u.delete(bid)`.
 
 ### "Flush it moment"
 
