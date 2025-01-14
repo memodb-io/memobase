@@ -116,6 +116,26 @@ def test_blob_api_curd(client, db_env):
     assert d["data"]["blob_data"]["content"] == "Hello world"
     assert d["data"]["fields"]["from"] == "happy"
 
+    client.post(
+        f"{PREFIX}/blobs/insert/{u_id}",
+        json={
+            "blob_type": "doc",
+            "blob_data": {"content": "Hello world"},
+            "fields": {"from": "happy"},
+        },
+    )
+    response = client.get(f"{PREFIX}/users/blobs/{u_id}?page=0&page_size=1")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["ids"]) == 1
+
+    response = client.get(f"{PREFIX}/users/blobs/{u_id}?page=0&page_size=2")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["ids"]) == 2
+
     response = client.delete(f"{PREFIX}/blobs/{u_id}/{b_id}")
     d = response.json()
     assert response.status_code == 200

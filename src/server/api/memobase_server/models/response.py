@@ -84,6 +84,10 @@ class IdResponse(BaseResponse):
     data: Optional[IdData] = None
 
 
+class IdsResponse(BaseResponse):
+    data: Optional[IdsData] = None
+
+
 class UserDataResponse(BaseResponse):
     data: Optional[UserData] = None
 

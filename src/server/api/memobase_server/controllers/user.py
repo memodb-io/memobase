@@ -48,12 +48,16 @@ async def delete_user(user_id: str) -> Promise[None]:
         return Promise.resolve(None)
 
 
-async def get_user_all_blobs(user_id: str) -> Promise[IdsData]:
+async def get_user_all_blobs(
+    user_id: str, page: int = 0, page_size: int = 10
+) -> Promise[IdsData]:
     with Session() as session:
         user_blobs = (
             session.query(GeneralBlob.id)
             .filter_by(user_id=user_id)
             .order_by(GeneralBlob.created_at)
+            .offset(page * page_size)
+            .limit(page_size)
             .all()
         )
         if user_blobs is None:

@@ -93,7 +93,15 @@ async def delete_user(user_id: str) -> BaseResponse:
     return p.to_response(BaseResponse)
 
 
-@router.post("/blobs/insert/{user_id}", tags=["user"])
+@router.get("/users/blobs/{user_id}", tags=["blob"])
+async def get_user_all_blobs(
+    user_id: str, page: int = 0, page_size: int = 10
+) -> res.IdsResponse:
+    p = await controllers.user.get_user_all_blobs(user_id, page, page_size)
+    return p.to_response(res.IdsResponse)
+
+
+@router.post("/blobs/insert/{user_id}", tags=["blob"])
 async def insert_blob(
     user_id: str, blob_data: res.BlobData, background_tasks: BackgroundTasks
 ) -> res.IdResponse:
@@ -117,33 +125,33 @@ async def insert_blob(
     return p.to_response(res.IdResponse)
 
 
-@router.get("/blobs/{user_id}/{blob_id}", tags=["user"])
+@router.get("/blobs/{user_id}/{blob_id}", tags=["blob"])
 async def get_blob(user_id: str, blob_id: str) -> res.BlobDataResponse:
     p = await controllers.blob.get_blob(user_id, blob_id)
     return p.to_response(res.BlobDataResponse)
 
 
-@router.delete("/blobs/{user_id}/{blob_id}", tags=["user"])
+@router.delete("/blobs/{user_id}/{blob_id}", tags=["blob"])
 async def delete_blob(user_id: str, blob_id: str) -> res.BaseResponse:
     p = await controllers.blob.remove_blob(user_id, blob_id)
     return p.to_response(res.BaseResponse)
 
 
-@router.get("/users/profile/{user_id}", tags=["user"])
+@router.get("/users/profile/{user_id}", tags=["profile"])
 async def get_user_profile(user_id: str) -> res.UserProfileResponse:
     """Get the real-time user profiles for long term memory"""
     p = await controllers.profile.get_user_profiles(user_id)
     return p.to_response(res.UserProfileResponse)
 
 
-@router.post("/users/buffer/{user_id}/{buffer_type}", tags=["user"])
+@router.post("/users/buffer/{user_id}/{buffer_type}", tags=["buffer"])
 async def flush_buffer(user_id: str, buffer_type: BlobType) -> res.BaseResponse:
     """Get the real-time user profiles for long term memory"""
     p = await controllers.buffer.wait_insert_done_then_flush(user_id, buffer_type)
     return p.to_response(res.BaseResponse)
 
 
-@router.delete("/users/profile/{user_id}/{profile_id}", tags=["user"])
+@router.delete("/users/profile/{user_id}/{profile_id}", tags=["profile"])
 async def delete_user_profile(user_id: str, profile_id: str) -> res.BaseResponse:
     """Get the real-time user profiles for long term memory"""
     p = await controllers.profile.delete_user_profile(user_id, profile_id)
