@@ -33,7 +33,7 @@
 
 ⌛️ **Do you want users spend more time on your Apps?** 
 
-> Memobase is working with some AI companion startups. They have observated increased chatting turns after adopting Memobase, leading to higher user retention and subscription rate.
+> Memobase is working with some leading AI companion startups. They have observated increased chatting turns after adopting Memobase, leading to higher user retention and subscription rate.
 
 
 
@@ -54,9 +54,7 @@ Here's a step-by-step guide and breakdown for you.
 
 > [!TIP]
 >
-> For a quick start script, you can use [this](./assets/quickstart.py). Or you can keep things super easy by using [OpenAI SDK with Memobase.](https://docs.memobase.io/features/openai)
-
-
+> You can use [this quick start script](./assets/quickstart.py). Or you can keep things super easy by using [OpenAI SDK with Memobase.](https://docs.memobase.io/features/openai)
 
 ### 1. Make sure you're connected
 
@@ -73,14 +71,10 @@ Here's a step-by-step guide and breakdown for you.
 uid = mb.add_user({"any_key": "any_value"})
 mb.update_user(uid, {"any_key": "any_value2"})
 u = mb.get_user(uid)
-
 print(u)
 
-# Delete:
 # mb.delete(uid)
 ```
-
-
 
 ### 3. Insert Data
 
@@ -100,7 +94,6 @@ messages = [
 bid = u.insert(ChatBlob(messages=messages))
 print(u.get(bid)) # not found once you flush the memory.
 
-# Delete:
 # u.delete(bid)
 ```
 
@@ -119,15 +112,14 @@ print(u.profile())
 # [UserProfile(topic="basic_info", sub_topic="name", content="Gus",...)]
 ```
 
-`u.profile()` will return a list of profiles that are learned from this user, including `topic`, `sub_topic` and `content`. As you insert more blobs, the profiles will become better.
+`u.profile()` will return a list of profiles that are learned from this user, including `topic`, `sub_topic` and `content`. As you insert more blobs, the profile will become better.
 
 <details>
 <summary> Why need a flush?</summary>
 
 In Memobase, we don't memoize users in [hot path](https://langchain-ai.github.io/langgraph/concepts/memory/#writing-memories-in-the-hot-path). We use buffer zones for the recent inserted blobs.
 
-When the buffer zone is too large (*e.g.* 1024 tokens) or idle for a long time (*e.g.* 1 hour), Memobase will flush the whole buffer into the memory. 
-Or you can just manually decide when to flush (*e.g.* A chat session is closed in your App)
+When the buffer zone becomes too large (e.g., 1024 tokens) or remains idle for an extended period (e.g., 1 hour), Memobase will flush the entire buffer into memory.  Alternatively, you can use `flush()` manually decide when to flush, such as when a chat session is closed in your app.
 </details>
 
 
@@ -204,3 +196,27 @@ def pick_an_ad(profiles):
   ...
 ```
 </details>
+
+
+
+## Documentation
+
+For detailed usage instructions, visit the [documentation](https://docs.memobase.io/). 
+
+
+
+## Support
+
+Join the community for support and discussions:
+
+-  [Join our Discord](https://discord.gg/YdgwU4d9NB) 👻 
+
+- [Follow us on Twitter](https://x.com/memobase_io) 𝕏 
+
+Or Just [email us](mailto:contact@memobase.io) ❤️
+
+
+
+## License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE](https://github.com/memodb-io/memobase/blob/main/LICENSE) file for details.
