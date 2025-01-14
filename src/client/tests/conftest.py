@@ -6,7 +6,7 @@ from memobase.error import ServerError
 @pytest.fixture(scope="session")
 def api_client():
     client = MemoBaseClient(
-        project_url="http://localhost:8000/",
+        project_url="http://localhost:8019/",
         api_key="secret",
     )
     if not client.ping():

@@ -7,7 +7,7 @@ from time import time, sleep
 from memobase import MemoBaseClient, ChatBlob
 
 
-PROJECT_URL = "http://localhost:8000"
+PROJECT_URL = "http://localhost:8019"
 PROJECT_TOKEN = "secret"
 
 

@@ -5,7 +5,7 @@
       <img alt="Shows the Memobase logo" src="https://assets.memodb.io/memobase-light.svg" width="424">
     </picture>
   </a>
-  <p><strong>Manage user profile/memory for your LLM applications</strong></p>
+  <p><strong>User Profile-Based Memory for GenAI Apps</strong></p>
   <p>
     <img src="https://img.shields.io/badge/python->=3.11-blue">
     <a href="https://pypi.org/project/memobase/">
@@ -19,16 +19,17 @@
 
 
 
+
 🌬️ **Does your AI forget your users?** 
 
 
 > Memobase maintains long-term memory of your users, for your product.
 
-🖼️ **Do you understand the customers that using your AI?** 
+🖼️ **Can you design the memory of AI?** 
 
 > Memobase offers accurate user profile, involving many aspects of your users: Age, Education, Interests, Opinions...
 > 
-> [Customize](./src/server/readme.md/#Customization) the aspects you want Memobase to collect.
+> [Customize](https://docs.memobase.io/features/customization/profile) the aspects you want Memobase to collect.
 
 ⌛️ **Do you want users spend more time on your Apps?** 
 
@@ -45,9 +46,19 @@
 
 2. Install the Python SDK: `pip install memobase`
 
-3. Get ready to remember your customers now:
+3. Get ready to make AI remember your users now.
 
-### Make sure you're connected
+
+
+Here's a step-by-step guide and breakdown for you. 
+
+> [!TIP]
+>
+> For a quick start script, you can use [this](./assets/quickstart.py). Or you can keep things super easy by using [OpenAI SDK with Memobase.](https://docs.memobase.io/features/openai)
+
+
+
+### 1. Make sure you're connected
 
  ```python
  from memobase import MemoBaseClient, ChatBlob
@@ -56,7 +67,7 @@
  assert mb.ping()
  ```
 
-### User CURD
+### 2. Manage Users
 
 ```python
 uid = mb.add_user({"any_key": "any_value"})
@@ -64,11 +75,14 @@ mb.update_user(uid, {"any_key": "any_value2"})
 u = mb.get_user(uid)
 
 print(u)
+
+# Delete:
+# mb.delete(uid)
 ```
 
-*Delete*: `mb.delete(uid)`
 
-### Single User Data
+
+### 3. Insert Data
 
 > In Memobase, all types of data are blobs to a user that can insert, get and delete:
 
@@ -84,12 +98,15 @@ messages = [
   }
 ]
 bid = u.insert(ChatBlob(messages=messages))
-print(u.get(bid))
+print(u.get(bid)) # not found once you flush the memory.
+
+# Delete:
+# u.delete(bid)
 ```
 
-*Delete*: `u.delete(bid)`.
+> Be default, Memobase will remove the blobs once they're processed. This means that apart from the relevant memory, your data will not be stored with Memobase. You can persist the blobs by adjusting the [configuration file](https://docs.memobase.io/features/customization/full#storage-config).
 
-### "Flush it moment"
+### 4. Get your Memory
 
 ```python
 u.flush()
@@ -99,7 +116,7 @@ And what will you get?
 
 ```python
 print(u.profile())
-# [UserProfile(topic="basic_info", sub_topic="name", content="Gus"),...]
+# [UserProfile(topic="basic_info", sub_topic="name", content="Gus",...)]
 ```
 
 `u.profile()` will return a list of profiles that are learned from this user, including `topic`, `sub_topic` and `content`. As you insert more blobs, the profiles will become better.

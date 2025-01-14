@@ -1,16 +1,2 @@
-max_chat_blob_buffer_token_size: 1024
-buffer_flush_interval: 3600
-
-llm_api_key: YOUR-KEY
+llm_api_key: YOUR-OPENAI-KEY
 llm_base_url: https://api.openai.com/v1/
-
-best_llm_model: gpt-4o
-embedding_model: text-embedding-3-small
-
-additional_user_profiles:
-  - topic: "gaming"
-    sub_topics:
-      - "Soul-Like"
-      - "RPG"
-      - name: "MOBA"
-        description: "Enum, LOL, DOTA..."
