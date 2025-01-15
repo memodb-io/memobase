@@ -1,0 +1,33 @@
+{
+  "name": "@memobase/memobase",
+  "version": "0.0.6",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "prepare": "npm run build"
+  },
+  "keywords": [],
+  "author": "Gus",
+  "license": "Apache-2.0",
+  "description": "Client SDK for Memobase",
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^22.10.6",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.7.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/memodb-io/memobase.git"
+  },
+  "bugs": {
+    "url": "https://github.com/memodb-io/memobase/issues"
+  },
+  "homepage": "https://github.com/memodb-io/memobase#readme",
+  "dependencies": {
+    "zod": "^3.24.1"
+  }
+}
