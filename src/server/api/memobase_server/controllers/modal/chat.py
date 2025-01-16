@@ -169,8 +169,6 @@ async def merge_or_add_new_memos(
         merge_tasks.append(task)
 
     success_update_profile_count = 0
-    update_merge_profile_count = 0
-    update_replace_profile_count = 0
     merge_results: list[Promise] = await asyncio.gather(*merge_tasks)
     for p, old_new_profile in zip(merge_results, facts_to_update):
         if not p.ok():
@@ -196,19 +194,10 @@ async def merge_or_add_new_memos(
                 )
                 continue
             update_response["memo"] = sum_memo.data()
-        if update_response["action"] == "REPLACE":
+        if update_response["action"] == "UPDATE":
             p = await update_user_profile(
                 user_id, old_p.id, update_response["memo"], old_p.attributes
             )
-            update_replace_profile_count += 1
-        elif update_response["action"] == "MERGE":
-            p = await update_user_profile(
-                user_id,
-                old_p.id,
-                update_response["memo"],
-                old_p.attributes,
-            )
-            update_merge_profile_count += 1
         else:
             LOG.warning(f"Invalid action: {update_response['action']}")
             continue
@@ -219,8 +208,7 @@ async def merge_or_add_new_memos(
     LOG.info(
         (
             f"TOTAL {len(fact_contents)} profiles, ADD {len(new_facts_to_add)} new profiles, "
-            f"update {success_update_profile_count}/{len(facts_to_update)} existing profiles, "
-            f"REPLACE:MERGE = {update_replace_profile_count}:{update_merge_profile_count}"
+            f"update {success_update_profile_count}/{len(facts_to_update)} existing profiles"
         )
     )
     return Promise.resolve(None)

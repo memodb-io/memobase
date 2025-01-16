@@ -12,7 +12,7 @@ User is 39 years old
 User is 40 years old
 """,
         "response": {
-            "action": "REPLACE",
+            "action": "UPDATE",
             "memo": "User is 40 years old",
         },
     },
@@ -26,44 +26,56 @@ Love cheese pizza
 Love chicken pizza
 """,
         "response": {
-            "action": "MERGE",
+            "action": "UPDATE",
             "memo": "Love cheese and chicken pizza",
+        },
+    },
+    {
+        "input": """## User Topic
+basic_info, Birthday
+
+## Old Memo
+1999/04/30
+## New Memo
+User didn't provide any birthday
+""",
+        "response": {
+            "action": "UPDATE",
+            "memo": "1999/04/30",
         },
     },
 ]
 
 MERGE_FACTS_PROMPT = """You are a smart memo manager which controls the memory/figure of a user.
 You will be given two memos, one old and one new on the same topic/aspect of the user.
-Your decision space is below: 
-(1) REPLACE: Replace the old memo with the new memo
-(2) MERGE: Merge the old memo with the new memo
-Place your action in 'action' field and the final memo in 'memo' field.
+You should update the old memo with the new memo.
 And return your results in output format:
-- ACTION{tab}MEMO
-start with '- ' and following is the ACTION, then '{tab}' and then the final MEMO.
+- UPDATE{tab}MEMO
+start with '- ' and following is 'UPDATE', '{tab}' and then the final MEMO.
 
-Compare newly retrieved facts with the existing memory. For each new fact, decide whether to:
-- REPLACE: The old memo is considered completely outdated and should be replaced with the new memo, or the new memo is completely conflicting with the old memo.
-- MERGE: The old and new memo tell different parts of the same story and should be merged together.
-
-There are specific guidelines to select which operation to perform:
-## REPLACE
+There are some guidelines about how to update the memo:
+## replace the old one
 The old memo is considered outdated and should be replaced with the new memo, or the new memo is conflicting with the old memo:
 **Example**:
 {example_replace}
 
-## MERGE
+## merge the memos
 Note that MERGE should be selected as long as there is information in the old memo that is not included in the new memo.
 The old and new memo tell different parts of the same story and should be merged together:
 **Example**:
 {example_merge}
 
-Understand the memos wisely, you are allowed to infer the information from the new memo and old memo to decide the correct operation.
+## keep the old one
+If the new memo has no information added or containing nothing useful, you should keep the old memo.
+**Example**:
+{example_keep}
+
+Understand the memos wisely, you are allowed to infer the information from the new memo and old memo to decide the final memo.
 Follow the instruction mentioned below:
 - Do not return anything from the custom few shot prompts provided above.
 - Stick to the correct format.
-- If MERGE, make sure the final memo is no more than 5 sentences, summarize old and new memos to merge them.
-- Make sure the final memo is less than 100 words.
+- Make sure the final memo is no more than 5 sentences.
+- Always concise and output the guts of the memo.
 """
 
 
@@ -89,9 +101,15 @@ OUTPUT:
 OUTPUT:
 {pack_merge_action_into_string(EXAMPLES[1]['response'])}
 """
+    example_keep = f"""INPUT:
+{EXAMPLES[2]['input']}
+OUTPUT:
+{pack_merge_action_into_string(EXAMPLES[2]['response'])}
+"""
     return MERGE_FACTS_PROMPT.format(
         example_replace=example_add,
         example_merge=example_update,
+        example_keep=example_keep,
         tab=CONFIG.llm_tab_separator,
     )
 

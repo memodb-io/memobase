@@ -29,8 +29,8 @@ PROFILE_ATTRS = [
 
 
 MERGE_FACTS = [
-    "- MERGE::user likes Chinese and Japanese food",
-    "- REPLACE::High School",
+    "- UPDATE::user likes Chinese and Japanese food",
+    "- UPDATE::High School",
 ]
 
 
