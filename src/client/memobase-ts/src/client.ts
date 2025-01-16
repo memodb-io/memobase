@@ -3,7 +3,7 @@ import { unpackResponse } from './network';
 import { BaseResponse, HttpUrl } from './types';
 
 export class MemoBaseClient {
-    private readonly baseUrl: string;
+    private readonly baseUrl: HttpUrl;
     private readonly headers: HeadersInit;
 
     constructor(
@@ -19,7 +19,7 @@ export class MemoBaseClient {
             );
         }
 
-        this.baseUrl = `${projectUrl.replace(/\/$/, '')}/${apiVersion.replace(/^\//, '')}`;
+        this.baseUrl = `${projectUrl.replace(/\/$/, '')}/${this.apiVersion.replace(/^\//, '')}`;
         this.headers = {
             'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json'

@@ -10,6 +10,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
+    "index.ts",
     "src/**/*"
   ],
   "exclude": [

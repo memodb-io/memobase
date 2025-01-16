@@ -1,9 +1,10 @@
-import { Blob, BlobType, UserProfile, IMemoBaseClient, IdResponse, ProfileResponse } from './types';
+import { MemoBaseClient } from './client';
+import { Blob, BlobType, UserProfile, IdResponse, ProfileResponse } from './types';
 
 export class User {
     constructor(
         private readonly userId: string,
-        private readonly projectClient: IMemoBaseClient,
+        private readonly projectClient: MemoBaseClient,
         public readonly fields?: Record<string, any>
     ) { }
 
@@ -44,7 +45,7 @@ export class User {
         return true;
     }
 
-    async flush(blobType: BlobType = BlobType.Chat): Promise<boolean> {
+    async flush(blobType: BlobType = "chat"): Promise<boolean> {
         await this.projectClient.fetch(
             `/users/buffer/${this.userId}/${blobType}`,
             { method: 'POST' }

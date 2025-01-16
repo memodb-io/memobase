@@ -1,92 +1,121 @@
 import { z } from "zod";
 
-export type HttpUrl = string;
+// HttpUrl 类型
+export const HttpUrl = z.string().url();
+export type HttpUrl = z.infer<typeof HttpUrl>;
 
-export enum BlobType {
-    Chat = "chat",
-    Doc = "doc",
-    Image = "image",
-    Code = "code",
-    Transcript = "transcript"
-}
+// BlobType 枚举
+export const BlobType = z.enum(["chat", "doc", "image", "code", "transcript"]);
+export type BlobType = z.infer<typeof BlobType>;
 
-export interface OpenAICompatibleMessage {
-    role: "user" | "assistant";
-    content: string;
-    alias?: string;
-    created_at?: string;
-}
+// OpenAICompatibleMessage 类型
+export const OpenAICompatibleMessage = z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+    alias: z.string().optional(),
+    created_at: z.string().optional(),
+});
+export type OpenAICompatibleMessage = z.infer<typeof OpenAICompatibleMessage>;
 
-export interface TranscriptStamp {
-    content: string;
-    start_timestamp_in_seconds: number;
-    end_time_timestamp_in_seconds?: number;
-    speaker?: string;
-}
+// TranscriptStamp 类型
+export const TranscriptStamp = z.object({
+    content: z.string(),
+    start_timestamp_in_seconds: z.number(),
+    end_time_timestamp_in_seconds: z.number().optional(),
+    speaker: z.string().optional(),
+});
+export type TranscriptStamp = z.infer<typeof TranscriptStamp>;
 
-export interface BaseBlob {
-    type: BlobType;
-    fields?: Record<string, any>;
-    created_at?: Date;
-}
+// BaseBlob 类型
+export const BaseBlob = z.object({
+    type: BlobType,
+    fields: z.record(z.unknown()).optional(),
+    created_at: z.date().optional(),
+});
+export type BaseBlob = z.infer<typeof BaseBlob>;
 
-export interface ChatBlob extends BaseBlob {
-    type: BlobType.Chat;
-    messages: OpenAICompatibleMessage[];
-}
+// ChatBlob 类型
+export const ChatBlob = BaseBlob.extend({
+    type: z.literal("chat"),
+    messages: z.array(OpenAICompatibleMessage),
+});
+export type ChatBlob = z.infer<typeof ChatBlob>;
 
-export interface DocBlob extends BaseBlob {
-    type: BlobType.Doc;
-    content: string;
-}
+// DocBlob 类型
+export const DocBlob = BaseBlob.extend({
+    type: z.literal("doc"),
+    content: z.string(),
+});
+export type DocBlob = z.infer<typeof DocBlob>;
 
-export interface CodeBlob extends BaseBlob {
-    type: BlobType.Code;
-    content: string;
-    language?: string;
-}
+// CodeBlob 类型
+export const CodeBlob = BaseBlob.extend({
+    type: z.literal("code"),
+    content: z.string(),
+    language: z.string().optional(),
+});
+export type CodeBlob = z.infer<typeof CodeBlob>;
 
-export interface ImageBlob extends BaseBlob {
-    type: BlobType.Image;
-    url?: string;
-    base64?: string;
-}
+// ImageBlob 类型
+export const ImageBlob = BaseBlob.extend({
+    type: z.literal("image"),
+    url: z.string().optional(),
+    base64: z.string().optional(),
+});
+export type ImageBlob = z.infer<typeof ImageBlob>;
 
-export interface TranscriptBlob extends BaseBlob {
-    type: BlobType.Transcript;
-    transcripts: TranscriptStamp[];
-}
+// TranscriptBlob 类型
+export const TranscriptBlob = BaseBlob.extend({
+    type: z.literal("transcript"),
+    transcripts: z.array(TranscriptStamp),
+});
+export type TranscriptBlob = z.infer<typeof TranscriptBlob>;
 
-export type Blob = ChatBlob | DocBlob | CodeBlob | ImageBlob | TranscriptBlob;
+// Blob 类型
+export const Blob = z.union([
+    ChatBlob,
+    DocBlob,
+    CodeBlob,
+    ImageBlob,
+    TranscriptBlob,
+]);
+export type Blob = z.infer<typeof Blob>;
 
-export interface UserProfile {
-    updated_at: Date;
-    topic: string;
-    sub_topic: string;
-    content: string;
-}
+// UserProfile 类型
+export const UserProfile = z.object({
+    updated_at: z.date(),
+    topic: z.string(),
+    sub_topic: z.string(),
+    content: z.string(),
+});
+export type UserProfile = z.infer<typeof UserProfile>;
 
-export interface BaseResponse<T = any> {
-    data?: T;
-    errmsg: string;
-    errno: number;
-}
+// BaseResponse 类型
+export const BaseResponse = <T>(dataSchema: z.ZodType<T, any, any>) =>
+    z.object({
+        data: dataSchema.optional(),
+        errmsg: z.string(),
+        errno: z.number(),
+    });
+export type BaseResponse<T = any> = z.infer<ReturnType<typeof BaseResponse<T>>>;
 
-export interface IMemoBaseClient {
-    fetch<T>(path: string, init?: RequestInit): Promise<BaseResponse<T>>;
-}
+// IdResponse 类型
+export const IdResponse = z.object({
+    id: z.string(),
+});
+export type IdResponse = z.infer<typeof IdResponse>;
 
-export interface IdResponse {
-    id: string;
-}
-
-export interface ProfileResponse {
-    profiles: Array<{
-        updated_at: string;
-        attributes: {
-            topic: string;
-            sub_topic: string;
-        };
-        content: string;
-    }>;
-}
+// ProfileResponse 类型
+export const ProfileResponse = z.object({
+    profiles: z.array(
+        z.object({
+            updated_at: z.string(),
+            attributes: z.object({
+                topic: z.string(),
+                sub_topic: z.string(),
+            }),
+            content: z.string(),
+        })
+    ),
+});
+export type ProfileResponse = z.infer<typeof ProfileResponse>;

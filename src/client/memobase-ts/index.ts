@@ -1,4 +1,4 @@
-export function add(x: number, y: number): number {
-    console.log("Memobase Client")
-    return x + y;
-}
+export * from './src/client';
+export * from './src/error'; 
+export * from './src/user';
+export * from './src/types';
