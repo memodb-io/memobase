@@ -10,7 +10,7 @@
     "lint": "./scripts/lint",
     "fix": "./scripts/format"
   },
-  "keywords": [],
+  "keywords": ["retrieval", "memory", "rag", "chatgpt", "llm-application", "user-memory"],
   "author": "Memobase <contact@memobase.io>",
   "license": "Apache-2.0",
   "description": "Client SDK for Memobase",
