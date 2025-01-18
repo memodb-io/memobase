@@ -6,17 +6,26 @@
   "scripts": {
     "build": "rm -rf ./dist && tsc",
     "test": "jest",
-    "prepare": "npm run build"
+    "prepare": "chmod -R +x ./scripts/ && npm run build",
+    "lint": "./scripts/lint",
+    "fix": "./scripts/format"
   },
   "keywords": [],
-  "author": "Gus",
+  "author": "Memobase <contact@memobase.io>",
   "license": "Apache-2.0",
   "description": "Client SDK for Memobase",
   "devDependencies": {
     "@types/jest": "^29.0.0",
     "@types/node": "^22.10.6",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "eslint-plugin-prettier": "^5.2.2",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "jest": "^29.0.0",
+    "prettier": "^3.4.2",
     "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   },
   "repository": {
