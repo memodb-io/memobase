@@ -1,6 +1,6 @@
 {
   "name": "@memobase/memobase",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,7 +10,14 @@
     "lint": "./scripts/lint",
     "fix": "./scripts/format"
   },
-  "keywords": ["retrieval", "memory", "rag", "chatgpt", "llm-application", "user-memory"],
+  "keywords": [
+    "retrieval",
+    "memory",
+    "rag",
+    "chatgpt",
+    "llm-application",
+    "user-memory"
+  ],
   "author": "Memobase <contact@memobase.io>",
   "license": "Apache-2.0",
   "description": "Client SDK for Memobase",
