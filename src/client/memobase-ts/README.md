@@ -8,10 +8,13 @@
   <p><strong>User Profile-Based Memory for GenAI Apps</strong></p>
   <p>
     <a href="https://www.npmjs.com/package/@memobase/memobase">
-      <img src="https://img.shields.io/npm/v/@memobase/memobase.svg">
+      <img src="https://img.shields.io/npm/v/@memobase/memobase.svg?logo=npm&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D">
+    </a>
+    <a href="https://jsr.io/@memobase/memobase">
+      <img src="https://img.shields.io/jsr/v/@memobase/memobase.svg?logo=jsr&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D" />
     </a>
     <a href="https://npmcharts.com/compare/@memobase/memobase?minimal=true">
-      <img src="https://img.shields.io/npm/dm/@memobase/memobase.svg" />
+      <img src="https://img.shields.io/npm/dm/@memobase/memobase.svg?logo=typescript&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D" />
     </a>
     <a href="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml">
       <img src="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml/badge.svg">
@@ -28,6 +31,14 @@ This library provides convenient access to the Memobase REST API from TypeScript
 ```sh
 npm install @memobase/memobase
 ```
+
+### Installation from JSR
+
+```sh
+deno add jsr:@memobase/memobase
+npx jsr add @memobase/memobase
+```
+
 
 ## Usage
 
