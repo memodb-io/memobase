@@ -1,0 +1,6 @@
+{
+  "name": "@memobase/memobase",
+  "version": "0.0.7",
+  "license": "Apache-2.0",
+  "exports": "./index.ts"
+}
