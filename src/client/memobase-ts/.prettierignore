@@ -1,0 +1,8 @@
+CHANGELOG.md
+/ecosystem-tests/*/**
+/node_modules
+/coverage
+/deno
+
+# don't format tsc output, will break source maps
+/dist
