@@ -157,8 +157,8 @@ MESSGAE则是对话内容. 理解对话内容并且记住事情发生的时间
 你需要从对话中提取事实和偏好，并按顺序列出：
 - TOPIC{tab}SUB_TOPIC{tab}MEMO
 例如：
-- 基本信息{tab}姓名{tab}melinda
-- 工作{tab}职称{tab}软件工程师
+- 基本信息{tab}姓名{tab}melinda{tab}[0,3,4]
+- 工作{tab}职称{tab}软件工程师{tab}[4,5]
 
 每行代表一个事实或偏好，包含：
 1. TOPIC: 主题，表示该偏好的类别
