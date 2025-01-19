@@ -21,6 +21,7 @@ async def llm_complete(
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
     try:
+        LOG.debug(f"System Prompt: {system_prompt}\n{ f"History_messages: {str(history_messages)}\n" if history_messages else ''}Prompt: {prompt}\n")
         results = await FACTORIES[CONFIG.llm_style](
             CONFIG.best_llm_model,
             prompt,
@@ -28,6 +29,7 @@ async def llm_complete(
             history_messages=history_messages,
             **kwargs,
         )
+        LOG.debug(f"Results: {results}")
     except Exception as e:
         LOG.error(f"Error in llm_complete: {e}")
         return Promise.reject(CODE.SERVICE_UNAVAILABLE, f"Error in llm_complete: {e}")

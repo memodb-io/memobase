@@ -29,7 +29,7 @@ DB_ENGINE = create_engine(
     pool_pre_ping=True,  # Verify connections before using
     pool_timeout=30,  # Wait up to 30 seconds for available connection
 )
-REDIS_POOL = None
+REDIS_POOL: redis.ConnectionPool | None = None
 
 Session = sessionmaker(bind=DB_ENGINE)
 

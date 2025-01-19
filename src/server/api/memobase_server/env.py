@@ -46,6 +46,9 @@ class Config:
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
 
+    # LOG
+    log_level: str = "INFO"
+
     @classmethod
     def load_config(cls) -> "Config":
         if not os.path.exists("config.yaml"):
@@ -56,6 +59,7 @@ class Config:
             LOG.info(f"Load ./config.yaml")
         overwrite_config = dataclasses.replace(cls(), **overwrite_config)
         LOG.info(f"{overwrite_config}")
+        LOG.setLevel(overwrite_config.log_level)
         return overwrite_config
 
 
