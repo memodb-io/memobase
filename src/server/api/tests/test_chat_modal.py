@@ -35,12 +35,21 @@ MERGE_FACTS = [
 
 
 @pytest.fixture
-def mock_llm_complete():
-    with patch("memobase_server.controllers.modal.chat.llm_complete") as mock_llm:
+def mock_extract_llm_complete():
+    with patch(
+        "memobase_server.controllers.modal.chat.extract.llm_complete"
+    ) as mock_llm:
         mock_client1 = AsyncMock()
         mock_client1.ok = Mock(return_value=True)
         mock_client1.data = Mock(return_value=GD_FACTS)
 
+        mock_llm.side_effect = [mock_client1]
+        yield mock_llm
+
+
+@pytest.fixture
+def mock_merge_llm_complete():
+    with patch("memobase_server.controllers.modal.chat.merge.llm_complete") as mock_llm:
         mock_client2 = AsyncMock()
         mock_client2.ok = Mock(return_value=True)
         mock_client2.data = Mock(return_value=MERGE_FACTS[0])
@@ -49,12 +58,12 @@ def mock_llm_complete():
         mock_client3.ok = Mock(return_value=True)
         mock_client3.data = Mock(return_value=MERGE_FACTS[1])
 
-        mock_llm.side_effect = [mock_client1, mock_client2, mock_client3]
+        mock_llm.side_effect = [mock_client2, mock_client3]
         yield mock_llm
 
 
 @pytest.mark.asyncio
-async def test_chat_buffer_modal(db_env, mock_llm_complete):
+async def test_chat_buffer_modal(db_env, mock_extract_llm_complete):
     p = await controllers.user.create_user(res.UserData())
     assert p.ok()
     u_id = p.data().id
@@ -122,11 +131,13 @@ async def test_chat_buffer_modal(db_env, mock_llm_complete):
     p = await controllers.user.delete_user(u_id)
     assert p.ok()
 
-    mock_llm_complete.assert_awaited_once()
+    mock_extract_llm_complete.assert_awaited_once()
 
 
 @pytest.mark.asyncio
-async def test_chat_merge_modal(db_env, mock_llm_complete):
+async def test_chat_merge_modal(
+    db_env, mock_extract_llm_complete, mock_merge_llm_complete
+):
     p = await controllers.user.create_user(res.UserData())
     assert p.ok()
     u_id = p.data().id
@@ -177,12 +188,14 @@ async def test_chat_merge_modal(db_env, mock_llm_complete):
     p = await controllers.profile.get_user_profiles(u_id)
     assert p.ok() and len(p.data().profiles) == len(PROFILES) + 2
     profiles = p.data().profiles
-    assert profiles[-2].attributes == {"topic": "interest", "sub_topic": "foods"}
-    assert profiles[-2].content == "user likes Chinese and Japanese food"
-    assert profiles[-1].attributes == {"topic": "education", "sub_topic": "level"}
-    assert profiles[-1].content == "High School"
+    profiles = sorted(profiles[-2:], key=lambda x: x.content)
+    assert profiles[-1].attributes == {"topic": "interest", "sub_topic": "foods"}
+    assert profiles[-1].content == "user likes Chinese and Japanese food"
+    assert profiles[-2].attributes == {"topic": "education", "sub_topic": "level"}
+    assert profiles[-2].content == "High School"
 
     p = await controllers.user.delete_user(u_id)
     assert p.ok()
 
-    assert mock_llm_complete.await_count == 3
+    assert mock_extract_llm_complete.await_count == 1
+    assert mock_merge_llm_complete.await_count == 2

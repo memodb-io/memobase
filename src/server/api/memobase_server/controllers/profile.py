@@ -2,6 +2,7 @@ from ..models.utils import Promise
 from ..models.database import GeneralBlob, UserProfile
 from ..models.response import CODE, IdData, IdsData, UserProfilesData
 from ..connectors import Session
+from ..env import LOG
 
 
 async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
@@ -66,6 +67,37 @@ async def update_user_profile(
             db_profile.attributes = attributes
         session.commit()
         return Promise.resolve(IdData(id=db_profile.id))
+
+
+async def update_user_profiles(
+    user_id: str,
+    profile_ids: list[str],
+    contents: list[str],
+    attributes: list[dict | None],
+):
+    assert len(profile_ids) == len(
+        contents
+    ), "Length of profile_ids, contents must be equal"
+    assert len(profile_ids) == len(
+        attributes
+    ), "Length of profile_ids, attributes must be equal"
+    with Session() as session:
+        db_profiles = []
+        for profile_id, content, attribute in zip(profile_ids, contents, attributes):
+            db_profile = (
+                session.query(UserProfile)
+                .filter_by(id=profile_id, user_id=user_id)
+                .one_or_none()
+            )
+            if db_profile is None:
+                LOG.error(f"Profile {profile_id} not found for user {user_id}")
+                continue
+            db_profile.content = content
+            if attribute is not None:
+                db_profile.attributes = attribute
+            db_profiles.append(profile_id)
+        session.commit()
+        return Promise.resolve(IdsData(ids=db_profiles))
 
 
 async def delete_user_profile(user_id: str, profile_id: str) -> Promise[None]:

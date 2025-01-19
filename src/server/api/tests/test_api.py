@@ -26,7 +26,9 @@ def test_health_check(client, db_env):
 
 @pytest.fixture
 def mock_llm_complete():
-    with patch("memobase_server.controllers.modal.chat.llm_complete") as mock_llm:
+    with patch(
+        "memobase_server.controllers.modal.chat.extract.llm_complete"
+    ) as mock_llm:
         mock_client1 = AsyncMock()
         mock_client1.ok = Mock(return_value=True)
         mock_client1.data = Mock(return_value="- basic_info::name::Gus")

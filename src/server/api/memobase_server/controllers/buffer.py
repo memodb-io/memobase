@@ -140,6 +140,7 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
             return Promise.resolve(None)
 
         except Exception as e:
+            raise e
             LOG.error(f"Error in flush_buffer: {e}")
             return Promise.reject(
                 CODE.INTERNAL_SERVER_ERROR, f"Error in flush_buffer: {e}"
