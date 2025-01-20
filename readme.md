@@ -1,11 +1,9 @@
 <div align="center">
     <a href="https://memobase.io">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://assets.memodb.io/memobase-dark.svg">
-      <img alt="Shows the Memobase logo" src="https://assets.memodb.io/memobase-light.svg" width="424">
+      <img alt="Shows the Memobase logo" src="./assets/images/logo.png" width="80%">
     </picture>
   </a>
-  <p><strong>User Profile-Based Memory for GenAI Apps</strong></p>
   <p>
     <img src="https://img.shields.io/badge/python->=3.11-blue">
     <a href="https://pypi.org/project/memobase/">
@@ -25,21 +23,19 @@
 
 
 
+
+
 Memobase is a **user profile-based memory system** designed to bring long-term user memory to your Generative AI (GenAI) applications. Whether you're building virtual companions, educational tools, or personalized assistants, Memobase empowers your AI to **remember**,  **understand**, and **evolve** with your users.
 
 
 
-<div align="center">
-    <picture>
-      <img alt="Shows the Memobase Workflow" src="./assets/images/starter.png" width="80%">
-    </picture>
-  <p>How Memobase works?</p>
-</div>
+Memobase can provide you structured user profiles of users, check out the [result](./docs/experiments/900-chats/readme.md) from a 900-turns real-world chatting:
+
 
 
 
 <details>
-<summary>Memobase can provide you structured user profiles of users, check out the [result](./docs/experiments/900-chats/readme.md) from a 900-turns real-world chatting:</summary>
+<summary>Profile Output</summary>
 
 
 ```python
@@ -77,6 +73,13 @@ Memobase is a **user profile-based memory system** designed to bring long-term u
 - **🚀 Production Ready**: Battle-tested by our partners in production.
 
 
+
+<div align="center">
+    <picture>
+      <img alt="Shows the Memobase Workflow" src="./assets/images/starter.png" width="80%">
+    </picture>
+  <p>How Memobase works?</p>
+</div>
 
 
 
