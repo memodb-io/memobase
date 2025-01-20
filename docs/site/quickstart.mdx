@@ -21,11 +21,18 @@ title: 'Quickstart'
 ### Get Prepared
 
 <AccordionGroup>
-<Accordion title="Using SDK (python)">
+<Accordion title="Using SDK">
 <CodeGroup>
 ```bash pip
 pip install memobase
 ```
+```bash npm
+npm install @memobase/memobase
+```
+```bash deno
+deno add jsr:@memobase/memobase
+```
+
 ```bash http
 # Skip to next step
 ```
@@ -48,6 +55,11 @@ client = MemoBaseClient(
     api_key="PROJECT_TOKEN"
 )
 ```
+```typescript Node
+import { MemoBaseClient, Blob, BlobType } from '@memobase/memobase';
+
+const client = new MemoBaseClient(process.env['MEMOBASE_PROJECT_URL'], process.env['MEMOBASE_API_KEY'])
+```
 </CodeGroup>
 </Accordion>
 <Accordion title="Test connection">
@@ -55,6 +67,9 @@ client = MemoBaseClient(
 
 ```python Python
 assert client.ping()
+```
+```typescript Node
+const ping = await client.ping()
 ```
 ```bash cURL
 curl -H "Authorization: Bearer $PROJECT_TOKEN" "$PROJECT_URL/api/v1/healthcheck"
@@ -76,7 +91,9 @@ This section is a quickstart of how to do CURD of users.
 ```python Python
 uid = client.add_user({"ANY": "DATA"})
 ```
-
+```typescript Node
+const userId = await client.addUser({ANY: "DATA"})
+```
 ```bash cURL
 curl -X POST "$PROJECT_URL/api/v1/users" \
      -H "Authorization: Bearer $PROJECT_TOKEN" \
@@ -96,7 +113,9 @@ curl -X POST "$PROJECT_URL/api/v1/users" \
 ```python Python
 client.update_user(uid, {"ANY": "NEW_DATA"})
 ```
-
+```typescript Node
+await client.updateUser(userId, {ANY: "NEW_DATA"})
+```
 ```bash cURL
 curl -X PUT "$PROJECT_URL/api/v1/users/{uid}" \
      -H "Authorization: Bearer $PROJECT_TOKEN" \
@@ -123,6 +142,10 @@ curl -X PUT "$PROJECT_URL/api/v1/users/{uid}" \
 u = client.get_user(uid)
 ```
 
+```typescript Node
+const user = await client.getUser(userId)
+```
+
 ```bash cURL
 curl -X GET "$PROJECT_URL/api/v1/users/{uid}" \
      -H "Authorization: Bearer $PROJECT_TOKEN"
@@ -147,6 +170,10 @@ curl -X GET "$PROJECT_URL/api/v1/users/{uid}" \
 
 ```python Python
 client.delete_user(uid)
+```
+
+```typescript Node
+await client.deleteUser(userId)
 ```
 
 ```bash cURL
@@ -183,6 +210,16 @@ u = client.get_user(uid)
 bid = u.insert(b)
 ```
 
+```typescript Node
+const blobId = await user.insert(Blob.parse({
+    type: BlobType.Enum.chat,
+    messages: [{
+        role: 'user',
+        content: 'Hello, how are you?'
+    }]
+}))
+```
+
 ```bash cURL
 curl -X POST "$PROJECT_URL/api/v1/blobs/insert/{uid}" \
      -H "Authorization: Bearer $PROJECT_TOKEN" \
@@ -201,6 +238,10 @@ curl -X POST "$PROJECT_URL/api/v1/blobs/insert/{uid}" \
 
 ```python Python
 b = u.get(bid)
+```
+
+```typescript Node
+const blob = await user.get(blobId)
 ```
 
 ```bash cURL
@@ -228,13 +269,17 @@ curl -X GET "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 </CodeGroup>
 </Accordion>
 
-<Accordion title="Delete">
+{/* <Accordion title="Delete">
 <CodeGroup>
 
 ```python Python
 u.delete(bid)
-
 ```
+
+```typescript Node
+await user.delete(blobId)
+```
+
 ```bash cURL
 curl -X DELETE "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
      -H "Authorization: Bearer $PROJECT_TOKEN"
@@ -244,7 +289,7 @@ curl -X DELETE "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 {"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
-</Accordion>
+</Accordion> */}
 </AccordionGroup>
 
 ### Memory Operations
@@ -256,6 +301,10 @@ Memobase provides memory extraction and storage for each user：
 
 ```python Python
 u.flush()
+```
+
+```typescript Node
+await user.flush(BlobType.Enum.chat)
 ```
 
 ```bash cURL
@@ -276,6 +325,10 @@ curl -X POST "$PROJECT_URL/api/v1/users/buffer/{uid}/chat" \
 
 ```python Python
 u.profile()
+```
+
+```typescript Node
+const profiles = await user.profile()
 ```
 
 ```bash cURL

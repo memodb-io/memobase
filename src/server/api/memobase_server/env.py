@@ -20,6 +20,7 @@ class TelemetryKeyName:
     insert_blob_success_request = "insert_blob_success_request"
     llm_input_tokens = "llm_input_tokens"
     llm_output_tokens = "llm_output_tokens"
+    has_request = "has_request"
 
 
 @dataclass

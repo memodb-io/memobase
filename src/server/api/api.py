@@ -203,6 +203,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     errmsg=f"Unauthorized access to {request.url.path}",
                 ).model_dump(),
             )
+        await capture_int_key(TelemetryKeyName.has_request)
         response = await call_next(request)
         return response
 
