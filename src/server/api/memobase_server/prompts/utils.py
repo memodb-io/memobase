@@ -12,15 +12,6 @@ INT_INT_PATTERN = re.compile(r"\[(\d+)\]")
 def tag_chat_blobs_in_order_xml(
     blobs: list[ChatBlob],
 ):
-    # tag_name = "chat"
-    # dates = [
-    #     b.created_at.strftime("%Y/%m/%d %I:%M%p") if b.created_at else None
-    #     for b in blobs
-    # ]
-    # return "\n".join(
-    #     f'<{tag_name} date="{d}">\n{get_blob_str(b)}\n</{tag_name}>'
-    #     for b, d in zip(blobs, dates)
-    # )
     return "\n".join(get_blob_str(b) for b in blobs)
 
 

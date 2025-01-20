@@ -60,6 +60,9 @@ class User(Base):
     related_user_profiles: Mapped[list["UserProfile"]] = relationship(
         "UserProfile", back_populates="user", cascade="all, delete-orphan", init=False
     )
+    related_user_events: Mapped[list["UserEvent"]] = relationship(
+        "UserEvent", back_populates="user", cascade="all, delete-orphan", init=False
+    )
 
     # Default columns
     additional_fields: Mapped[Optional[dict]] = mapped_column(
@@ -169,4 +172,28 @@ class UserProfile(Base):
     __table_args__ = (
         Index("idx_user_profiles_user_id", "user_id"),
         Index("idx_user_profiles_user_id_id", "user_id", "id"),
+    )
+
+
+@REG.mapped_as_dataclass
+class UserEvent(Base):
+    __tablename__ = "user_events"
+
+    # Specific columns
+    event_data: Mapped[dict] = mapped_column(JSONB)
+
+    # Relationships
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        # Add index to this id
+    )
+    user: Mapped[User] = relationship(
+        "User", back_populates="related_user_events", init=False
+    )
+
+    __table_args__ = (
+        Index("idx_user_events_user_id", "user_id"),
+        Index("idx_user_events_user_id_id", "user_id", "id"),
     )
