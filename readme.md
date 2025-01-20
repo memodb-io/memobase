@@ -11,6 +11,12 @@
     <a href="https://pypi.org/project/memobase/">
       <img src="https://img.shields.io/pypi/v/memobase.svg">
     </a>
+    <a href="https://www.npmjs.com/package/@memobase/memobase">
+      <img src="https://img.shields.io/npm/v/@memobase/memobase.svg?logo=npm&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D">
+    </a>
+    <a href="https://jsr.io/@memobase/memobase">
+      <img src="https://img.shields.io/jsr/v/@memobase/memobase.svg?logo=jsr&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D" />
+    </a>
     <a href="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml">
       <img src="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml/badge.svg">
     </a>
@@ -18,33 +24,23 @@
 </div>
 
 
-🌬️ **Does your AI forget your users?** 
 
-
-> Memobase maintains long-term memory of your users, for your product.
-
-🖼️ **Can you design the memory of AI?** 
-
-> Memobase offers accurate user profile, involving many aspects of your users: Age, Education, Interests, Opinions... [Customize](https://docs.memobase.io/features/customization/profile) the aspects you want Memobase to collect.
-> 
-
-⌛️ **Do you want users spend more time on your Apps?** 
-
-> Memobase is working with some leading AI companion startups. They have observated increased chatting turns after adopting Memobase, leading to higher user retention and subscription rate.
+Memobase is a **user profile-based memory system** designed to bring long-term user memory to your Generative AI (GenAI) applications. Whether you're building virtual companions, educational tools, or personalized assistants, Memobase empowers your AI to **remember**,  **understand**, and **evolve** with your users.
 
 
 
-Memobase is a user profile-based memory system, providing abilities like user managment, multi-modal understanding and long-term user memory to your GenAI applications.
+<div align="center">
+    <picture>
+      <img alt="Shows the Memobase Workflow" src="./assets/images/starter.png" width="80%">
+    </picture>
+  <p>How Memobase works?</p>
+</div>
 
-Core Features:
 
-- **🎯 Memory Design**: Define and control exactly what user information your AI captures
-- **🔄 Auto-Profiling**: User profiles evolve naturally through conversation
-- **🔌 Easy Setup**: Minimal code changes to integrate with your existing LLM stack
-- **⚡️ Fast Retrieval**: Industry-leading speeds via non-embedding system
-- **🚀 Production Ready**: Battle-tested by our partners in production
 
-Memobase can provide you structured user profiles of users, check out the [partial result](./docs/experiments/900-chats/readme.md) from a 900-turns chatting:
+<details>
+<summary>Memobase can provide you structured user profiles of users, check out the [result](./docs/experiments/900-chats/readme.md) from a 900-turns real-world chatting:</summary>
+
 
 ```python
 {
@@ -69,6 +65,17 @@ Memobase can provide you structured user profiles of users, check out the [parti
   ...
 }
 ```
+
+</details>
+
+## Core Features
+
+- **🎯 Memory for User, not Agent**: Define and control exactly what user information your AI captures. 
+- **🔄 Scalable Profiling**: User profiles evolve naturally through conversation with controllable memory size. 
+- **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with API, Python/Node SDK.
+- **⚡️ Batch Processing**: Industry-leading speeds via non-embedding system and session buffer. Fast & Cheap.
+- **🚀 Production Ready**: Battle-tested by our partners in production.
+
 
 
 
