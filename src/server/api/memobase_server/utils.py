@@ -57,8 +57,7 @@ def get_blob_token_size(blob: Blob):
 
 
 def seconds_from_now(dt: datetime):
-    return (datetime.now(tz=timezone.utc) - dt.replace(tzinfo=timezone.utc)).seconds
-
+    return (datetime.now(tz=timezone.utc) - dt.astimezone(timezone.utc)).seconds
 
 def user_id_lock(scope):
     def __user_id_lock(func):
