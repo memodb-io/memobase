@@ -197,9 +197,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         auth_token = request.headers.get("Authorization")
         if not auth_token or not self.is_valid_token(auth_token):
             return JSONResponse(
-                status_code=CODE.UNAUTHORIZED.value,
+                status_code=CODE.UNAUTHORIZED,
                 content=BaseResponse(
-                    errno=CODE.UNAUTHORIZED.value,
+                    errno=CODE.UNAUTHORIZED,
                     errmsg=f"Unauthorized access to {request.url.path}",
                 ).model_dump(),
             )

@@ -87,6 +87,8 @@ async def detect_buffer_idle_or_not(user_id: str, blob_type: BlobType) -> Promis
             .filter_by(user_id=user_id, blob_type=str(blob_type))
             .scalar()
         )
+        if last_buffer_update:
+            LOG.debug(f"Last buffer update for {blob_type} buffer for user {user_id}: {seconds_from_now(last_buffer_update)}")
         if (
             last_buffer_update
             and seconds_from_now(last_buffer_update) > CONFIG.buffer_flush_interval

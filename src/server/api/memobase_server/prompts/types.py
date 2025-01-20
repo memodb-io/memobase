@@ -12,7 +12,7 @@ SubTopic = TypedDict("SubTopic", {"name": str, "description": Optional[str]})
 class UserProfileTopic:
     topic: str
     description: Optional[str] = None
-    sub_topics: list[SubTopic] = field(default_factory=list)
+    sub_topics: list[SubTopic|str] = field(default_factory=list)
 
     def __post_init__(self):
         self.topic = attribute_unify(self.topic)
