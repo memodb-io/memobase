@@ -162,6 +162,24 @@ def parse_line_into_profile(line: str) -> AIUserProfile | None:
     )
 
 
+def parse_string_into_subtopics(response: str) -> list:
+    lines = response.split("\n")
+    lines = [l.strip() for l in lines if l.strip()]
+    facts = [parse_line_into_subtopic(l) for l in lines]
+    facts = [f for f in facts if f is not None]
+    return facts
+
+
+def parse_line_into_subtopic(line: str) -> dict:
+    if not line.startswith("- "):
+        return None
+    line = line[2:]
+    parts = line.split(CONFIG.llm_tab_separator)
+    if not len(parts) == 2:
+        return None
+    return {"sub_topic": attribute_unify(parts[0].strip()), "memo": parts[1].strip()}
+
+
 if __name__ == "__main__":
     print(parse_line_into_profile("- basic_info::name::Gus"))
     print(parse_string_into_merge_action("- REPLACE::G"))

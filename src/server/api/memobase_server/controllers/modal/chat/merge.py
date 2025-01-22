@@ -1,5 +1,4 @@
 import asyncio
-from typing import TypedDict
 from ....env import CONFIG, LOG
 from ....models.utils import Promise
 from ....models.response import ProfileData
@@ -7,16 +6,7 @@ from ....llms import llm_complete
 from ....prompts.utils import (
     parse_string_into_merge_action,
 )
-from .types import UpdateResponse, PROMPTS, AddProfile, UpdateProfile
-
-MergeAddResult = TypedDict(
-    "MergeAddResult",
-    {
-        "add": list[AddProfile],
-        "update": list[UpdateProfile],
-        "before_profiles": list[ProfileData],
-    },
-)
+from .types import UpdateResponse, PROMPTS, AddProfile, UpdateProfile, MergeAddResult
 
 
 async def merge_or_add_new_memos(
@@ -24,7 +14,12 @@ async def merge_or_add_new_memos(
     fact_attributes: list[dict],
     profiles: list[ProfileData],
 ) -> Promise[MergeAddResult | None]:
-    profile_option_results = {"add": [], "update": [], "before_profiles": profiles}
+    profile_option_results = {
+        "add": [],
+        "update": [],
+        "before_profiles": profiles,
+        "delete": [],
+    }
     if not len(profiles):
         profile_option_results["add"].extend(
             [
@@ -76,7 +71,6 @@ async def merge_or_add_new_memos(
         )
         merge_tasks.append(task)
 
-    success_update_profile_count = 0
     merge_results: list[Promise] = await asyncio.gather(*merge_tasks)
     for p, old_new_profile in zip(merge_results, facts_to_update):
         if not p.ok():
@@ -100,11 +94,4 @@ async def merge_or_add_new_memos(
         else:
             LOG.warning(f"Invalid action: {update_response['action']}")
             continue
-        success_update_profile_count += 1
-    LOG.info(
-        (
-            f"TOTAL {len(fact_contents)} profiles, ADD {len(profile_option_results['add'])} new profiles, "
-            f"update {success_update_profile_count}/{len(facts_to_update)} existing profiles"
-        )
-    )
     return Promise.resolve(profile_option_results)

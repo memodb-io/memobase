@@ -16,10 +16,9 @@ def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
     topic_subtopic = {}
     for nf in new_facts:
         key = (nf["topic"], nf["sub_topic"])
-        if key in topic_subtopic:
-            if isinstance(nf["memo"], str):
-                topic_subtopic[key]["memo"] += f"; {nf['memo']}"
-                continue
+        if key in topic_subtopic and isinstance(nf["memo"], str):
+            topic_subtopic[key]["memo"] += f"; {nf['memo']}"
+            continue
         topic_subtopic[key] = nf
     return list(topic_subtopic.values())
 
@@ -75,7 +74,6 @@ async def extract_topics(
     fact_contents = []
     fact_attributes = []
 
-    # FIXME if two same attributes in fact_attributes, will cause duplicate in profiles to add
     for nf in new_facts:
         fact_contents.append(nf["memo"])
         fact_attributes.append(
@@ -84,9 +82,6 @@ async def extract_topics(
                 "sub_topic": nf["sub_topic"],
             }
         )
-    # p = await merge_or_add_new_memos(user_id, fact_contents, fact_attributes, profiles)
-    # if not p.ok():
-    #     return p
     return Promise.resolve(
         {
             "fact_contents": fact_contents,
