@@ -25,7 +25,8 @@ additional_user_profiles:
 
 ### Storage Config
 - `max_chat_blob_buffer_token_size`: int, default to `1024`. This is the parameter to control the buffer size of Memobase. Large the number, lower your LLM cost will be, but more lagging of profile update.
-- `max_pre_profile_token_size`: int, default to `256`. The maximum token size of one profile slot can be. When a profile slot is larger than this, it will be trigger a re-summary.
+- `max_pre_profile_token_size`: int, default to `512`. The maximum token size of one profile slot can be. When a profile slot is larger than this, it will be trigger a re-summary.
+- `max_profile_subtopics`: int, default to `15`. The maximum subtopics of one topic can be. When a topic has more than this, it will be trigger a re-organization.
 - `persistent_chat_blobs`: bool, default to `false`. If set to `true`, the chat blobs will be persisted in the database.
 
 ### Profile Config
@@ -54,3 +55,4 @@ The final profiles slots will be those you defined in here.
 - `language`: string, default to `en`, available options `{'en', 'zh'}`. The prompt language of Memobase you like to use.
 - `llm_base_url`: string, default to `https://api.openai.com/v1/`. The base URL of any OpenAI-Compatible API.
 - `llm_api_key`: string, default to `null`. Your LLM API key.
+- `best_llm_model`: string, default to `gpt-4o-mini`. The AI model to use.

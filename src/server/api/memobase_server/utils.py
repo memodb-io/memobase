@@ -7,12 +7,16 @@ from .models.database import GeneralBlob
 from .connectors import get_redis_client, PROJECT_ID
 
 
-def get_encoded_tokens(content: str):
+def get_encoded_tokens(content: str) -> list[int]:
     return ENCODER.encode(content)
 
 
-def get_decoded_tokens(tokens: list[int]):
+def get_decoded_tokens(tokens: list[int]) -> str:
     return ENCODER.decode(tokens)
+
+
+def truncate_string(content: str, max_tokens: int):
+    return get_decoded_tokens(get_encoded_tokens(content)[:max_tokens])
 
 
 def pack_blob_from_db(blob: GeneralBlob, blob_type: BlobType) -> Blob:

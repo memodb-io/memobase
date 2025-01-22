@@ -114,3 +114,12 @@ async def delete_user_profile(user_id: str, profile_id: str) -> Promise[None]:
         session.delete(db_profile)
         session.commit()
     return Promise.resolve(None)
+
+
+async def delete_user_profiles(user_id: str, profile_ids: list[str]) -> Promise[None]:
+    with Session() as session:
+        session.query(UserProfile).filter(
+            UserProfile.id.in_(profile_ids), UserProfile.user_id == user_id
+        ).delete(synchronize_session=False)
+        session.commit()
+    return Promise.resolve(None)

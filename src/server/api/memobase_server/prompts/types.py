@@ -61,6 +61,24 @@ def modify_default_user_profile(CANDIDATE_PROFILE_TOPICS):
     return CANDIDATE_PROFILE_TOPICS
 
 
+def get_specific_subtopics(
+    topic: str, CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic]
+) -> list[str]:
+    sps = [
+        sp
+        for up in CANDIDATE_PROFILE_TOPICS
+        for sp in up.sub_topics
+        if up.topic == topic
+    ]
+    if not len(sps):
+        return "None"
+    return [
+        f"  - {sp['name']}"
+        + (f"({sp['description']})" if sp.get("description") else "")
+        for sp in sps
+    ]
+
+
 def export_user_profile_to_yaml(profiles: list[UserProfileTopic]):
     final_results = {"profiles": []}
     for p in profiles:
