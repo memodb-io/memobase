@@ -79,14 +79,12 @@ def _sync_chat(client: OpenAI, mb_client: MemoBaseClient):
 
     def sync_chat(*args, **kwargs) -> ChatCompletion | Stream[ChatCompletionChunk]:
         is_streaming = kwargs.get("stream", False)
-        if "user_id" not in kwargs:
+        if kwargs.get("user_id", None) is None:
+            kwargs.pop("user_id")
             if not is_streaming:
                 return _create_chat(*args, **kwargs)
             else:
-                res = _create_chat(*args, **kwargs)
-                for r in res:
-                    yield r
-                return
+                return (r for r in _create_chat(*args, **kwargs))
         # TODO support streaming
 
         user_id = string_to_uuid(kwargs.pop("user_id"))
@@ -96,39 +94,42 @@ def _sync_chat(client: OpenAI, mb_client: MemoBaseClient):
             if not is_streaming:
                 return _create_chat(*args, **kwargs)
             else:
-                res = _create_chat(*args, **kwargs)
-                for r in res:
-                    yield r
-                return
+                return (r for r in _create_chat(*args, **kwargs))
 
         u = mb_client.get_or_create_user(user_id)
         kwargs["messages"] = user_profile_insert(kwargs["messages"], u)
         response = _create_chat(*args, **kwargs)
 
         if is_streaming:
-            total_response = ""
-            r_role = None
-            for r in response:
-                yield r
-                try:
-                    r_string = r.choices[0].delta.content
-                    r_role = r_role or r.choices[0].delta.role
-                    total_response += r_string or ""
-                except Exception:
-                    continue
-            if not len(total_response):
-                return
-            if r_role != "assistant":
-                LOG.warning(f"Last response is not assistant response: {r_role}")
-                return response
 
-            messages = ChatBlob(
-                messages=[
-                    {"role": "user", "content": user_query["content"]},
-                    {"role": "assistant", "content": total_response},
-                ]
-            )
-            threading.Thread(target=add_message_to_user, args=(messages, u)).start()
+            def yield_response_and_log():
+                total_response = ""
+                r_role = None
+
+                for r in response:
+                    yield r
+                    try:
+                        r_string = r.choices[0].delta.content
+                        r_role = r_role or r.choices[0].delta.role
+                        total_response += r_string or ""
+                    except Exception:
+                        continue
+                if not len(total_response):
+                    return
+                if r_role != "assistant":
+                    LOG.warning(f"Last response is not assistant response: {r_role}")
+                    return response
+
+                messages = ChatBlob(
+                    messages=[
+                        {"role": "user", "content": user_query["content"]},
+                        {"role": "assistant", "content": total_response},
+                    ]
+                )
+                threading.Thread(target=add_message_to_user, args=(messages, u)).start()
+
+            return yield_response_and_log()
+
         else:
             r_role = response.choices[0].message.role
             if r_role != "assistant":
