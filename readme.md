@@ -252,6 +252,14 @@ For detailed usage instructions, visit the [documentation](https://docs.memobase
 
 
 
+## Stay Updated
+
+Star Memobase on Github to support and receive instant notifications!
+
+![click_star](./assets/images/click.gif)
+
+
+
 ## Support
 
 Join the community for support and discussions:
