@@ -39,7 +39,7 @@ async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
             await redis_client.set(
                 f"user_profiles::{PROJECT_ID}::{user_id}",
                 return_profiles.model_dump_json(),
-                ex=60 * 10,  # 10 minutes
+                ex=CONFIG.cache_user_profiles_ttl,
             )
     return Promise.resolve(return_profiles)
 

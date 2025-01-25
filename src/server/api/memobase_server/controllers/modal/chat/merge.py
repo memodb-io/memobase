@@ -13,7 +13,7 @@ async def merge_or_add_new_memos(
     fact_contents: list[str],
     fact_attributes: list[dict],
     profiles: list[ProfileData],
-) -> Promise[MergeAddResult | None]:
+) -> Promise[MergeAddResult]:
     profile_option_results = {
         "add": [],
         "update": [],
