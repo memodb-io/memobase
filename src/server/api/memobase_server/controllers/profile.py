@@ -1,11 +1,20 @@
 from ..models.utils import Promise
 from ..models.database import GeneralBlob, UserProfile
 from ..models.response import CODE, IdData, IdsData, UserProfilesData
-from ..connectors import Session
-from ..env import LOG
+from ..connectors import Session, get_redis_client, PROJECT_ID
+from ..env import LOG, CONFIG
 
 
 async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
+    if CONFIG.cache_user_profiles:
+        async with get_redis_client() as redis_client:
+            user_profiles = await redis_client.get(
+                f"user_profiles::{PROJECT_ID}::{user_id}"
+            )
+            if user_profiles:
+                return Promise.resolve(
+                    UserProfilesData.model_validate_json(user_profiles)
+                )
     with Session() as session:
         user_profiles = (
             session.query(UserProfile)
@@ -24,7 +33,15 @@ async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
                     "updated_at": up.updated_at,
                 }
             )
-        return Promise.resolve(UserProfilesData(profiles=results))
+    return_profiles = UserProfilesData(profiles=results)
+    if CONFIG.cache_user_profiles:
+        async with get_redis_client() as redis_client:
+            await redis_client.set(
+                f"user_profiles::{PROJECT_ID}::{user_id}",
+                return_profiles.model_dump_json(),
+                ex=60 * 10,  # 10 minutes
+            )
+    return Promise.resolve(return_profiles)
 
 
 async def add_user_profiles(

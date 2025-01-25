@@ -13,6 +13,6 @@ async def openai_complete(
     messages.append({"role": "user", "content": prompt})
 
     response = await openai_async_client.chat.completions.create(
-        model=model, messages=messages, **kwargs
+        model=model, messages=messages, timeout=120, **kwargs
     )
     return response.choices[0].message.content

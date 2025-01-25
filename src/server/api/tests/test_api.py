@@ -5,7 +5,9 @@ from api import app
 from fastapi.testclient import TestClient
 from memobase_server import controllers
 from memobase_server.models.blob import BlobType
+from memobase_server.env import CONFIG
 
+CONFIG.cache_user_profiles = False
 PREFIX = "/api/v1"
 TOKEN = os.getenv("ACCESS_TOKEN")
 

@@ -34,6 +34,7 @@ class Config:
     max_profile_subtopics: int = 15
     max_pre_profile_token_size: int = 512
     llm_tab_separator: str = "::"
+    cache_user_profiles: bool = True
 
     # LLM
     language: str = "en"
