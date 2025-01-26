@@ -8,7 +8,6 @@ from .extract import extract_topics
 from .merge import merge_or_add_new_memos
 from .summary import re_summary
 from .organize import organize_profiles
-from ....connectors import get_redis_client, PROJECT_ID
 from .types import MergeAddResult
 
 
@@ -50,8 +49,6 @@ async def process_blobs(
         exe_user_profile_update(user_id, profile_options),
         exe_user_profile_delete(user_id, profile_options),
     )
-    async with get_redis_client() as redis_client:
-        await redis_client.delete(f"user_profiles::{PROJECT_ID}::{user_id}")
     if not all([p.ok() for p in ps]):
         return Promise.reject("Failed to add or update profiles")
     return Promise.resolve(None)
