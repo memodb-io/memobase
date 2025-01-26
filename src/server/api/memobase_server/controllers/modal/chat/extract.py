@@ -56,6 +56,7 @@ async def extract_topics(
             already_topics=already_topics_prompt
         ),
         temperature=0.2,  # precise
+        **PROMPTS[CONFIG.language]["extract"].get_kwargs(),
     )
     if not p.ok():
         return p

@@ -1,3 +1,4 @@
+ADD_KWARGS = {}
 SUMMARY_PROMPT = """You are given a user profile with some information about the user. Summarize it into shorter form.
 
 ## Requirement
@@ -13,6 +14,10 @@ The result should use the same language as the input.
 
 def get_prompt() -> str:
     return SUMMARY_PROMPT
+
+
+def get_kwargs() -> dict:
+    return ADD_KWARGS
 
 
 if __name__ == "__main__":

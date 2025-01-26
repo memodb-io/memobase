@@ -3,6 +3,7 @@ from .utils import pack_profiles_into_string
 from ..models.response import AIUserProfiles
 from ..env import CONFIG
 
+ADD_KWARGS = {}
 EXAMPLES = [
     (
         """
@@ -212,6 +213,10 @@ def get_prompt(already_topics: str) -> str:
         tab=CONFIG.llm_tab_separator,
         user_profile_topics=user_profile_topics.get_prompt(),
     )
+
+
+def get_kwargs() -> dict:
+    return ADD_KWARGS
 
 
 if __name__ == "__main__":

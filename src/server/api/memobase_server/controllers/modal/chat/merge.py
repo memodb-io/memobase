@@ -68,6 +68,7 @@ async def merge_or_add_new_memos(
             ),
             system_prompt=PROMPTS[CONFIG.language]["merge"].get_prompt(),
             temperature=0.2,  # precise
+            **PROMPTS[CONFIG.language]["merge"].get_kwargs(),
         )
         merge_tasks.append(task)
 
