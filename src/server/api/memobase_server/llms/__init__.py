@@ -4,10 +4,11 @@ from ..env import CONFIG, LOG, TelemetryKeyName
 from ..models.utils import Promise
 from ..models.response import CODE
 from .openai import openai_complete
+from .doubao_cache import doubao_cache_complete
 from ..telemetry.capture_key import capture_int_key
 
 
-FACTORIES = {"openai": openai_complete}
+FACTORIES = {"openai": openai_complete, "doubao_cache": doubao_cache_complete}
 assert CONFIG.llm_style in FACTORIES, f"Unsupported LLM style: {CONFIG.llm_style}"
 
 

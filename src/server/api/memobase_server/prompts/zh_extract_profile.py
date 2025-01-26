@@ -1,6 +1,6 @@
 from . import zh_user_profile_topics
 from ..models.response import AIUserProfiles
-from ..env import CONFIG
+from ..env import CONFIG, LOG
 from .utils import pack_profiles_into_string
 
 EXAMPLES = [

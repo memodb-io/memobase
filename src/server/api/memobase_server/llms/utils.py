@@ -1,4 +1,5 @@
 from openai import APIConnectionError, RateLimitError, AsyncOpenAI
+from volcenginesdkarkruntime import AsyncArk, Ark
 
 from tenacity import (
     retry,
@@ -9,6 +10,8 @@ from tenacity import (
 from ..env import CONFIG
 
 _global_openai_async_client = None
+_global_doubao_async_client = None
+_global_doubao_client = None
 
 
 def get_openai_retry_decorator():
@@ -19,7 +22,7 @@ def get_openai_retry_decorator():
     )
 
 
-def get_openai_async_client_instance():
+def get_openai_async_client_instance() -> AsyncOpenAI:
     global _global_openai_async_client
     if _global_openai_async_client is None:
         _global_openai_async_client = AsyncOpenAI(
@@ -27,3 +30,23 @@ def get_openai_async_client_instance():
             api_key=CONFIG.llm_api_key,
         )
     return _global_openai_async_client
+
+
+def get_doubao_async_client_instance() -> AsyncArk:
+    global _global_doubao_async_client
+
+    if _global_doubao_async_client is None:
+        _global_doubao_async_client = AsyncArk(api_key=CONFIG.llm_api_key)
+    return _global_doubao_async_client
+
+
+def get_doubao_client_instance() -> Ark:
+    global _global_doubao_client
+    if _global_doubao_client is None:
+        _global_doubao_client = Ark(api_key=CONFIG.llm_api_key)
+    return _global_doubao_client
+
+
+def exclude_special_kwargs(kwargs: dict):
+    context_id = kwargs.pop("context_id", None)
+    return {"context_id": context_id}, kwargs
