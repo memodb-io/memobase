@@ -60,10 +60,27 @@ Check out the [docs](https://docs.memobase.io/quickstart) of how to use Memobase
    docker run --env-file env.list ./api/config.yaml:/app/config.yaml -p 8019:8000 ghcr.io/memodb-io/memobase:main
    ```
 
-   
 
 ## SDKs
 
-- **Python**: `pip install memobase`
-- **Typescript**: coming soon
+- **Python**: `pip install memobase`. 
+- **Typescript**: `npm install @memobase/memobase`. More installations on [here](../client/memobase-ts/readme.md)
 
+
+
+## Migrations
+
+Memobase may introduce breaking changes in DB schema, here is a guideline of how to migrate your data to latest Memobase:
+
+1. Install `alembic`: `pip install alembic`
+
+2. Modify `./api/alembic.ini`. Find the field called `sqlalchemy.url` in `alembbic.ini`, change it to your Postgres DB of Memobase
+
+3. Run below commands to prepare the migration plan:
+
+   ```bash
+   cd api
+   alembic revision --autogenerate -m "memobase changes"
+   ```
+
+4. ⚠️ Run the command `alembic upgrade head` to migrate your current Memobase DB to the latest one.
