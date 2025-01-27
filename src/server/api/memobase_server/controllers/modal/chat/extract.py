@@ -51,10 +51,10 @@ async def extract_topics(
 
     blob_strs = tag_chat_blobs_in_order_xml(blobs)
     p = await llm_complete(
-        blob_strs,
-        system_prompt=PROMPTS[CONFIG.language]["extract"].get_prompt(
-            already_topics=already_topics_prompt
+        PROMPTS[CONFIG.language]["extract"].pack_input(
+            already_topics_prompt, blob_strs
         ),
+        system_prompt=PROMPTS[CONFIG.language]["extract"].get_prompt(),
         temperature=0.2,  # precise
         **PROMPTS[CONFIG.language]["extract"].get_kwargs(),
     )

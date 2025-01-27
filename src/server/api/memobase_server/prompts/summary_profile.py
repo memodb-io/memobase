@@ -1,3 +1,6 @@
+from ..env import CONFIG
+from ..llms.doubao_cache import doubao_cache_create_context
+
 ADD_KWARGS = {}
 SUMMARY_PROMPT = """You are given a user profile with some information about the user. Summarize it into shorter form.
 
@@ -19,6 +22,13 @@ def get_prompt() -> str:
 def get_kwargs() -> dict:
     return ADD_KWARGS
 
+
+if CONFIG.llm_style == "doubao_cache":
+    ctx_id = doubao_cache_create_context(
+        model=CONFIG.best_llm_model,
+        system_prompt=get_prompt(),
+    )
+    ADD_KWARGS["context_id"] = ctx_id
 
 if __name__ == "__main__":
     print(get_prompt())

@@ -13,7 +13,9 @@ async def doubao_cache_complete(
 
     doubao_async_client = get_doubao_async_client_instance()
     messages = []
-    if system_prompt:
+
+    if system_prompt and context_id is None:
+        # when context_id is None, we use system prompt to create context
         messages.append({"role": "system", "content": system_prompt})
     messages.extend(history_messages)
     messages.append({"role": "user", "content": prompt})
@@ -27,6 +29,7 @@ async def doubao_cache_complete(
         response = await doubao_async_client.context.completions.create(
             model=model, messages=messages, context_id=context_id, timeout=120, **kwargs
         )
+        print(response.usage)
         return response.choices[0].message.content
 
 
