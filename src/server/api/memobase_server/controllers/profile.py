@@ -1,3 +1,4 @@
+from pydantic import ValidationError
 from ..models.utils import Promise
 from ..models.database import GeneralBlob, UserProfile
 from ..models.response import CODE, IdData, IdsData, UserProfilesData
@@ -11,7 +12,13 @@ async def get_user_profiles(user_id: str) -> Promise[UserProfilesData]:
             f"user_profiles::{PROJECT_ID}::{user_id}"
         )
         if user_profiles:
-            return Promise.resolve(UserProfilesData.model_validate_json(user_profiles))
+            try:
+                return Promise.resolve(
+                    UserProfilesData.model_validate_json(user_profiles)
+                )
+            except ValidationError as e:
+                LOG.error(f"Invalid user profiles: {e}")
+                await redis_client.delete(f"user_profiles::{PROJECT_ID}::{user_id}")
     with Session() as session:
         user_profiles = (
             session.query(UserProfile)
