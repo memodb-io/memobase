@@ -14,6 +14,9 @@ async def merge_or_add_new_memos(
     fact_attributes: list[dict],
     profiles: list[ProfileData],
 ) -> Promise[MergeAddResult]:
+    assert len(fact_contents) == len(
+        fact_attributes
+    ), "Length of fact_contents and fact_attributes must be equal"
     profile_option_results = {
         "add": [],
         "update": [],
