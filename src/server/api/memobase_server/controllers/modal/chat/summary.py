@@ -30,6 +30,7 @@ async def summary_memo(content_pack: dict) -> Promise[None]:
         content_pack["content"],
         system_prompt=summary_profile.get_prompt(),
         temperature=0.2,  # precise
+        **summary_profile.get_kwargs(),
     )
     if not r.ok():
         LOG.error(f"Failed to summary memo: {r.msg()}")
