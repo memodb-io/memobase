@@ -5,34 +5,36 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
-	
+
 	"github.com/memodb-io/memobase/src/client/memobase-go/blob"
 	"github.com/memodb-io/memobase/src/client/memobase-go/network"
 )
 
 type User struct {
-	UserID         string
-	ProjectClient  *MemoBaseClient
-	Fields         map[string]interface{}
+	UserID        string
+	ProjectClient *MemoBaseClient
+	Fields        map[string]interface{}
 }
 
 type UserProfile struct {
-	UpdatedAt time.Time `json:"updated_at"`
-	Topic     string    `json:"topic"`
-	SubTopic  string    `json:"sub_topic"`
-	Content   string    `json:"content"`
+	ID         string        `json:"id"`
+	UpdatedAt  blob.JSONTime `json:"updated_at"`
+	CreatedAt  blob.JSONTime `json:"created_at"`
+	Content    string        `json:"content"`
+	Attributes struct {
+		Topic    string `json:"topic"`
+		SubTopic string `json:"sub_topic"`
+	} `json:"attributes"`
 }
 
-func (u *User) Insert(blobData blob.Blob) (string, error) {
-	// Convert blob data to request format
+func (u *User) Insert(blob blob.BlobInterface) (string, error) {
 	reqData := map[string]interface{}{
-		"blob_type": blobData.Type,
-		"blob_data": blobData,
-		"fields":    blobData.Fields,
+		"blob_type": blob.GetType(),
+		"blob_data": blob.GetBlobData(),
+		"fields":    blob.GetFields(),
 	}
-	if blobData.CreatedAt != nil {
-		reqData["created_at"] = blobData.CreatedAt
+	if blob.GetCreatedAt() != nil {
+		reqData["created_at"] = blob.GetCreatedAt()
 	}
 
 	jsonData, err := json.Marshal(reqData)
@@ -58,37 +60,31 @@ func (u *User) Insert(blobData blob.Blob) (string, error) {
 	return baseResp.Data["id"].(string), nil
 }
 
-func (u *User) Get(blobID string) (blob.Blob, error) {
+func (u *User) Get(blobID string) (blob.BlobInterface, error) {
 	resp, err := u.ProjectClient.HTTPClient.Get(
 		fmt.Sprintf("%s/blobs/%s/%s", u.ProjectClient.BaseURL, u.UserID, blobID),
 	)
 	if err != nil {
-		return blob.Blob{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	baseResp, err := network.UnpackResponse(resp)
 	if err != nil {
-		return blob.Blob{}, err
+		return nil, err
 	}
 
 	var blobData blob.BlobData
 	jsonData, err := json.Marshal(baseResp.Data)
 	if err != nil {
-		return blob.Blob{}, err
+		return nil, err
 	}
 
 	if err := json.Unmarshal(jsonData, &blobData); err != nil {
-		return blob.Blob{}, err
+		return nil, err
 	}
 
-	// Convert BlobData back to appropriate Blob type
-	// This is a simplified version - you might need to handle different blob types
-	return blob.Blob{
-		Type:      blobData.BlobType,
-		Fields:    blobData.Fields,
-		CreatedAt: blobData.CreatedAt,
-	}, nil
+	return blobData.ToBlob()
 }
 
 func (u *User) GetAll(blobType blob.BlobType, page int, pageSize int) ([]string, error) {
@@ -193,6 +189,7 @@ func (u *User) Profile() ([]UserProfile, error) {
 		}
 
 		if err := json.Unmarshal(jsonData, &profile); err != nil {
+			fmt.Printf("Error unmarshaling profile: %v\nData: %s\n", err, jsonData)
 			continue
 		}
 
@@ -220,4 +217,4 @@ func (u *User) DeleteProfile(profileID string) error {
 
 	_, err = network.UnpackResponse(resp)
 	return err
-} 
+}

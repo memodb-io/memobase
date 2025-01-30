@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/memodb-io/memobase/src/client/memobase-go/blob"
 )
@@ -15,7 +14,7 @@ import (
 func TestUser_Insert(t *testing.T) {
 	tests := []struct {
 		name       string
-		blobData   blob.Blob
+		blobData   blob.BlobInterface
 		statusCode int
 		response   map[string]interface{}
 		wantID     string
@@ -23,10 +22,18 @@ func TestUser_Insert(t *testing.T) {
 	}{
 		{
 			name: "successful blob insertion",
-			blobData: blob.Blob{
-				Type: blob.ChatType,
-				Fields: map[string]interface{}{
-					"test": "value",
+			blobData: &blob.ChatBlob{
+				BaseBlob: blob.BaseBlob{
+					Type: blob.ChatType,
+					Fields: map[string]interface{}{
+						"test": "value",
+					},
+				},
+				Messages: []blob.OpenAICompatibleMessage{
+					{
+						Role:    "user",
+						Content: "test",
+					},
 				},
 			},
 			statusCode: http.StatusOK,
@@ -40,10 +47,18 @@ func TestUser_Insert(t *testing.T) {
 		},
 		{
 			name: "server error",
-			blobData: blob.Blob{
-				Type: blob.ChatType,
-				Fields: map[string]interface{}{
-					"test": "value",
+			blobData: &blob.ChatBlob{
+				BaseBlob: blob.BaseBlob{
+					Type: blob.ChatType,
+					Fields: map[string]interface{}{
+						"test": "value",
+					},
+				},
+				Messages: []blob.OpenAICompatibleMessage{
+					{
+						Role:    "user",
+						Content: "test",
+					},
 				},
 			},
 			statusCode: http.StatusInternalServerError,
@@ -75,8 +90,8 @@ func TestUser_Insert(t *testing.T) {
 				if err := json.Unmarshal(body, &reqBody); err != nil {
 					t.Errorf("failed to parse request body: %v", err)
 				}
-				if reqBody["blob_type"] != string(tt.blobData.Type) {
-					t.Errorf("unexpected blob_type: got %v, want %v", reqBody["blob_type"], tt.blobData.Type)
+				if reqBody["blob_type"] != string(tt.blobData.GetType()) {
+					t.Errorf("unexpected blob_type: got %v, want %v", reqBody["blob_type"], tt.blobData.GetType())
 				}
 
 				// Send response
@@ -207,19 +222,29 @@ func TestUser_Profile(t *testing.T) {
 				"data": map[string]interface{}{
 					"profiles": []map[string]interface{}{
 						{
-							"updated_at": time.Now().Format(time.RFC3339),
-							"topic":      "test topic",
-							"sub_topic":  "test subtopic",
+							"id":         "test-id",
+							"updated_at": "2025-01-30T11:24:56.446991",
+							"created_at": "2025-01-30T11:24:56.446991",
 							"content":    "test content",
+							"attributes": map[string]interface{}{
+								"topic":     "test topic",
+								"sub_topic": "test subtopic",
+							},
 						},
 					},
 				},
 			},
 			want: []UserProfile{
 				{
-					Topic:    "test topic",
-					SubTopic: "test subtopic",
-					Content:  "test content",
+					ID:      "test-id",
+					Content: "test content",
+					Attributes: struct {
+						Topic    string `json:"topic"`
+						SubTopic string `json:"sub_topic"`
+					}{
+						Topic:    "test topic",
+						SubTopic: "test subtopic",
+					},
 				},
 			},
 			wantErr: false,
@@ -272,11 +297,14 @@ func TestUser_Profile(t *testing.T) {
 					return
 				}
 				for i, profile := range got {
-					if profile.Topic != tt.want[i].Topic {
-						t.Errorf("Profile[%d].Topic = %v, want %v", i, profile.Topic, tt.want[i].Topic)
+					if profile.ID != tt.want[i].ID {
+						t.Errorf("Profile[%d].ID = %v, want %v", i, profile.ID, tt.want[i].ID)
 					}
-					if profile.SubTopic != tt.want[i].SubTopic {
-						t.Errorf("Profile[%d].SubTopic = %v, want %v", i, profile.SubTopic, tt.want[i].SubTopic)
+					if profile.Attributes.Topic != tt.want[i].Attributes.Topic {
+						t.Errorf("Profile[%d].Attributes.Topic = %v, want %v", i, profile.Attributes.Topic, tt.want[i].Attributes.Topic)
+					}
+					if profile.Attributes.SubTopic != tt.want[i].Attributes.SubTopic {
+						t.Errorf("Profile[%d].Attributes.SubTopic = %v, want %v", i, profile.Attributes.SubTopic, tt.want[i].Attributes.SubTopic)
 					}
 					if profile.Content != tt.want[i].Content {
 						t.Errorf("Profile[%d].Content = %v, want %v", i, profile.Content, tt.want[i].Content)
@@ -285,4 +313,4 @@ func TestUser_Profile(t *testing.T) {
 			}
 		})
 	}
-} 
+}

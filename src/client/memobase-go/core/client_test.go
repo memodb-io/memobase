@@ -10,22 +10,22 @@ import (
 
 func TestNewMemoBaseClient(t *testing.T) {
 	tests := []struct {
-		name      string
+		name       string
 		projectURL string
-		apiKey    string
-		wantErr   bool
+		apiKey     string
+		wantErr    bool
 	}{
 		{
-			name:      "valid initialization",
+			name:       "valid initialization",
 			projectURL: "https://api.memobase.dev",
-			apiKey:    "test-key",
-			wantErr:   false,
+			apiKey:     "test-key",
+			wantErr:    false,
 		},
 		{
-			name:      "missing api key",
+			name:       "missing api key",
 			projectURL: "https://api.memobase.dev",
-			apiKey:    "",
-			wantErr:   true,
+			apiKey:     "",
+			wantErr:    true,
 		},
 	}
 
@@ -123,9 +123,9 @@ func TestMemoBaseClient_AddUser(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "successful user creation",
-			data: map[string]interface{}{"name": "test"},
-			id:   "test-id",
+			name:       "successful user creation",
+			data:       map[string]interface{}{"name": "test"},
+			id:         "test-id",
 			statusCode: http.StatusOK,
 			response: map[string]interface{}{
 				"errno":  0,
@@ -136,9 +136,9 @@ func TestMemoBaseClient_AddUser(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "server error",
-			data: map[string]interface{}{"name": "test"},
-			id:   "test-id",
+			name:       "server error",
+			data:       map[string]interface{}{"name": "test"},
+			id:         "test-id",
 			statusCode: http.StatusInternalServerError,
 			response: map[string]interface{}{
 				"errno":  500,
@@ -194,4 +194,4 @@ func TestMemoBaseClient_AddUser(t *testing.T) {
 			}
 		})
 	}
-} 
+}
