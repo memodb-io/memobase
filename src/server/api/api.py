@@ -223,16 +223,19 @@ class AuthMiddleware(BaseHTTPMiddleware):
         auth_token = (auth_token.split(" ")[1]).strip()
         is_root = self.is_valid_root(auth_token)
         request.headers["is_memobase_root"] = is_root
-        is_project, project_id = self.parse_project_token(auth_token)
-        request.headers["memobase_project_id"] = project_id
-        if not is_root or not is_project:
-            return JSONResponse(
-                status_code=CODE.UNAUTHORIZED.value,
-                content=BaseResponse(
-                    errno=CODE.UNAUTHORIZED.value,
-                    errmsg=f"Unauthorized access to {request.url.path}",
-                ).model_dump(),
-            )
+        if is_root:
+            request.headers["memobase_project_id"] = None
+        else:
+            p = await self.parse_project_token(auth_token)
+            if not p.ok():
+                return JSONResponse(
+                    status_code=CODE.UNAUTHORIZED.value,
+                    content=BaseResponse(
+                        errno=CODE.UNAUTHORIZED.value,
+                        errmsg=f"Unauthorized access to {request.url.path}. {p.msg()}",
+                    ).model_dump(),
+                )
+            request.headers["memobase_project_id"] = p.data()
         await capture_int_key(TelemetryKeyName.has_request)
         response = await call_next(request)
         return response
