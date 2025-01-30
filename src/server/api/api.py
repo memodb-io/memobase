@@ -28,6 +28,7 @@ from memobase_server.auth.token import (
     check_project_secret,
     generate_project_id,
 )
+from memobase_server.auth.network import is_root_ip_allowed
 import memobase_server.auth.token as token
 
 
@@ -83,8 +84,9 @@ async def create_project() -> res.SecretResponse:
     """Create a new tenant"""
     project_id = generate_project_id()
     secret_key = generate_secret_key(project_id)
-    await token.set_project_secret(project_id, secret_key)
-
+    p = await controllers.project.create_project(project_id, secret_key)
+    if not p.ok():
+        return p.to_response(res.SecretResponse)
     return res.SecretResponse(
         data=res.ProjectSecret(project_id=project_id, secret_key=secret_key)
     )
@@ -94,7 +96,13 @@ async def create_project() -> res.SecretResponse:
 async def delete_project(
     project_id: str = Path(..., description="The ID of the project to delete"),
 ) -> res.BaseResponse:
-    pass
+    p = await controllers.project.delete_project(project_id)
+    if not p.ok():
+        return p.to_response(res.BaseResponse)
+    p = await token.delete_project_secret(project_id)
+    if not p.ok():
+        return p.to_response(res.BaseResponse)
+    return res.BaseResponse()
 
 
 @router.get("/admin/project/secret/{project_id}", tags=["admin"])
@@ -262,18 +270,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
         auth_token = (auth_token.split(" ")[1]).strip()
         is_root = self.is_valid_root(auth_token)
-        request.headers["is_memobase_root"] = is_root
-        if is_root:
-            request.headers["memobase_project_id"] = None
-        else:
-            if "/admin" in request.url.path:
-                return JSONResponse(
-                    status_code=CODE.UNAUTHORIZED.value,
-                    content=BaseResponse(
-                        errno=CODE.UNAUTHORIZED.value,
-                        errmsg=f"Unauthorized access to {request.url.path}. You must be root to access admin APIs",
-                    ).model_dump(),
-                )
+        request.state.is_memobase_root = is_root
+        request.state.memobase_project_id = None
+        if not is_root:
             p = await self.parse_project_token(auth_token)
             if not p.ok():
                 return JSONResponse(
@@ -283,8 +282,31 @@ class AuthMiddleware(BaseHTTPMiddleware):
                         errmsg=f"Unauthorized access to {request.url.path}. {p.msg()}",
                     ).model_dump(),
                 )
-            request.headers["memobase_project_id"] = p.data()
-        await capture_int_key(TelemetryKeyName.has_request)
+            request.state.memobase_project_id = p.data()
+        if "/admin" in request.url.path:
+            if not is_root:
+                return JSONResponse(
+                    status_code=CODE.UNAUTHORIZED.value,
+                    content=BaseResponse(
+                        errno=CODE.UNAUTHORIZED.value,
+                        errmsg=f"Unauthorized access to {request.url.path}. You must be root to access admin APIs",
+                    ).model_dump(),
+                )
+            real_ip = (
+                request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+                or request.headers.get("X-Real-IP", "").strip()
+                or request.client.host
+            )
+            p = is_root_ip_allowed(real_ip)
+            if not p.ok() or not p.data():
+                return JSONResponse(
+                    status_code=CODE.UNAUTHORIZED.value,
+                    content=BaseResponse(
+                        errno=CODE.UNAUTHORIZED.value,
+                        errmsg=f"Unauthorized IP to {request.url.path}. {p.msg()}",
+                    ).model_dump(),
+                )
+        # await capture_int_key(TelemetryKeyName.has_request)
         response = await call_next(request)
         return response
 

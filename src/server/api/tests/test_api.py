@@ -13,7 +13,26 @@ TOKEN = os.getenv("ACCESS_TOKEN")
 @pytest.fixture
 def client():
     c = TestClient(app)
-    c.headers.update({"Authorization": f"Bearer {TOKEN}"})
+    c.headers.update(
+        {
+            "Authorization": f"Bearer {TOKEN}",
+            "X-Forwarded-For": "192.168.123.132",
+            "X-Real-IP": "192.168.123.132",
+        }
+    )
+    return c
+
+
+@pytest.fixture
+def internal_client():
+    c = TestClient(app)
+    c.headers.update(
+        {
+            "Authorization": f"Bearer {TOKEN}",
+            "X-Forwarded-For": "127.0.0.1",
+            "X-Real-IP": "127.0.0.1",
+        }
+    )
     return c
 
 
@@ -35,6 +54,48 @@ def mock_llm_complete():
 
         mock_llm.side_effect = [mock_client1]
         yield mock_llm
+
+
+def test_admin_api(client, internal_client, db_env):
+    response = client.post(f"{PREFIX}/admin/project")
+    assert response.status_code != 200
+    # Create project
+    response = internal_client.post(f"{PREFIX}/admin/project")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    project_id = d["data"]["project_id"]
+    secret_key = d["data"]["secret_key"]
+    assert project_id and secret_key
+
+    # Get project secret
+    response = internal_client.get(f"{PREFIX}/admin/project/secret/{project_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert d["data"]["project_id"] == project_id
+    assert d["data"]["secret_key"] == secret_key
+
+    # Update project secret
+    response = internal_client.put(f"{PREFIX}/admin/project/secret/{project_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert d["data"]["project_id"] == project_id
+    new_secret = d["data"]["secret_key"]
+    assert new_secret != secret_key
+
+    # Delete project
+    response = internal_client.delete(f"{PREFIX}/admin/project/{project_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+    # Verify project is deleted by trying to get its secret
+    response = internal_client.get(f"{PREFIX}/admin/project/secret/{project_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] != 0
 
 
 def test_user_api_curd(client, db_env):

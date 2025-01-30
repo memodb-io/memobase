@@ -6,6 +6,7 @@ from uuid import uuid4
 from ..models.utils import Promise
 from ..models.response import CODE
 from ..connectors import get_redis_client
+from ..controllers import project
 
 
 def generate_project_id() -> str:
@@ -28,7 +29,7 @@ def parse_project_id(secret_key: str) -> Promise[str]:
     parts = secret_key[3:].split("-")
     if len(parts) < 2:
         return Promise.reject(CODE.UNAUTHORIZED, "Invalid secret key")
-    project_id = "-".join(parts[:-1])
+    project_id = "-".join(parts[:-1]).strip()
     return Promise.resolve(project_id)
 
 
@@ -37,6 +38,9 @@ def token_redis_key(project_id: str) -> str:
 
 
 async def set_project_secret(project_id: str, secret_key: str) -> Promise[None]:
+    p = await project.update_project_secret(project_id, secret_key)
+    if not p.ok():
+        return p
     async with get_redis_client() as client:
         await client.set(token_redis_key(project_id), secret_key.strip(), ex=None)
     return Promise.resolve(None)
@@ -45,14 +49,28 @@ async def set_project_secret(project_id: str, secret_key: str) -> Promise[None]:
 async def check_project_secret(project_id: str, secret_key: str) -> Promise[bool]:
     async with get_redis_client() as client:
         secret = await client.get(token_redis_key(project_id))
-    if secret is None:
-        return Promise.reject(CODE.UNAUTHORIZED, "Your project is not exists!")
+        if secret is None:
+            p = await project.get_project_secret(project_id)
+            if not p.ok():
+                return Promise.reject(CODE.UNAUTHORIZED, "Your project is not exists!")
+            secret = p.data()
+            await client.set(token_redis_key(project_id), secret, ex=None)
     return Promise.resolve(secret == secret_key)
 
 
 async def get_project_secret(project_id: str) -> Promise[str]:
     async with get_redis_client() as client:
         secret = await client.get(token_redis_key(project_id))
-    if secret is None:
-        return Promise.reject(CODE.UNAUTHORIZED, "Your project is not exists!")
+        if secret is None:
+            p = await project.get_project_secret(project_id)
+            if not p.ok():
+                return Promise.reject(CODE.UNAUTHORIZED, "Your project is not exists!")
+            secret = p.data()
+            await client.set(token_redis_key(project_id), secret, ex=None)
     return Promise.resolve(secret)
+
+
+async def delete_project_secret(project_id: str) -> Promise[None]:
+    async with get_redis_client() as client:
+        await client.delete(token_redis_key(project_id))
+    return Promise.resolve(None)

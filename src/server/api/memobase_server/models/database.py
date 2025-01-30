@@ -46,6 +46,17 @@ class Base:
     )
 
 
+@REG.mapped_as_dataclass
+class Project(Base):
+    __tablename__ = "projects"
+
+    project_id: Mapped[str] = mapped_column(VARCHAR(63), nullable=False, unique=True)
+    project_secret: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    profile_config: Mapped[str] = mapped_column(TEXT, nullable=True)
+
+    __table_args__ = (Index("idx_projects_project_id", "project_id"),)
+
+
 # TODO: add index for user id and ...
 @REG.mapped_as_dataclass
 class User(Base):
