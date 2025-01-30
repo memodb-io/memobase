@@ -60,6 +60,13 @@ def test_admin_api(client, internal_client, db_env):
     response = client.post(f"{PREFIX}/admin/project")
     assert response.status_code != 200
     # Create project
+    response = internal_client.post(
+        f"{PREFIX}/admin/project", json={"profile_config": "test: ["}
+    )
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] != 0
+
     response = internal_client.post(f"{PREFIX}/admin/project")
     d = response.json()
     assert response.status_code == 200

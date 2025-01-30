@@ -79,6 +79,10 @@ class UserProfilesData(BaseModel):
     profiles: list[ProfileData] = Field(..., description="List of user profiles")
 
 
+class ProjectConfig(BaseModel):
+    profile_config: Optional[str] = Field(None, description="The profile config")
+
+
 class ProjectSecret(BaseModel):
     project_id: str = Field(..., description="The project ID")
     secret_key: str = Field(..., description="The secret key")

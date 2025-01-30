@@ -1,4 +1,4 @@
-pyaml
+pyyaml
 sqlalchemy
 fastapi[standard]
 psycopg2-binary

@@ -1,3 +1,4 @@
+import yaml
 from typing import cast
 from datetime import timezone, datetime
 from functools import wraps
@@ -95,3 +96,13 @@ def user_id_lock(scope):
         return wrapper
 
     return __user_id_lock
+
+
+def is_valid_profile_config(profile_config: str) -> bool:
+    # check if the profile config is valid yaml
+    try:
+        r = yaml.safe_load(profile_config)
+        return True
+    except yaml.YAMLError as e:
+        LOG.error(f"Invalid profile config: {e}")
+        return False

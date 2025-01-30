@@ -3,6 +3,7 @@ import memobase_server.env
 # Done setting up env
 
 import os
+from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
 from fastapi import Path, Query, Body
@@ -14,6 +15,7 @@ from memobase_server.connectors import (
     close_connection,
     init_redis_pool,
 )
+from memobase_server import utils
 from memobase_server.models.response import BaseResponse, CODE
 from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
@@ -80,11 +82,23 @@ async def healthcheck() -> BaseResponse:
 
 
 @router.post("/admin/project", tags=["admin"])
-async def create_project() -> res.SecretResponse:
+async def create_project(
+    configs: Optional[res.ProjectConfig] = Body(
+        None, description="The profile config to create"
+    )
+) -> res.SecretResponse:
     """Create a new tenant"""
     project_id = generate_project_id()
     secret_key = generate_secret_key(project_id)
-    p = await controllers.project.create_project(project_id, secret_key)
+    configs = configs or res.ProjectConfig()
+    profile_config = configs.profile_config
+    if profile_config and not utils.is_valid_profile_config(profile_config):
+        return Promise.reject(CODE.BAD_REQUEST, "Invalid profile config").to_response(
+            BaseResponse
+        )
+    p = await controllers.project.create_project(
+        project_id, secret_key, profile_config=profile_config
+    )
     if not p.ok():
         return p.to_response(res.SecretResponse)
     return res.SecretResponse(
@@ -126,13 +140,6 @@ async def update_project_secret(
     return res.SecretResponse(
         data=res.ProjectSecret(project_id=project_id, secret_key=secret_key)
     )
-
-
-# @router.put("/admin/project/config/{project_id}", tags=["admin"])
-# async def update_project_config(
-#     project_id: str = Path(..., description="The ID of the project to update"),
-# ) -> res.BaseResponse:
-#     pass
 
 
 @router.post("/users", tags=["user"])
