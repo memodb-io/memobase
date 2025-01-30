@@ -12,39 +12,39 @@ import (
 )
 
 type MemoBaseClient struct {
-	ProjectURL  string
-	APIKey      string
-	APIVersion  string
-	BaseURL     string
-	HTTPClient  *http.Client
+	ProjectURL string
+	APIKey     string
+	APIVersion string
+	BaseURL    string
+	HTTPClient *http.Client
 }
 
 func NewMemoBaseClient(projectURL string, apiKey string) (*MemoBaseClient, error) {
 	if apiKey == "" {
 		apiKey = os.Getenv("MEMOBASE_API_KEY")
 	}
-	
+
 	if apiKey == "" {
 		return nil, fmt.Errorf("api_key is required, pass it as argument or set MEMOBASE_API_KEY environment variable")
 	}
 
 	client := &MemoBaseClient{
-		ProjectURL:  projectURL,
-		APIKey:      apiKey,
-		APIVersion:  "api/v1",
+		ProjectURL: projectURL,
+		APIKey:     apiKey,
+		APIVersion: "api/v1",
 		HTTPClient: &http.Client{
 			Timeout: time.Second * 60,
 		},
 	}
-	
+
 	client.BaseURL = fmt.Sprintf("%s/%s", projectURL, client.APIVersion)
-	
+
 	// Add authorization header to all requests
 	client.HTTPClient.Transport = &authTransport{
 		apiKey: apiKey,
 		base:   http.DefaultTransport,
 	}
-	
+
 	return client, nil
 }
 
@@ -65,7 +65,7 @@ func (c *MemoBaseClient) Ping() bool {
 		return false
 	}
 	defer resp.Body.Close()
-	
+
 	_, err = network.UnpackResponse(resp)
 	return err == nil
 }
@@ -75,12 +75,12 @@ func (c *MemoBaseClient) AddUser(data map[string]interface{}, id string) (string
 		"data": data,
 		"id":   id,
 	}
-	
+
 	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
 		return "", err
 	}
-	
+
 	resp, err := c.HTTPClient.Post(
 		fmt.Sprintf("%s/users", c.BaseURL),
 		"application/json",
@@ -90,12 +90,12 @@ func (c *MemoBaseClient) AddUser(data map[string]interface{}, id string) (string
 		return "", err
 	}
 	defer resp.Body.Close()
-	
+
 	baseResp, err := network.UnpackResponse(resp)
 	if err != nil {
 		return "", err
 	}
-	
+
 	return baseResp.Data["id"].(string), nil
 }
 
@@ -103,12 +103,12 @@ func (c *MemoBaseClient) UpdateUser(userID string, data map[string]interface{}) 
 	reqBody := map[string]interface{}{
 		"data": data,
 	}
-	
+
 	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
 		return "", err
 	}
-	
+
 	req, err := http.NewRequest(
 		http.MethodPut,
 		fmt.Sprintf("%s/users/%s", c.BaseURL, userID),
@@ -118,18 +118,18 @@ func (c *MemoBaseClient) UpdateUser(userID string, data map[string]interface{}) 
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
-	
+
 	baseResp, err := network.UnpackResponse(resp)
 	if err != nil {
 		return "", err
 	}
-	
+
 	return baseResp.Data["id"].(string), nil
 }
 
@@ -140,19 +140,19 @@ func (c *MemoBaseClient) GetUser(userID string, noGet bool) (*User, error) {
 			return nil, err
 		}
 		defer resp.Body.Close()
-		
+
 		baseResp, err := network.UnpackResponse(resp)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		return &User{
 			UserID:        userID,
 			ProjectClient: c,
 			Fields:        baseResp.Data,
 		}, nil
 	}
-	
+
 	return &User{
 		UserID:        userID,
 		ProjectClient: c,
@@ -184,13 +184,13 @@ func (c *MemoBaseClient) DeleteUser(userID string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	_, err = network.UnpackResponse(resp)
 	return err
-} 
+}

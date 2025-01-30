@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	projectURL := "https://early-access.memobase.dev"
-	apiKey := "e8082148c1c65e5e84441ca3660c857af87556b9d2af62f34df92ad6d4f40f64"
+	projectURL := "YOUR_PROJECT_URL"
+	apiKey := "YOUR_API_KEY"
 	// Initialize the client
 	client, err := core.NewMemoBaseClient(
 		projectURL,
