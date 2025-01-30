@@ -95,6 +95,10 @@ class IdResponse(BaseResponse):
     data: Optional[IdData] = Field(None, description="Response containing a single ID")
 
 
+class SecretResponse(BaseResponse):
+    data: Optional[str] = Field(None, description="Response containing a secret key")
+
+
 class IdsResponse(BaseResponse):
     data: Optional[IdsData] = Field(
         None, description="Response containing multiple IDs"

@@ -16,11 +16,17 @@ from memobase_server.connectors import (
 )
 from memobase_server.models.response import BaseResponse, CODE
 from memobase_server.models.blob import BlobType
+from memobase_server.models.utils import Promise
 from memobase_server.models import response as res
 from memobase_server import controllers
 from memobase_server.env import LOG, TelemetryKeyName
 from memobase_server.telemetry.capture_key import capture_int_key
 from uvicorn.config import LOGGING_CONFIG
+from memobase_server.auth.token import (
+    generate_secret_key,
+    parse_project_id,
+    check_project_secret,
+)
 
 
 @asynccontextmanager
@@ -68,6 +74,17 @@ async def healthcheck() -> BaseResponse:
             detail="Redis not available",
         )
     return BaseResponse()
+
+
+@router.post("/admin/project/token/{project_id}", tags=["admin"])
+async def create_project_token(
+    project_id: str = Path(
+        ..., description="The ID of the project to create a token for"
+    ),
+) -> res.IdResponse:
+    """Create a new tenant"""
+    secret_key = generate_secret_key(project_id)
+    return res.SecretResponse(data=secret_key)
 
 
 @router.post("/users", tags=["user"])
@@ -195,7 +212,20 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/api/v1/healthcheck"):
             return await call_next(request)
         auth_token = request.headers.get("Authorization")
-        if not auth_token or not self.is_valid_token(auth_token):
+        if not auth_token or not auth_token.startswith("Bearer "):
+            return JSONResponse(
+                status_code=CODE.UNAUTHORIZED.value,
+                content=BaseResponse(
+                    errno=CODE.UNAUTHORIZED.value,
+                    errmsg=f"Unauthorized access to {request.url.path}. You have to provide a valid Bearer token.",
+                ).model_dump(),
+            )
+        auth_token = (auth_token.split(" ")[1]).strip()
+        is_root = self.is_valid_root(auth_token)
+        request.headers["is_memobase_root"] = is_root
+        is_project, project_id = self.parse_project_token(auth_token)
+        request.headers["memobase_project_id"] = project_id
+        if not is_root or not is_project:
             return JSONResponse(
                 status_code=CODE.UNAUTHORIZED.value,
                 content=BaseResponse(
@@ -207,14 +237,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         return response
 
-    def is_valid_token(self, token: str) -> bool:
-        if not token.startswith("Bearer "):
-            return False
-        token = token.split(" ")[1]
+    def is_valid_root(self, token: str) -> bool:
         access_token = os.getenv("ACCESS_TOKEN")
         if access_token is None:
             return True
-        return token == access_token
+        return token == access_token.strip()
+
+    async def parse_project_token(self, token: str) -> Promise[str]:
+        p = parse_project_id(token)
+        if not p.ok():
+            return Promise.reject(CODE.UNAUTHORIZED, "Invalid project id format")
+        project_id = p.data()
+        p = await check_project_secret(project_id, token)
+        if not p.ok():
+            return p
+        if not p.data():
+            return Promise.reject(CODE.UNAUTHORIZED, "Wrong secret key")
+        return Promise.resolve(project_id)
 
 
 app.include_router(router)
