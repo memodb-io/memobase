@@ -25,12 +25,9 @@ from memobase_server.env import LOG, TelemetryKeyName
 from memobase_server.telemetry.capture_key import capture_int_key
 from uvicorn.config import LOGGING_CONFIG
 from memobase_server.auth.token import (
-    generate_secret_key,
     parse_project_id,
     check_project_secret,
-    generate_project_id,
 )
-from memobase_server.auth.network import is_root_ip_allowed
 import memobase_server.auth.token as token
 
 
@@ -79,67 +76,6 @@ async def healthcheck() -> BaseResponse:
             detail="Redis not available",
         )
     return BaseResponse()
-
-
-@router.post("/admin/project", tags=["admin"])
-async def create_project(
-    configs: Optional[res.ProjectConfig] = Body(
-        None, description="The profile config to create"
-    )
-) -> res.SecretResponse:
-    """Create a new tenant"""
-    project_id = generate_project_id()
-    secret_key = generate_secret_key(project_id)
-    configs = configs or res.ProjectConfig()
-    profile_config = configs.profile_config
-    if profile_config and not utils.is_valid_profile_config(profile_config):
-        return Promise.reject(CODE.BAD_REQUEST, "Invalid profile config").to_response(
-            BaseResponse
-        )
-    p = await controllers.project.create_project(
-        project_id, secret_key, profile_config=profile_config
-    )
-    if not p.ok():
-        return p.to_response(res.SecretResponse)
-    return res.SecretResponse(
-        data=res.ProjectSecret(project_id=project_id, secret_key=secret_key)
-    )
-
-
-@router.delete("/admin/project/{project_id}", tags=["admin"])
-async def delete_project(
-    project_id: str = Path(..., description="The ID of the project to delete"),
-) -> res.BaseResponse:
-    p = await controllers.project.delete_project(project_id)
-    if not p.ok():
-        return p.to_response(res.BaseResponse)
-    p = await token.delete_project_secret(project_id)
-    if not p.ok():
-        return p.to_response(res.BaseResponse)
-    return res.BaseResponse()
-
-
-@router.get("/admin/project/secret/{project_id}", tags=["admin"])
-async def get_project_secret(
-    project_id: str = Path(..., description="The ID of the project to get")
-) -> res.SecretResponse:
-    p = await token.get_project_secret(project_id)
-    if not p.ok():
-        return p.to_response(res.SecretResponse)
-    return res.SecretResponse(
-        data=res.ProjectSecret(project_id=project_id, secret_key=p.data())
-    )
-
-
-@router.put("/admin/project/secret/{project_id}", tags=["admin"])
-async def update_project_secret(
-    project_id: str = Path(..., description="The ID of the project to update"),
-) -> res.SecretResponse:
-    secret_key = generate_secret_key(project_id)
-    await token.set_project_secret(project_id, secret_key)
-    return res.SecretResponse(
-        data=res.ProjectSecret(project_id=project_id, secret_key=secret_key)
-    )
 
 
 @router.post("/users", tags=["user"])
@@ -290,29 +226,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     ).model_dump(),
                 )
             request.state.memobase_project_id = p.data()
-        if "/admin" in request.url.path:
-            if not is_root:
-                return JSONResponse(
-                    status_code=CODE.UNAUTHORIZED.value,
-                    content=BaseResponse(
-                        errno=CODE.UNAUTHORIZED.value,
-                        errmsg=f"Unauthorized access to {request.url.path}. You must be root to access admin APIs",
-                    ).model_dump(),
-                )
-            real_ip = (
-                request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-                or request.headers.get("X-Real-IP", "").strip()
-                or request.client.host
-            )
-            p = is_root_ip_allowed(real_ip)
-            if not p.ok() or not p.data():
-                return JSONResponse(
-                    status_code=CODE.UNAUTHORIZED.value,
-                    content=BaseResponse(
-                        errno=CODE.UNAUTHORIZED.value,
-                        errmsg=f"Unauthorized IP to {request.url.path}. {p.msg()}",
-                    ).model_dump(),
-                )
         # await capture_int_key(TelemetryKeyName.has_request)
         response = await call_next(request)
         return response

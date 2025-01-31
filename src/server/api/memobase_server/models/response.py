@@ -79,15 +79,6 @@ class UserProfilesData(BaseModel):
     profiles: list[ProfileData] = Field(..., description="List of user profiles")
 
 
-class ProjectConfig(BaseModel):
-    profile_config: Optional[str] = Field(None, description="The profile config")
-
-
-class ProjectSecret(BaseModel):
-    project_id: str = Field(..., description="The project ID")
-    secret_key: str = Field(..., description="The secret key")
-
-
 class QueryData(BaseModel):
     claims: list[ClaimData] = Field(..., description="List of claim data")
     actions: list[ActionData] = Field(..., description="List of action data")
@@ -102,12 +93,6 @@ class BaseResponse(BaseModel):
 
 class IdResponse(BaseResponse):
     data: Optional[IdData] = Field(None, description="Response containing a single ID")
-
-
-class SecretResponse(BaseResponse):
-    data: Optional[ProjectSecret] = Field(
-        None, description="Response containing a secret key"
-    )
 
 
 class IdsResponse(BaseResponse):
