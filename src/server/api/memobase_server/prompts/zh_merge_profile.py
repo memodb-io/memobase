@@ -1,8 +1,9 @@
 from .utils import pack_merge_action_into_string
 from ..env import CONFIG
-from ..llms.doubao_cache import doubao_cache_create_context
 
-ADD_KWARGS = {}
+ADD_KWARGS = {
+    "prompt_id": "zh_merge_profile",
+}
 EXAMPLES = [
     {
         "input": """## 用户主题
@@ -117,13 +118,6 @@ OUTPUT:
 def get_kwargs() -> dict:
     return ADD_KWARGS
 
-
-if CONFIG.llm_style == "doubao_cache":
-    ctx_id = doubao_cache_create_context(
-        model=CONFIG.best_llm_model,
-        system_prompt=get_prompt(),
-    )
-    ADD_KWARGS["context_id"] = ctx_id
 
 if __name__ == "__main__":
     print(get_prompt())

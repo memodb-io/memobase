@@ -73,7 +73,7 @@ async def close_connection():
 
 def init_redis_pool():
     global REDIS_POOL
-    REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL)
+    REDIS_POOL = redis.ConnectionPool.from_url(REDIS_URL, decode_responses=True)
 
 
 def get_redis_client() -> redis.Redis:

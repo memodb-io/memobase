@@ -48,5 +48,5 @@ def get_doubao_client_instance() -> Ark:
 
 
 def exclude_special_kwargs(kwargs: dict):
-    context_id = kwargs.pop("context_id", None)
-    return {"context_id": context_id}, kwargs
+    prompt_id = kwargs.pop("prompt_id", None)
+    return {"prompt_id": prompt_id}, kwargs

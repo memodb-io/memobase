@@ -3,7 +3,9 @@ from .utils import pack_profiles_into_string
 from ..models.response import AIUserProfiles
 from ..env import CONFIG
 
-ADD_KWARGS = {}
+ADD_KWARGS = {
+    "prompt_id": "organize_profile",
+}
 EXAMPLES = [
     (
         """topic: 特殊事件 

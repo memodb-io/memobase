@@ -2,9 +2,10 @@ from . import user_profile_topics
 from .utils import pack_profiles_into_string
 from ..models.response import AIUserProfiles
 from ..env import CONFIG
-from ..llms.doubao_cache import doubao_cache_create_context
 
-ADD_KWARGS = {}
+ADD_KWARGS = {
+    "prompt_id": "extract_profile",
+}
 EXAMPLES = [
     (
         """
@@ -224,13 +225,6 @@ def get_prompt() -> str:
 def get_kwargs() -> dict:
     return ADD_KWARGS
 
-
-if CONFIG.llm_style == "doubao_cache":
-    ctx_id = doubao_cache_create_context(
-        model=CONFIG.best_llm_model,
-        system_prompt=get_prompt(),
-    )
-    ADD_KWARGS["context_id"] = ctx_id
 
 if __name__ == "__main__":
     print(get_prompt())
