@@ -21,6 +21,7 @@ from sqlalchemy.orm import (
     registry,
 )
 from sqlalchemy.sql import func
+from sqlalchemy import event
 from .blob import BlobType
 
 REG = registry()
@@ -208,3 +209,19 @@ class UserEvent(Base):
         Index("idx_user_events_user_id", "user_id"),
         Index("idx_user_events_user_id_id", "user_id", "id"),
     )
+
+
+# Add event listeners to prevent modifications
+@event.listens_for(Project, "before_insert")
+def prevent_insert(mapper, connection, target):
+    raise ValueError("The projects table is read-only. Inserts are not allowed.")
+
+
+@event.listens_for(Project, "before_update")
+def prevent_update(mapper, connection, target):
+    raise ValueError("The projects table is read-only. Updates are not allowed.")
+
+
+@event.listens_for(Project, "before_delete")
+def prevent_delete(mapper, connection, target):
+    raise ValueError("The projects table is read-only. Deletions are not allowed.")
