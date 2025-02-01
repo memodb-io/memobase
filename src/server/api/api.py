@@ -16,6 +16,7 @@ from memobase_server.connectors import (
     init_redis_pool,
 )
 from memobase_server import utils
+from memobase_server.models.database import DEFAULT_PROJECT_ID
 from memobase_server.models.response import BaseResponse, CODE
 from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
@@ -214,7 +215,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         auth_token = (auth_token.split(" ")[1]).strip()
         is_root = self.is_valid_root(auth_token)
         request.state.is_memobase_root = is_root
-        request.state.memobase_project_id = None
+        request.state.memobase_project_id = DEFAULT_PROJECT_ID
         if not is_root:
             p = await self.parse_project_token(auth_token)
             if not p.ok():
