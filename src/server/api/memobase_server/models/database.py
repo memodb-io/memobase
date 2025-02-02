@@ -138,7 +138,11 @@ class GeneralBlob(Base):
     blob_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     related_buffers: Mapped[list["BufferZone"]] = relationship(
-        "BufferZone", back_populates="blob", cascade="all, delete-orphan", init=False
+        "BufferZone",
+        back_populates="blob",
+        cascade="all, delete-orphan",
+        init=False,
+        overlaps="user,related_buffers",
     )
 
     # Default columns
@@ -156,13 +160,13 @@ class GeneralBlob(Base):
         foreign_keys=[user_id, project_id],
     )
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
-        Index("idx_general_blobs_user_id", "user_id", "project_id"),
+        PrimaryKeyConstraint("id", "project_id"),
+        Index("idx_general_blobs_user_id_project_id", "user_id", "project_id"),
         Index("idx_general_blobs_user_id_id", "user_id", "project_id", "id"),
         Index(
             "idx_general_blobs_user_id_blob_type", "user_id", "project_id", "blob_type"
         ),
-        # Single composite foreign key constraint
+        Index("idx_general_blobs_id_project_id", "id", "project_id", unique=True),
         ForeignKeyConstraint(
             ["user_id", "project_id"],
             ["users.id", "users.project_id"],
@@ -195,11 +199,7 @@ class BufferZone(Base):
 
     blob_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("general_blobs.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-    )
-    blob: Mapped[GeneralBlob] = relationship(
-        "GeneralBlob", back_populates="related_buffers", init=False
     )
 
     project_id: Mapped[str] = mapped_column(
@@ -211,15 +211,30 @@ class BufferZone(Base):
         back_populates="related_buffers",
         init=False,
         foreign_keys=[user_id, project_id],
+        overlaps="blob,related_buffers",
+    )
+
+    blob: Mapped[GeneralBlob] = relationship(
+        "GeneralBlob",
+        back_populates="related_buffers",
+        init=False,
+        foreign_keys=[blob_id, project_id],
+        overlaps="user,related_buffers",
     )
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
+        PrimaryKeyConstraint("id", "project_id"),
         Index(
             "idx_buffer_zones_user_id_blob_type", "user_id", "project_id", "blob_type"
         ),
         ForeignKeyConstraint(
             ["user_id", "project_id"],
             ["users.id", "users.project_id"],
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ["blob_id", "project_id"],
+            ["general_blobs.id", "general_blobs.project_id"],
             ondelete="CASCADE",
             onupdate="CASCADE",
         ),
@@ -261,9 +276,9 @@ class UserProfile(Base):
     )
 
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
-        Index("idx_user_profiles_user_id", "user_id", "project_id"),
-        Index("idx_user_profiles_user_id_id", "user_id", "project_id", "id"),
+        PrimaryKeyConstraint("id", "project_id"),
+        Index("idx_user_profiles_user_id_project_id", "user_id", "project_id"),
+        Index("idx_user_profiles_user_id_id_project_id", "user_id", "project_id", "id"),
         ForeignKeyConstraint(
             ["user_id", "project_id"],
             ["users.id", "users.project_id"],
@@ -300,9 +315,9 @@ class UserEvent(Base):
     )
 
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
-        Index("idx_user_events_user_id", "user_id", "project_id"),
-        Index("idx_user_events_user_id_id", "user_id", "project_id", "id"),
+        PrimaryKeyConstraint("id", "project_id"),
+        Index("idx_user_events_user_id_project_id", "user_id", "project_id"),
+        Index("idx_user_events_user_id_id_project_id", "user_id", "project_id", "id"),
         ForeignKeyConstraint(
             ["user_id", "project_id"],
             ["users.id", "users.project_id"],

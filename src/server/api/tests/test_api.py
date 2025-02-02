@@ -173,16 +173,17 @@ async def test_api_user_profile(client, db_env):
     assert d["errno"] == 0
     u_id = d["data"]["id"]
 
-    _profiles = ["user likes to play basketball", "user is a junior school student"]
+    _profiles = ["user is a junior school student", "user likes to play basketball"]
     _attributes = [
-        {"topic": "interest", "sub_topic": "sports"},
         {"topic": "education", "sub_topic": "level"},
+        {"topic": "interest", "sub_topic": "sports"},
     ]
     p = await controllers.profile.add_user_profiles(u_id, _profiles, _attributes)
     assert p.ok()
 
     response = client.get(f"{PREFIX}/users/profile/{u_id}")
     d = response.json()
+    d["data"]["profiles"] = sorted(d["data"]["profiles"], key=lambda x: x["content"])
     assert response.status_code == 200
     assert d["errno"] == 0
     assert len(d["data"]["profiles"]) == 2
