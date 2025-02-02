@@ -68,7 +68,7 @@ Memobase can provide you structured user profiles of users, check out the [resul
 
 - **🎯 Memory for User, not Agent**: Define and control exactly what user information your AI captures. 
 - **🔄 Scalable Profiling**: User profiles evolve naturally through conversation with controllable memory size. 
-- **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with API, Python/Node SDK.
+- **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with API, Python/Node/Go SDK.
 - **⚡️ Batch Processing**: Industry-leading speeds via non-embedding system and session buffer. Fast & Cheap.
 - **🚀 Production Ready**: Battle-tested by our partners in production.
 
