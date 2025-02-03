@@ -10,10 +10,13 @@
       <img src="https://img.shields.io/pypi/v/memobase.svg">
     </a>
     <a href="https://www.npmjs.com/package/@memobase/memobase">
-      <img src="https://img.shields.io/npm/v/@memobase/memobase.svg?logo=npm&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D">
+      <img src="https://img.shields.io/npm/v/@memobase/memobase.svg?logo=npm&logoColor=fff&style=flat&labelColor=2C2C2C&color=28CF8D">
     </a>
     <a href="https://jsr.io/@memobase/memobase">
-      <img src="https://img.shields.io/jsr/v/@memobase/memobase.svg?logo=jsr&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D" />
+      <img src="https://img.shields.io/jsr/v/@memobase/memobase.svg?logo=jsr&logoColor=fff&style=flat&labelColor=2C2C2C&color=28CF8D" />
+    </a>
+    <a href="https://pkg.go.dev/github.com/memodb-io/memobase/src/client/memobase-go">
+      <img src="https://img.shields.io/badge/go-reference-blue?logo=go&logoColor=fff&style=flat&labelColor=2C2C2C&color=28CF8D" />
     </a>
     <a href="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml">
       <img src="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml/badge.svg">
