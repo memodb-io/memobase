@@ -24,11 +24,11 @@ def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
 
 
 async def extract_topics(
-    user_id: str, blob_ids: list[str], blobs: list[Blob]
+    user_id: str, project_id: str, blob_ids: list[str], blobs: list[Blob]
 ) -> Promise[dict]:
     assert len(blob_ids) == len(blobs), "Length of blob_ids and blobs must be equal"
     assert all(b.type == BlobType.chat for b in blobs), "All blobs must be chat blobs"
-    p = await get_user_profiles(user_id)
+    p = await get_user_profiles(user_id, project_id)
     if not p.ok():
         return p
     profiles = p.data().profiles

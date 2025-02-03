@@ -4,6 +4,7 @@ from unittest.mock import patch, Mock, AsyncMock
 from api import app
 from fastapi.testclient import TestClient
 from memobase_server import controllers
+from memobase_server.models.database import DEFAULT_PROJECT_ID
 from memobase_server.models.blob import BlobType
 
 PREFIX = "/api/v1"
@@ -178,7 +179,9 @@ async def test_api_user_profile(client, db_env):
         {"topic": "education", "sub_topic": "level"},
         {"topic": "interest", "sub_topic": "sports"},
     ]
-    p = await controllers.profile.add_user_profiles(u_id, _profiles, _attributes)
+    p = await controllers.profile.add_user_profiles(
+        u_id, DEFAULT_PROJECT_ID, _profiles, _attributes
+    )
     assert p.ok()
 
     response = client.get(f"{PREFIX}/users/profile/{u_id}")
@@ -216,7 +219,9 @@ async def test_api_user_flush_buffer(client, db_env, mock_llm_complete):
     assert d["errno"] == 0
     u_id = d["data"]["id"]
 
-    p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
+    p = await controllers.buffer.get_buffer_capacity(
+        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+    )
     assert p.ok() and p.data() == 0
 
     response = client.post(
@@ -234,11 +239,15 @@ async def test_api_user_flush_buffer(client, db_env, mock_llm_complete):
     d = response.json()
     assert response.status_code == 200
     assert d["errno"] == 0
-    p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
+    p = await controllers.buffer.get_buffer_capacity(
+        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+    )
     assert p.ok() and p.data() == 1
 
     p = client.post(f"{PREFIX}/users/buffer/{u_id}/chat")
-    p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
+    p = await controllers.buffer.get_buffer_capacity(
+        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+    )
     assert p.ok() and p.data() == 0
 
     response = client.get(f"{PREFIX}/users/profile/{u_id}")

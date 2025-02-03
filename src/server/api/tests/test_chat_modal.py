@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from memobase_server import controllers
 from memobase_server.models import response as res
+from memobase_server.models.database import DEFAULT_PROJECT_ID
 from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
 
@@ -85,7 +86,7 @@ def mock_organize_llm_complete():
 
 @pytest.mark.asyncio
 async def test_chat_buffer_modal(db_env, mock_extract_llm_complete):
-    p = await controllers.user.create_user(res.UserData())
+    p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
     u_id = p.data().id
 
@@ -119,37 +120,49 @@ async def test_chat_buffer_modal(db_env, mock_extract_llm_complete):
     )
     p = await controllers.blob.insert_blob(
         u_id,
+        DEFAULT_PROJECT_ID,
         blob1,
     )
     assert p.ok()
     b_id = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(u_id, b_id, blob1.to_blob())
+    await controllers.buffer.insert_blob_to_buffer(
+        u_id, DEFAULT_PROJECT_ID, b_id, blob1.to_blob()
+    )
     p = await controllers.blob.insert_blob(
         u_id,
+        DEFAULT_PROJECT_ID,
         blob2,
     )
     assert p.ok()
     b_id2 = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(u_id, b_id2, blob2.to_blob())
+    await controllers.buffer.insert_blob_to_buffer(
+        u_id, DEFAULT_PROJECT_ID, b_id2, blob2.to_blob()
+    )
 
-    p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
+    p = await controllers.buffer.get_buffer_capacity(
+        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+    )
     assert p.ok() and p.data() == 2
 
-    await controllers.buffer.flush_buffer(u_id, BlobType.chat)
+    await controllers.buffer.flush_buffer(u_id, DEFAULT_PROJECT_ID, BlobType.chat)
 
-    p = await controllers.profile.get_user_profiles(u_id)
+    p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
     assert len(p.data().profiles) == 4
     print(p.data())
 
-    p = await controllers.buffer.get_buffer_capacity(u_id, BlobType.chat)
+    p = await controllers.buffer.get_buffer_capacity(
+        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+    )
     assert p.ok() and p.data() == 0
 
     # persistent_chat_blobs default to False
-    p = await controllers.user.get_user_all_blobs(u_id, BlobType.chat)
+    p = await controllers.user.get_user_all_blobs(
+        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+    )
     assert p.ok() and len(p.data().ids) == 0
 
-    p = await controllers.user.delete_user(u_id)
+    p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
 
     mock_extract_llm_complete.assert_awaited_once()
@@ -159,7 +172,7 @@ async def test_chat_buffer_modal(db_env, mock_extract_llm_complete):
 async def test_chat_merge_modal(
     db_env, mock_extract_llm_complete, mock_merge_llm_complete
 ):
-    p = await controllers.user.create_user(res.UserData())
+    p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
     u_id = p.data().id
 
@@ -189,24 +202,32 @@ async def test_chat_merge_modal(
     )
     p = await controllers.blob.insert_blob(
         u_id,
+        DEFAULT_PROJECT_ID,
         blob1,
     )
     assert p.ok()
     b_id = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(u_id, b_id, blob1.to_blob())
+    await controllers.buffer.insert_blob_to_buffer(
+        u_id, DEFAULT_PROJECT_ID, b_id, blob1.to_blob()
+    )
     p = await controllers.blob.insert_blob(
         u_id,
+        DEFAULT_PROJECT_ID,
         blob2,
     )
     assert p.ok()
     b_id2 = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(u_id, b_id2, blob2.to_blob())
+    await controllers.buffer.insert_blob_to_buffer(
+        u_id, DEFAULT_PROJECT_ID, b_id2, blob2.to_blob()
+    )
 
-    p = await controllers.profile.add_user_profiles(u_id, PROFILES, PROFILE_ATTRS)
+    p = await controllers.profile.add_user_profiles(
+        u_id, DEFAULT_PROJECT_ID, PROFILES, PROFILE_ATTRS
+    )
     assert p.ok()
-    await controllers.buffer.flush_buffer(u_id, BlobType.chat)
+    await controllers.buffer.flush_buffer(u_id, DEFAULT_PROJECT_ID, BlobType.chat)
 
-    p = await controllers.profile.get_user_profiles(u_id)
+    p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
     assert p.ok() and len(p.data().profiles) == len(PROFILES) + 2
     profiles = p.data().profiles
     profiles = sorted(profiles[-2:], key=lambda x: x.content)
@@ -215,7 +236,7 @@ async def test_chat_merge_modal(
     assert profiles[-2].attributes == {"topic": "education", "sub_topic": "level"}
     assert profiles[-2].content == "High School"
 
-    p = await controllers.user.delete_user(u_id)
+    p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
 
     assert mock_extract_llm_complete.await_count == 1
@@ -226,7 +247,7 @@ async def test_chat_merge_modal(
 async def test_chat_organize_modal(
     db_env, mock_extract_llm_complete, mock_organize_llm_complete
 ):
-    p = await controllers.user.create_user(res.UserData())
+    p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
     u_id = p.data().id
 
@@ -243,25 +264,25 @@ async def test_chat_organize_modal(
 
     p = await controllers.blob.insert_blob(
         u_id,
+        DEFAULT_PROJECT_ID,
         blob1,
     )
     assert p.ok()
     b_id = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(u_id, b_id, blob1.to_blob())
+    await controllers.buffer.insert_blob_to_buffer(
+        u_id, DEFAULT_PROJECT_ID, b_id, blob1.to_blob()
+    )
     p = await controllers.profile.add_user_profiles(
-        u_id, OVER_MAX_PROFILEs, OVER_MAX_PROFILE_ATTRS
+        u_id, DEFAULT_PROJECT_ID, OVER_MAX_PROFILEs, OVER_MAX_PROFILE_ATTRS
     )
     assert p.ok()
 
-    await controllers.buffer.flush_buffer(u_id, BlobType.chat)
+    await controllers.buffer.flush_buffer(u_id, DEFAULT_PROJECT_ID, BlobType.chat)
 
-    p = await controllers.profile.get_user_profiles(u_id)
+    p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
-    from rich import print as pprint
 
-    pprint(p.data())
-
-    p = await controllers.user.delete_user(u_id)
+    p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
     assert mock_extract_llm_complete.await_count == 1
     assert mock_organize_llm_complete.await_count == 1

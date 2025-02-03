@@ -12,10 +12,10 @@ from .types import MergeAddResult
 
 
 async def process_blobs(
-    user_id: str, blob_ids: list[str], blobs: list[Blob]
+    user_id: str, project_id: str, blob_ids: list[str], blobs: list[Blob]
 ) -> Promise[None]:
     # 1. Extract patch profiles
-    p = await extract_topics(user_id, blob_ids, blobs)
+    p = await extract_topics(user_id, project_id, blob_ids, blobs)
     if not p.ok():
         return p
     extracted_data = p.data()
@@ -45,9 +45,9 @@ async def process_blobs(
 
     # DB commit
     ps = await asyncio.gather(
-        exe_user_profile_add(user_id, profile_options),
-        exe_user_profile_update(user_id, profile_options),
-        exe_user_profile_delete(user_id, profile_options),
+        exe_user_profile_add(user_id, project_id, profile_options),
+        exe_user_profile_update(user_id, project_id, profile_options),
+        exe_user_profile_delete(user_id, project_id, profile_options),
     )
     if not all([p.ok() for p in ps]):
         return Promise.reject("Failed to add or update profiles")
@@ -55,13 +55,14 @@ async def process_blobs(
 
 
 async def exe_user_profile_add(
-    user_id: str, profile_options: MergeAddResult
+    user_id: str, project_id: str, profile_options: MergeAddResult
 ) -> Promise[None]:
     if not len(profile_options["add"]):
         return Promise.resolve(None)
     LOG.info(f"Adding {len(profile_options['add'])} profiles for user {user_id}")
     task_add = await add_user_profiles(
         user_id,
+        project_id,
         [ap["content"] for ap in profile_options["add"]],
         [ap["attributes"] for ap in profile_options["add"]],
     )
@@ -69,13 +70,14 @@ async def exe_user_profile_add(
 
 
 async def exe_user_profile_update(
-    user_id: str, profile_options: MergeAddResult
+    user_id: str, project_id: str, profile_options: MergeAddResult
 ) -> Promise[None]:
     if not len(profile_options["update"]):
         return Promise.resolve(None)
     LOG.info(f"Updating {len(profile_options['update'])} profiles for user {user_id}")
     task_update = await update_user_profiles(
         user_id,
+        project_id,
         [up["profile_id"] for up in profile_options["update"]],
         [up["content"] for up in profile_options["update"]],
         [up["attributes"] for up in profile_options["update"]],
@@ -84,10 +86,12 @@ async def exe_user_profile_update(
 
 
 async def exe_user_profile_delete(
-    user_id: str, profile_options: MergeAddResult
+    user_id: str, project_id: str, profile_options: MergeAddResult
 ) -> Promise[None]:
     if not len(profile_options["delete"]):
         return Promise.resolve(None)
     LOG.info(f"Deleting {len(profile_options['delete'])} profiles for user {user_id}")
-    task_delete = await delete_user_profiles(user_id, profile_options["delete"])
+    task_delete = await delete_user_profiles(
+        user_id, project_id, profile_options["delete"]
+    )
     return task_delete

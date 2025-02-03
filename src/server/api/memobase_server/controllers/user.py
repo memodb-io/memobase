@@ -5,9 +5,9 @@ from ..connectors import Session
 from ..models.blob import BlobType
 
 
-async def create_user(data: UserData) -> Promise[IdData]:
+async def create_user(data: UserData, project_id: str) -> Promise[IdData]:
     with Session() as session:
-        db_user = User(additional_fields=data.data)
+        db_user = User(additional_fields=data.data, project_id=project_id)
         if data.id is not None:
             db_user.id = str(data.id)
         session.add(db_user)
@@ -15,9 +15,13 @@ async def create_user(data: UserData) -> Promise[IdData]:
         return Promise.resolve(IdData(id=db_user.id))
 
 
-async def get_user(user_id: str) -> Promise[UserData]:
+async def get_user(user_id: str, project_id: str) -> Promise[UserData]:
     with Session() as session:
-        db_user = session.query(User).filter_by(id=user_id).one_or_none()
+        db_user = (
+            session.query(User)
+            .filter_by(id=user_id, project_id=project_id)
+            .one_or_none()
+        )
         if db_user is None:
             return Promise.reject(CODE.NOT_FOUND, f"User {user_id} not found")
         return Promise.resolve(
@@ -29,9 +33,13 @@ async def get_user(user_id: str) -> Promise[UserData]:
         )
 
 
-async def update_user(user_id: str, data: dict) -> Promise[IdData]:
+async def update_user(user_id: str, project_id: str, data: dict) -> Promise[IdData]:
     with Session() as session:
-        db_user = session.query(User).filter_by(id=user_id).one_or_none()
+        db_user = (
+            session.query(User)
+            .filter_by(id=user_id, project_id=project_id)
+            .one_or_none()
+        )
         if db_user is None:
             return Promise.reject(CODE.NOT_FOUND, f"User {user_id} not found")
         db_user.additional_fields = data
@@ -39,9 +47,13 @@ async def update_user(user_id: str, data: dict) -> Promise[IdData]:
         return Promise.resolve(IdData(id=db_user.id))
 
 
-async def delete_user(user_id: str) -> Promise[None]:
+async def delete_user(user_id: str, project_id: str) -> Promise[None]:
     with Session() as session:
-        db_user = session.query(User).filter_by(id=user_id).one_or_none()
+        db_user = (
+            session.query(User)
+            .filter_by(id=user_id, project_id=project_id)
+            .one_or_none()
+        )
         if db_user is None:
             return Promise.reject(CODE.NOT_FOUND, f"User {user_id} not found")
         session.delete(db_user)
@@ -50,12 +62,16 @@ async def delete_user(user_id: str) -> Promise[None]:
 
 
 async def get_user_all_blobs(
-    user_id: str, blob_type: BlobType, page: int = 0, page_size: int = 10
+    user_id: str,
+    project_id: str,
+    blob_type: BlobType,
+    page: int = 0,
+    page_size: int = 10,
 ) -> Promise[IdsData]:
     with Session() as session:
         user_blobs = (
             session.query(GeneralBlob.id)
-            .filter_by(user_id=user_id, blob_type=str(blob_type))
+            .filter_by(user_id=user_id, blob_type=str(blob_type), project_id=project_id)
             .order_by(GeneralBlob.created_at)
             .offset(page * page_size)
             .limit(page_size)
