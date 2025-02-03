@@ -3,6 +3,9 @@ from .utils import pack_profiles_into_string
 from ..models.response import AIUserProfiles
 from ..env import CONFIG
 
+ADD_KWARGS = {
+    "prompt_id": "organize_profile",
+}
 EXAMPLES = [
     (
         """topic: 特殊事件 
@@ -83,6 +86,10 @@ def get_prompt(max_subtopics: int, suggest_subtopics: str) -> str:
         tab=CONFIG.llm_tab_separator,
         user_profile_topics=suggest_subtopics,
     )
+
+
+def get_kwargs() -> dict:
+    return ADD_KWARGS
 
 
 if __name__ == "__main__":

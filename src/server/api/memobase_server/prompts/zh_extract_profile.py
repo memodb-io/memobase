@@ -1,7 +1,11 @@
 from . import zh_user_profile_topics
 from ..models.response import AIUserProfiles
-from ..env import CONFIG
+from ..env import CONFIG, LOG
 from .utils import pack_profiles_into_string
+
+ADD_KWARGS = {
+    "prompt_id": "zh_extract_profile",
+}
 
 EXAMPLES = [
     (
@@ -9,6 +13,23 @@ EXAMPLES = [
 [2025/01/01] user: 你好，今天过得怎么样？
 """,
         AIUserProfiles(**{"facts": []}),
+    ),
+    (
+        """
+[2025/01/01] user: 小姨你好呀， 我现在在北京
+[2025/01/01] assistant: 哦，你最近来北京了，是吗？
+""",
+        AIUserProfiles(
+            **{
+                "facts": [
+                    {
+                        "topic": "基本信息",
+                        "sub_topic": "居住地",
+                        "memo": "北京",
+                    }
+                ]
+            }
+        ),
     ),
     (
         """
@@ -148,9 +169,13 @@ FACT_RETRIEVAL_PROMPT = """{system_prompt}
 
 ## 格式
 ### 输入
+#### 已有的主题
+这个章节中会放用户已经与助手分享的主题和子主题
+如果对话中再次提到相同的主题/子主题，请考虑使用相同的主题/子主题。
+#### 对话
 输入的格式是用户和另一方的对话:
 - [TIME] NAME: MESSAGE
-其中NAME有时候是user，有时候是assistant或者别的名字。
+其中NAME有时候是user，有时候是assistant。
 MESSGAE则是对话内容. 理解对话内容并且记住事情发生的时间
 
 ### 输出
@@ -181,12 +206,8 @@ MESSGAE则是对话内容. 理解对话内容并且记住事情发生的时间
 - 你应该推断对话中隐含的内容，而不仅仅是明确陈述的内容。
 - 相同的内容不需要在不同的 topic 和 sub_topic 下重复，选择最相关的主题和子主题即可。
 - 相同的 topic 和 sub_topic 只能出现一次。
+忽视用户(user)对其他方(assistant)的称呼：比如用户称呼其他方(assistant)为小姨，因为对其他方的称呼不一定代表真实的关系，不需要推断用户有一个小姨， 只需要记录用户称呼其他方为小姨即可
 
-
-## 用户之前的主题
-以下是用户已经与助手分享的主题和子主题：
-{before_topics}
-如果对话中再次提到相同的主题/子主题，请考虑使用相同的主题/子主题。
 
 以下是用户和助手之间的对话。你需要从对话中提取/推断相关的事实和偏好，并按上述格式返回。
 请注意，你要准确地提取和推断用户相关(user)的信息，而非其他方(assistant)的。
@@ -195,19 +216,30 @@ MESSGAE则是对话内容. 理解对话内容并且记住事情发生的时间
 """
 
 
-def get_prompt(already_topics: str) -> str:
+def pack_input(already_input, chat_strs):
+    return f"""#### 已有的主题
+{already_input}
+#### 对话
+{chat_strs}
+"""
+
+
+def get_prompt() -> str:
     sys_prompt = CONFIG.system_prompt or DEFAULT_JOB
     examples = "\n\n".join(
         [f"Input: {p[0]}Output:\n{pack_profiles_into_string(p[1])}" for p in EXAMPLES]
     )
     return FACT_RETRIEVAL_PROMPT.format(
         system_prompt=sys_prompt,
-        before_topics=already_topics,
         examples=examples,
         tab=CONFIG.llm_tab_separator,
         user_profile_topics=zh_user_profile_topics.get_prompt(),
     )
 
 
+def get_kwargs() -> dict:
+    return ADD_KWARGS
+
+
 if __name__ == "__main__":
-    print(get_prompt(already_topics=""))
+    print(get_prompt())

@@ -22,7 +22,13 @@
       <img src="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml/badge.svg">
     </a>
   </p>
+  <p>
+    <a href="https://discord.gg/YdgwU4d9NB">
+      <img src="https://dcbadge.limes.pink/api/server/YdgwU4d9NB?style=flat">
+    </a>
+  </p>
 </div>
+
 
 
 
@@ -252,6 +258,14 @@ def pick_an_ad(profiles):
 ## Documentation
 
 For detailed usage instructions, visit the [documentation](https://docs.memobase.io/). 
+
+
+
+## Stay Updated
+
+Star Memobase on Github to support and receive instant notifications!
+
+![click_star](./assets/images/click.gif)
 
 
 

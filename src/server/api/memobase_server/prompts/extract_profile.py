@@ -3,6 +3,9 @@ from .utils import pack_profiles_into_string
 from ..models.response import AIUserProfiles
 from ..env import CONFIG
 
+ADD_KWARGS = {
+    "prompt_id": "extract_profile",
+}
 EXAMPLES = [
     (
         """
@@ -155,6 +158,10 @@ You can create your own topics/sub_topics if you find it necessary, Anything val
 ## Formatting
 
 ### Input
+#### User Before Topics
+You will be given the topics and subtopics that the user has already shared with the assistant.
+Consider use the same topic/subtopic if it's mentioned in the conversation again.
+#### Chats
 You will receive a conversation between the user and the assistant. The format of the conversation is:
 - [TIME] NAME: MESSAGE
 where NAME is sometimes "user", sometimes "assistant" or other names.
@@ -188,35 +195,36 @@ Remember the following:
 - You should infer what's implied from the conversation, not just what's explicitly stated.
 - Place all content related to this topic/sub_topic in one element, no repeat.
 
-
-## User Before topics
-Below are the topics and subtopics that the user has already shared with the assistant:
-{before_topics}
-consider use the same topic/subtopic if it's mentioned in the conversation again.
-
 Following is a conversation between the user and the assistant. You have to extract/infer the relevant facts and preferences from the conversation and return them in the list format as shown above.
 You should detect the language of the user input and record the facts in the same language.
 If you do not find anything relevant facts, user memories, and preferences in the below conversation, just return "NONE" or "NO FACTS".
 """
 
 
-def get_prompt(already_topics: str) -> str:
+def pack_input(already_input, chat_strs):
+    return f"""#### User Before topics
+{already_input}
+#### Chats
+{chat_strs}
+"""
+
+
+def get_prompt() -> str:
     sys_prompt = CONFIG.system_prompt or DEFAULT_JOB
     examples = "\n\n".join(
         [f"Input: {p[0]}Output:\n{pack_profiles_into_string(p[1])}" for p in EXAMPLES]
     )
     return FACT_RETRIEVAL_PROMPT.format(
         system_prompt=sys_prompt,
-        before_topics=already_topics,
         examples=examples,
         tab=CONFIG.llm_tab_separator,
         user_profile_topics=user_profile_topics.get_prompt(),
     )
 
 
+def get_kwargs() -> dict:
+    return ADD_KWARGS
+
+
 if __name__ == "__main__":
-    print(
-        get_prompt(
-            "basic_info: Name: John\nwork: Title: Software engineer\nwork: Company: Memobase"
-        )
-    )
+    print(get_prompt())

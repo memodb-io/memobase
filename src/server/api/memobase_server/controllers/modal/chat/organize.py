@@ -76,6 +76,8 @@ async def organize_profiles_by_topic(
         PROMPTS[CONFIG.language]["organize"].get_prompt(
             CONFIG.max_profile_subtopics // 2 + 1, suggest_subtopics
         ),
+        temperature=0.2,  # precise
+        **PROMPTS[CONFIG.language]["organize"].get_kwargs(),
     )
     if not p.ok():
         return p

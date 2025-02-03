@@ -1,6 +1,9 @@
 from .utils import pack_merge_action_into_string
 from ..env import CONFIG
 
+ADD_KWARGS = {
+    "prompt_id": "zh_merge_profile",
+}
 EXAMPLES = [
     {
         "input": """## 用户主题
@@ -110,6 +113,10 @@ OUTPUT:
         example_keep=example_keep,
         tab=CONFIG.llm_tab_separator,
     )
+
+
+def get_kwargs() -> dict:
+    return ADD_KWARGS
 
 
 if __name__ == "__main__":

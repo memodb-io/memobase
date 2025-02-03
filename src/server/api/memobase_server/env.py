@@ -9,7 +9,7 @@ import logging
 import tiktoken
 import dataclasses
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Literal
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -34,10 +34,11 @@ class Config:
     max_profile_subtopics: int = 15
     max_pre_profile_token_size: int = 512
     llm_tab_separator: str = "::"
+    cache_user_profiles_ttl: int = 60 * 20  # 20 minutes
 
     # LLM
-    language: str = "en"
-    llm_style: str = "openai"
+    language: Literal["en", "zh"] = "en"
+    llm_style: Literal["openai", "doubao_cache"] = "openai"
     llm_base_url: str = None
     llm_api_key: str = None
     best_llm_model: str = "gpt-4o-mini"

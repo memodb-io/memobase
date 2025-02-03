@@ -10,3 +10,4 @@ openai
 tenacity
 numpy
 rich
+volcengine-python-sdk[ark]

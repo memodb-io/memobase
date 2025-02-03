@@ -25,7 +25,7 @@ def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
 
 async def extract_topics(
     user_id: str, blob_ids: list[str], blobs: list[Blob]
-) -> Promise[dict | None]:
+) -> Promise[dict]:
     assert len(blob_ids) == len(blobs), "Length of blob_ids and blobs must be equal"
     assert all(b.type == BlobType.chat for b in blobs), "All blobs must be chat blobs"
     p = await get_user_profiles(user_id)
@@ -51,11 +51,12 @@ async def extract_topics(
 
     blob_strs = tag_chat_blobs_in_order_xml(blobs)
     p = await llm_complete(
-        blob_strs,
-        system_prompt=PROMPTS[CONFIG.language]["extract"].get_prompt(
-            already_topics=already_topics_prompt
+        PROMPTS[CONFIG.language]["extract"].pack_input(
+            already_topics_prompt, blob_strs
         ),
+        system_prompt=PROMPTS[CONFIG.language]["extract"].get_prompt(),
         temperature=0.2,  # precise
+        **PROMPTS[CONFIG.language]["extract"].get_kwargs(),
     )
     if not p.ok():
         return p
@@ -64,7 +65,13 @@ async def extract_topics(
     new_facts: list[FactResponse] = parsed_facts.model_dump()["facts"]
     if not len(new_facts):
         LOG.info(f"No new facts extracted {user_id}")
-        return Promise.resolve(None)
+        return Promise.resolve(
+            {
+                "fact_contents": [],
+                "fact_attributes": [],
+                "profiles": profiles,
+            }
+        )
 
     for nf in new_facts:
         nf["topic"] = attribute_unify(nf["topic"])

@@ -1,10 +1,11 @@
-from .utils import get_openai_retry_decorator, get_openai_async_client_instance
+from .utils import exclude_special_kwargs, get_openai_async_client_instance
 from ..env import CONFIG
 
 
 async def openai_complete(
     model, prompt, system_prompt=None, history_messages=[], **kwargs
 ) -> str:
+    _, kwargs = exclude_special_kwargs(kwargs)
     openai_async_client = get_openai_async_client_instance()
     messages = []
     if system_prompt:
@@ -13,6 +14,6 @@ async def openai_complete(
     messages.append({"role": "user", "content": prompt})
 
     response = await openai_async_client.chat.completions.create(
-        model=model, messages=messages, **kwargs
+        model=model, messages=messages, timeout=120, **kwargs
     )
     return response.choices[0].message.content

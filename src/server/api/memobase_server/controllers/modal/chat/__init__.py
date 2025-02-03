@@ -16,7 +16,7 @@ async def process_blobs(
 ) -> Promise[None]:
     # 1. Extract patch profiles
     p = await extract_topics(user_id, blob_ids, blobs)
-    if not p.ok() or p.data() is None:
+    if not p.ok():
         return p
     extracted_data = p.data()
 
@@ -26,7 +26,7 @@ async def process_blobs(
         fact_attributes=extracted_data["fact_attributes"],
         profiles=extracted_data["profiles"],
     )
-    if not p.ok() or p.data() is None:
+    if not p.ok():
         return p
     profile_options = p.data()
 

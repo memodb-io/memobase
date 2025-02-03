@@ -41,12 +41,20 @@ def get_message_timestamp(
     )
 
 
+def get_message_name(message: OpenAICompatibleMessage):
+    if message.alias:
+        # if message.role == "assistant":
+        #     return f"{message.alias}"
+        return f"{message.alias}({message.role})"
+    return message.role
+
+
 def get_blob_str(blob: Blob):
     match blob.type:
         case BlobType.chat:
             return "\n".join(
                 [
-                    f"[{get_message_timestamp(m, blob.created_at)}] {m.alias or m.role}: {m.content}"
+                    f"[{get_message_timestamp(m, blob.created_at)}] {get_message_name(m)}: {m.content}"
                     for m in cast(ChatBlob, blob).messages
                 ]
             )

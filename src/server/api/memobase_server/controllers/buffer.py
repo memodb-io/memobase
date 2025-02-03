@@ -105,7 +105,6 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
     # FIXME: parallel calling will cause duplicated flush
     if blob_type not in BLOBS_PROCESS:
         return Promise.reject(CODE.BAD_REQUEST, f"Blob type {blob_type} not supported")
-
     with Session() as session:
         blob_buffers_trans = session.query(BufferZone).filter_by(
             user_id=user_id, blob_type=str(blob_type)
@@ -118,13 +117,13 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
             return Promise.resolve(None)
 
         blob_ids = [b.blob_id for b in blob_buffers]
+        total_token_size = sum(b.token_size for b in blob_buffers)
+        LOG.info(
+            f"Flush {blob_type} buffer for user {user_id} with {len(blob_buffers)} blobs and total token size({total_token_size})"
+        )
 
-        try:
-            total_token_size = sum(b.token_size for b in blob_buffers)
-            LOG.info(
-                f"Flush {blob_type} buffer for user {user_id} with {len(blob_buffers)} blobs and total token size({total_token_size})"
-            )
-
+    try:
+        with Session() as session:
             # Get and process blob data
             blob_data = (
                 session.query(GeneralBlob.created_at, GeneralBlob.blob_data)
@@ -133,23 +132,24 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
             )
             blobs = [pack_blob_from_db(bd, blob_type) for bd in blob_data]
 
-            # Process blobs first (moved outside the session)
-            p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
-            if not p.ok():
-                return p
-            return Promise.resolve(None)
+        # Process blobs first (moved outside the session)
+        p = await BLOBS_PROCESS[blob_type](user_id, blob_ids, blobs)
+        if not p.ok():
+            return p
+        return Promise.resolve(None)
 
-        except Exception as e:
-            raise e
-            LOG.error(f"Error in flush_buffer: {e}")
-            return Promise.reject(
-                CODE.INTERNAL_SERVER_ERROR, f"Error in flush_buffer: {e}"
-            )
+    except Exception as e:
+        LOG.error(f"Error in flush_buffer: {e}")
+        raise e
 
-        finally:
+    finally:
+        with Session() as session:
             try:
                 # Delete buffers and blobs regardless of processing outcome
-                blob_buffers_trans.delete(synchronize_session=False)
+
+                session.query(BufferZone).filter_by(
+                    user_id=user_id, blob_type=str(blob_type)
+                ).delete(synchronize_session=False)
                 if blob_type == BlobType.chat and not CONFIG.persistent_chat_blobs:
                     session.query(GeneralBlob).filter(
                         GeneralBlob.id.in_(blob_ids)
@@ -161,3 +161,4 @@ async def flush_buffer(user_id: str, blob_type: BlobType) -> Promise[None]:
             except Exception as e:
                 session.rollback()
                 LOG.error(f"Error while deleting buffers/blobs: {e}")
+                raise e

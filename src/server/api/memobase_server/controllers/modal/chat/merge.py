@@ -13,7 +13,10 @@ async def merge_or_add_new_memos(
     fact_contents: list[str],
     fact_attributes: list[dict],
     profiles: list[ProfileData],
-) -> Promise[MergeAddResult | None]:
+) -> Promise[MergeAddResult]:
+    assert len(fact_contents) == len(
+        fact_attributes
+    ), "Length of fact_contents and fact_attributes must be equal"
     profile_option_results = {
         "add": [],
         "update": [],
@@ -68,6 +71,7 @@ async def merge_or_add_new_memos(
             ),
             system_prompt=PROMPTS[CONFIG.language]["merge"].get_prompt(),
             temperature=0.2,  # precise
+            **PROMPTS[CONFIG.language]["merge"].get_kwargs(),
         )
         merge_tasks.append(task)
 
