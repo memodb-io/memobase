@@ -12,9 +12,9 @@ from ..utils import LOG
 
 @dataclass
 class MemoBaseClient:
-    project_url: str
     api_key: Optional[str] = None
     api_version: str = "api/v1"
+    project_url: str = "https://api.memobase.dev"
 
     def __post_init__(self):
         self.api_key = self.api_key or os.getenv("MEMOBASE_API_KEY")
