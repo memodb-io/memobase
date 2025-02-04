@@ -33,6 +33,10 @@ npm install @memobase/memobase
 deno add jsr:@memobase/memobase
 ```
 
+```bash go
+go get github.com/memodb-io/memobase/src/client/memobase-go@latest
+```
+
 ```bash http
 # Skip to next step
 ```
@@ -60,6 +64,15 @@ import { MemoBaseClient, Blob, BlobType } from '@memobase/memobase';
 
 const client = new MemoBaseClient(process.env['MEMOBASE_PROJECT_URL'], process.env['MEMOBASE_API_KEY'])
 ```
+
+```go Go
+import (
+    "github.com/memodb-io/memobase/src/client/memobase-go/core"
+)
+projectURL := "YOUR_PROJECT_URL"
+apiKey := "YOUR_API_KEY"
+client, err := core.NewMemoBaseClient(projectURL, apiKey)
+```
 </CodeGroup>
 </Accordion>
 <Accordion title="Test connection">
@@ -71,6 +84,10 @@ assert client.ping()
 ```typescript Node
 const ping = await client.ping()
 ```
+```go Go
+ok := client.Ping()
+```
+
 ```bash cURL
 curl -H "Authorization: Bearer $PROJECT_TOKEN" "$PROJECT_URL/api/v1/healthcheck"
 ```
@@ -94,6 +111,10 @@ uid = client.add_user({"ANY": "DATA"})
 ```typescript Node
 const userId = await client.addUser({ANY: "DATA"})
 ```
+```go Go
+userid := uuid.New()
+userId, err := client.AddUser(map[string]interface{}{"ANY": "DATA"}, userid.String())
+```
 ```bash cURL
 curl -X POST "$PROJECT_URL/api/v1/users" \
      -H "Authorization: Bearer $PROJECT_TOKEN" \
@@ -115,6 +136,9 @@ client.update_user(uid, {"ANY": "NEW_DATA"})
 ```
 ```typescript Node
 await client.updateUser(userId, {ANY: "NEW_DATA"})
+```
+```go Go
+client.UpdateUser(userId, map[string]interface{}{"ANY": "NEW_DATA"})
 ```
 ```bash cURL
 curl -X PUT "$PROJECT_URL/api/v1/users/{uid}" \
@@ -146,6 +170,10 @@ u = client.get_user(uid)
 const user = await client.getUser(userId)
 ```
 
+```go Go
+user, err := client.GetUser(userId)
+```
+
 ```bash cURL
 curl -X GET "$PROJECT_URL/api/v1/users/{uid}" \
      -H "Authorization: Bearer $PROJECT_TOKEN"
@@ -174,6 +202,10 @@ client.delete_user(uid)
 
 ```typescript Node
 await client.deleteUser(userId)
+```
+
+```go Go
+client.DeleteUser(userId)
 ```
 
 ```bash cURL
@@ -220,6 +252,26 @@ const blobId = await user.insert(Blob.parse({
 }))
 ```
 
+```go Go
+chatBlob := &blob.ChatBlob{
+	BaseBlob: blob.BaseBlob{
+		Type: blob.ChatType,
+	},
+	Messages: []blob.OpenAICompatibleMessage{
+		{
+			Role:    "user",
+			Content: "Hello, I am Jinjia!",
+		},
+		{
+			Role:    "assistant",
+			Content: "Hi there! How can I help you today?",
+		},
+	},
+}
+
+blobID, err := user.Insert(chatBlob)
+```
+
 ```bash cURL
 curl -X POST "$PROJECT_URL/api/v1/blobs/insert/{uid}" \
      -H "Authorization: Bearer $PROJECT_TOKEN" \
@@ -242,6 +294,10 @@ b = u.get(bid)
 
 ```typescript Node
 const blob = await user.get(blobId)
+```
+
+```go Go
+blob, err := user.Get(blobId)
 ```
 
 ```bash cURL
@@ -269,7 +325,7 @@ curl -X GET "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 </CodeGroup>
 </Accordion>
 
-{/* <Accordion title="Delete">
+<Accordion title="Delete">
 <CodeGroup>
 
 ```python Python
@@ -278,6 +334,10 @@ u.delete(bid)
 
 ```typescript Node
 await user.delete(blobId)
+```
+
+```go Go
+err := user.Delete(blobId)
 ```
 
 ```bash cURL
@@ -289,7 +349,7 @@ curl -X DELETE "$PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 {"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
-</Accordion> */}
+</Accordion> 
 </AccordionGroup>
 
 ### Memory Operations
@@ -305,6 +365,10 @@ u.flush()
 
 ```typescript Node
 await user.flush(BlobType.Enum.chat)
+```
+
+```go Go
+err := user.Flush(blob.ChatType)
 ```
 
 ```bash cURL
@@ -329,6 +393,10 @@ u.profile()
 
 ```typescript Node
 const profiles = await user.profile()
+```
+
+```go Go
+profiles, err := user.Profile()
 ```
 
 ```bash cURL

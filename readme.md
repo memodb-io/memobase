@@ -10,10 +10,13 @@
       <img src="https://img.shields.io/pypi/v/memobase.svg">
     </a>
     <a href="https://www.npmjs.com/package/@memobase/memobase">
-      <img src="https://img.shields.io/npm/v/@memobase/memobase.svg?logo=npm&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D">
+      <img src="https://img.shields.io/npm/v/@memobase/memobase.svg?logo=npm&logoColor=fff&style=flat&labelColor=2C2C2C&color=28CF8D">
     </a>
     <a href="https://jsr.io/@memobase/memobase">
-      <img src="https://img.shields.io/jsr/v/@memobase/memobase.svg?logo=jsr&&logoColor=fff&style=flat&colorA=2C2C2C&colorB=28CF8D" />
+      <img src="https://img.shields.io/jsr/v/@memobase/memobase.svg?logo=jsr&logoColor=fff&style=flat&labelColor=2C2C2C&color=28CF8D" />
+    </a>
+    <a href="https://pkg.go.dev/github.com/memodb-io/memobase/src/client/memobase-go">
+      <img src="https://img.shields.io/badge/go-reference-blue?logo=go&logoColor=fff&style=flat&labelColor=2C2C2C&color=28CF8D" />
     </a>
     <a href="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml">
       <img src="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml/badge.svg">
@@ -74,7 +77,7 @@ Memobase can provide you structured user profiles of users, check out the [resul
 
 - **🎯 Memory for User, not Agent**: Define and control exactly what user information your AI captures. 
 - **🔄 Scalable Profiling**: User profiles evolve naturally through conversation with controllable memory size. 
-- **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with API, Python/Node SDK.
+- **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with API, Python/Node/Go SDK.
 - **⚡️ Batch Processing**: Industry-leading speeds via non-embedding system and session buffer. Fast & Cheap.
 - **🚀 Production Ready**: Battle-tested by our partners in production.
 
