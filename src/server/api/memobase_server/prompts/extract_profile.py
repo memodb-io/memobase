@@ -149,15 +149,11 @@ You will use the same language as the user's input to record the facts.
 """
 
 FACT_RETRIEVAL_PROMPT = """{system_prompt}
-
-## Topics you should be aware of
-Below are some example topics/sub_topics you can refer to:
-{user_profile_topics}
-You can create your own topics/sub_topics if you find it necessary, Anything valuable to evaluate the user's state is welcomed.
-
 ## Formatting
-
 ### Input
+#### Topics Guidelines
+You'll be given some topics and subtopics that you should focus on collecting and extracting.
+You can create your own topics/sub_topics if you find it necessary.
 #### User Before Topics
 You will be given the topics and subtopics that the user has already shared with the assistant.
 Consider use the same topic/subtopic if it's mentioned in the conversation again.
@@ -201,12 +197,18 @@ If you do not find anything relevant facts, user memories, and preferences in th
 """
 
 
-def pack_input(already_input, chat_strs):
-    return f"""#### User Before topics
+def pack_input(already_input, chat_strs, topic_examples):
+    return f"""#### Topics Guidelines
+{topic_examples}
+#### User Before topics
 {already_input}
 #### Chats
 {chat_strs}
 """
+
+
+def get_default_profiles() -> str:
+    return user_profile_topics.get_prompt()
 
 
 def get_prompt() -> str:
@@ -215,10 +217,7 @@ def get_prompt() -> str:
         [f"Input: {p[0]}Output:\n{pack_profiles_into_string(p[1])}" for p in EXAMPLES]
     )
     return FACT_RETRIEVAL_PROMPT.format(
-        system_prompt=sys_prompt,
-        examples=examples,
-        tab=CONFIG.llm_tab_separator,
-        user_profile_topics=user_profile_topics.get_prompt(),
+        system_prompt=sys_prompt, examples=examples, tab=CONFIG.llm_tab_separator
     )
 
 

@@ -162,13 +162,11 @@ DEFAULT_JOB = """你是一位专业的心理学家。
 
 FACT_RETRIEVAL_PROMPT = """{system_prompt}
 
-## 你应该关注的主题
-以下是一些可以参考的主题/子主题示例：
-{user_profile_topics}
-如果你认为有必要，可以创建自己的主题/子主题，任何有助于评估用户状态的信息都是受欢迎的。
-
 ## 格式
 ### 输入
+#### 主题建议
+这个章节里会放一些主题和子主题的建议，你需要参考这些主题和子主题来提取信息。
+如果你认为有必要，可以创建自己的主题/子主题，任何有助于评估用户状态的信息都是受欢迎的。
 #### 已有的主题
 这个章节中会放用户已经与助手分享的主题和子主题
 如果对话中再次提到相同的主题/子主题，请考虑使用相同的主题/子主题。
@@ -216,12 +214,18 @@ MESSGAE则是对话内容. 理解对话内容并且记住事情发生的时间
 """
 
 
-def pack_input(already_input, chat_strs):
-    return f"""#### 已有的主题
+def pack_input(already_input, chat_strs, topic_examples):
+    return f"""#### 主题建议
+{topic_examples}
+#### 已有的主题
 {already_input}
 #### 对话
 {chat_strs}
 """
+
+
+def get_default_profiles() -> str:
+    return zh_user_profile_topics.get_prompt()
 
 
 def get_prompt() -> str:
@@ -230,10 +234,7 @@ def get_prompt() -> str:
         [f"Input: {p[0]}Output:\n{pack_profiles_into_string(p[1])}" for p in EXAMPLES]
     )
     return FACT_RETRIEVAL_PROMPT.format(
-        system_prompt=sys_prompt,
-        examples=examples,
-        tab=CONFIG.llm_tab_separator,
-        user_profile_topics=zh_user_profile_topics.get_prompt(),
+        system_prompt=sys_prompt, examples=examples, tab=CONFIG.llm_tab_separator
     )
 
 
