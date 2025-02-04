@@ -14,3 +14,15 @@ async def get_project_secret(project_id: str) -> Promise[str]:
         if not p:
             return Promise.reject(CODE.NOT_FOUND, "Project not found")
         return Promise.resolve(p.project_secret)
+
+
+async def get_project_status(project_id: str) -> Promise[str]:
+    with Session() as session:
+        p = (
+            session.query(Project.status)
+            .filter(Project.project_id == project_id)
+            .one_or_none()
+        )
+        if not p:
+            return Promise.reject(CODE.NOT_FOUND, "Project not found")
+        return Promise.resolve(p.status)

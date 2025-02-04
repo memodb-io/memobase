@@ -28,6 +28,7 @@ from uvicorn.config import LOGGING_CONFIG
 from memobase_server.auth.token import (
     parse_project_id,
     check_project_secret,
+    get_project_status,
 )
 import memobase_server.auth.token as token
 
@@ -279,6 +280,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return p
         if not p.data():
             return Promise.reject(CODE.UNAUTHORIZED, "Wrong secret key")
+        p = await get_project_status(project_id)
+        if not p.ok():
+            return p
+        if p.data() != "active":
+            return Promise.reject(CODE.FORBIDDEN, "Your project is not active")
         return Promise.resolve(project_id)
 
 
