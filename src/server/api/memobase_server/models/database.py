@@ -54,9 +54,10 @@ class Base:
 class Project(Base):
     __tablename__ = "projects"
 
-    project_id: Mapped[str] = mapped_column(VARCHAR(63), nullable=False, unique=True)
+    project_id: Mapped[str] = mapped_column(VARCHAR(64), nullable=False, unique=True)
     project_secret: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     profile_config: Mapped[str] = mapped_column(TEXT, nullable=True)
+    status: Mapped[str] = mapped_column(VARCHAR(16), nullable=False, default="active")
 
     related_users: Mapped[list["User"]] = relationship(
         "User", back_populates="project", cascade="all, delete-orphan", init=False
