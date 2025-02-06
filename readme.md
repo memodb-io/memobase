@@ -4,6 +4,7 @@
       <img alt="Shows the Memobase logo" src="./assets/images/logo.png" width="80%">
     </picture>
   </a>
+  <h1>Memobase</h1>
   <p>
     <img src="https://img.shields.io/badge/python->=3.11-blue">
     <a href="https://pypi.org/project/memobase/">
@@ -28,6 +29,7 @@
     </a>
   </p>
 </div>
+
 
 
 
@@ -77,7 +79,7 @@ Memobase can provide you structured user profiles of users, check out the [resul
 
 - **🎯 Memory for User, not Agent**: Define and control exactly what user information your AI captures. 
 - **🔄 Scalable Profiling**: User profiles evolve naturally through conversation with controllable memory size. 
-- **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with API, Python/Node/Go SDK.
+- **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with API, [Python](https://pypi.org/project/memobase/)/[Node](./src/client/memobase-ts/readme.md)/[Go](./src/client/memobase-go/readme.md) SDK.
 - **⚡️ Batch Processing**: Industry-leading speeds via non-embedding system and session buffer. Fast & Cheap.
 - **🚀 Production Ready**: Battle-tested by our partners in production.
 
