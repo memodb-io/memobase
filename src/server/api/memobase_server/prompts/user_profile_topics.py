@@ -76,11 +76,8 @@ CANDIDATE_PROFILE_TOPICS: list[UserProfileTopic] = [
 CANDIDATE_PROFILE_TOPICS = modify_default_user_profile(CANDIDATE_PROFILE_TOPICS)
 
 
-def get_prompt():
-    return (
-        "\n".join([formate_profile_topic(up) for up in CANDIDATE_PROFILE_TOPICS])
-        + "\n..."
-    )
+def get_prompt(profiles: list[UserProfileTopic] = CANDIDATE_PROFILE_TOPICS):
+    return "\n".join([formate_profile_topic(up) for up in profiles]) + "\n..."
 
 
 if CONFIG.language == "en":

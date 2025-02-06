@@ -2,7 +2,7 @@ import yaml
 from dataclasses import dataclass, field
 from typing import TypedDict, Optional
 
-from ..env import CONFIG, LOG
+from ..env import CONFIG, LOG, ProfileConfig
 from .utils import attribute_unify
 
 SubTopic = TypedDict("SubTopic", {"name": str, "description": Optional[str]})
@@ -59,6 +59,30 @@ def modify_default_user_profile(CANDIDATE_PROFILE_TOPICS):
         ]
         CANDIDATE_PROFILE_TOPICS.extend(_addon_user_profiles)
     return CANDIDATE_PROFILE_TOPICS
+
+
+def read_out_profile_config(config: ProfileConfig, default_profiles: list):
+    if config.overwrite_user_profiles:
+        profile_topics = [
+            UserProfileTopic(
+                up["topic"],
+                description=up.get("description", None),
+                sub_topics=up["sub_topics"],
+            )
+            for up in CONFIG.overwrite_user_profiles
+        ]
+        return profile_topics
+    elif config.additional_user_profiles:
+        profile_topics = [
+            UserProfileTopic(
+                up["topic"],
+                description=up.get("description", None),
+                sub_topics=up["sub_topics"],
+            )
+            for up in config.additional_user_profiles
+        ]
+        return default_profiles + profile_topics
+    return default_profiles
 
 
 def get_specific_subtopics(

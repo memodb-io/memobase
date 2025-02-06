@@ -50,13 +50,6 @@ async def extract_topics(
         already_topics_prompt = ""
 
     blob_strs = tag_chat_blobs_in_order_xml(blobs)
-    print(
-        PROMPTS[CONFIG.language]["extract"].pack_input(
-            already_topics_prompt,
-            blob_strs,
-            PROMPTS[CONFIG.language]["extract"].get_default_profiles(),
-        ),
-    )
     p = await llm_complete(
         PROMPTS[CONFIG.language]["extract"].pack_input(
             already_topics_prompt,

@@ -62,6 +62,18 @@ class Config:
         return overwrite_config
 
 
+@dataclass
+class ProfileConfig:
+    additional_user_profiles: list[dict] = field(default_factory=list)
+    overwrite_user_profiles: Optional[list[dict]] = None
+
+    @classmethod
+    def load_config_string(cls, config_string: str) -> "Config":
+        overwrite_config = yaml.safe_load(config_string)
+        overwrite_config = dataclasses.replace(cls(), **overwrite_config)
+        return overwrite_config
+
+
 # 1. Add logger
 LOG = logging.getLogger("memobase_server")
 LOG.setLevel(logging.INFO)
