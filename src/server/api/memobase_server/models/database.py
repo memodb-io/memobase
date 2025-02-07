@@ -109,7 +109,7 @@ class User(Base):
     )
 
     project_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(63),
+        VARCHAR(64),
         ForeignKey("projects.project_id", ondelete="CASCADE", onupdate="CASCADE"),
         init=True,
         default=DEFAULT_PROJECT_ID,
@@ -148,7 +148,7 @@ class GeneralBlob(Base):
 
     # Default columns
     project_id: Mapped[str] = mapped_column(
-        VARCHAR(63),
+        VARCHAR(64),
         default=DEFAULT_PROJECT_ID,
     )
     additional_fields: Mapped[Optional[dict]] = mapped_column(
@@ -204,7 +204,7 @@ class BufferZone(Base):
     )
 
     project_id: Mapped[str] = mapped_column(
-        VARCHAR(63),
+        VARCHAR(64),
         default=DEFAULT_PROJECT_ID,
     )
     user: Mapped[User] = relationship(
@@ -265,7 +265,7 @@ class UserProfile(Base):
     attributes: Mapped[dict] = mapped_column(JSONB, nullable=True, default=None)
 
     project_id: Mapped[str] = mapped_column(
-        VARCHAR(63),
+        VARCHAR(64),
         default=DEFAULT_PROJECT_ID,
     )
 
@@ -304,7 +304,7 @@ class UserEvent(Base):
     )
 
     project_id: Mapped[str] = mapped_column(
-        VARCHAR(63),
+        VARCHAR(64),
         default=DEFAULT_PROJECT_ID,
     )
 

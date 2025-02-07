@@ -77,7 +77,7 @@ async def detect_buffer_full_or_not(
             LOG.info(
                 f"Flush {blob_type} buffer for user {user_id} due to reach maximum token size({buffer_size} > {CONFIG.max_chat_blob_buffer_token_size})"
             )
-            p = await flush_buffer(user_id, blob_type)
+            p = await flush_buffer(user_id, project_id, blob_type)
             if not p.ok():
                 return p
             return Promise.resolve(True)
@@ -101,7 +101,7 @@ async def detect_buffer_idle_or_not(
             LOG.info(
                 f"Flush {blob_type} buffer for user {user_id} due to idle for a long time"
             )
-            p = await flush_buffer(user_id, blob_type)
+            p = await flush_buffer(user_id, project_id, blob_type)
             if not p.ok():
                 return p
             return Promise.resolve(True)

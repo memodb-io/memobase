@@ -80,7 +80,9 @@ Memobase may introduce breaking changes in DB schema, here is a guideline of how
 
    ```bash
    cd api
+   mkdir migrations/versions
+   alembic upgrade head
    alembic revision --autogenerate -m "memobase changes"
    ```
 
-4. ⚠️ Run the command `alembic upgrade head` to migrate your current Memobase DB to the latest one.
+4. ⚠️ Run the command `alembic upgrade head` again to migrate your current Memobase DB to the latest one.
