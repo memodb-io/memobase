@@ -69,7 +69,7 @@ def read_out_profile_config(config: ProfileConfig, default_profiles: list):
                 description=up.get("description", None),
                 sub_topics=up["sub_topics"],
             )
-            for up in CONFIG.overwrite_user_profiles
+            for up in config.overwrite_user_profiles
         ]
         return profile_topics
     elif config.additional_user_profiles:

@@ -32,13 +32,13 @@ MergeAddResult = TypedDict(
 
 PROMPTS = {
     "en": {
-        "profile": user_profile_topics.CANDIDATE_PROFILE_TOPICS,
+        "profile": user_profile_topics,
         "extract": extract_profile,
         "merge": merge_profile,
         "organize": organize_profile,
     },
     "zh": {
-        "profile": zh_user_profile_topics.CANDIDATE_PROFILE_TOPICS,
+        "profile": zh_user_profile_topics,
         "extract": zh_extract_profile,
         "merge": zh_merge_profile,
         "organize": organize_profile,

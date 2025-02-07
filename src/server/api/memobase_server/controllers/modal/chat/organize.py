@@ -59,7 +59,7 @@ async def organize_profiles_by_topic(
     )
     topic = attribute_unify(profiles[0].attributes["topic"])
     suggest_subtopics = get_specific_subtopics(
-        topic, PROMPTS[CONFIG.language]["profile"]
+        topic, PROMPTS[CONFIG.language]["profile"].CANDIDATE_PROFILE_TOPICS
     )
 
     llm_inputs = "\n".join(
