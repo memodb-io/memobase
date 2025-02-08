@@ -45,10 +45,13 @@ class Base:
         init=False,
     )
     created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP, server_default=func.now(), init=False
+        TIMESTAMP(timezone=True), server_default=func.now(), init=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP, server_default=func.now(), onupdate=func.now(), init=False
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        init=False,
     )
 
 

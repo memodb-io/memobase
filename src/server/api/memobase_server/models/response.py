@@ -64,6 +64,29 @@ class ProfileData(BaseModel):
     )
 
 
+class ProfileDelta(BaseModel):
+    content: str = Field(..., description="The profile content")
+    attributes: Optional[dict] = Field(
+        ...,
+        description="User profile attributes in JSON, containing 'topic', 'sub_topic'",
+    )
+
+
+class EventData(BaseModel):
+    profile_delta: list[ProfileDelta] = Field(..., description="List of profile data")
+
+
+class UserEventData(BaseModel):
+    id: UUID = Field(..., description="The event's unique identifier")
+    event_data: Optional[EventData] = Field(None, description="User event data in JSON")
+    created_at: datetime = Field(
+        None, description="Timestamp when the event was created"
+    )
+    updated_at: datetime = Field(
+        None, description="Timestamp when the event was last updated"
+    )
+
+
 class UserData(BaseModel):
     data: Optional[dict] = Field(None, description="User additional data in JSON")
     id: Optional[UUID] = Field(None, description="User ID in UUIDv4/5")
@@ -77,6 +100,10 @@ class UserData(BaseModel):
 
 class UserProfilesData(BaseModel):
     profiles: list[ProfileData] = Field(..., description="List of user profiles")
+
+
+class UserEventsData(BaseModel):
+    events: list[UserEventData] = Field(..., description="List of user events")
 
 
 class QueryData(BaseModel):
@@ -128,4 +155,10 @@ class QueryDataResponse(BaseResponse):
 class UserProfileResponse(BaseResponse):
     data: Optional[UserProfilesData] = Field(
         None, description="Response containing user profiles"
+    )
+
+
+class UserEventsDataResponse(BaseResponse):
+    data: Optional[UserEventsData] = Field(
+        None, description="Response containing user events"
     )

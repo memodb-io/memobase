@@ -38,7 +38,7 @@ async def get_project_profile_config(project_id: str) -> Promise[ProfileConfig]:
         )
         if not p:
             return Promise.reject(CODE.NOT_FOUND, "Project not found")
-        if p.profile_config is None:
+        if not p.profile_config:
             return Promise.resolve(ProfileConfig())
         p_parse = ProfileConfig.load_config_string(p.profile_config)
     return Promise.resolve(p_parse)

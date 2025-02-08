@@ -4,6 +4,7 @@ from ....env import LOG
 from ....models.blob import Blob
 from ....models.utils import Promise
 from ...profile import add_user_profiles, update_user_profiles, delete_user_profiles
+from ...event import append_user_event
 from .extract import extract_topics
 from .merge import merge_or_add_new_memos
 from .summary import re_summary
@@ -20,12 +21,28 @@ async def process_blobs(
         return p
     extracted_data = p.data()
 
+    delta_profile_data = [
+        {
+            "content": extracted_data["fact_contents"][i],
+            "attributes": extracted_data["fact_attributes"][i],
+        }
+        for i in range(len(extracted_data["fact_contents"]))
+    ]
+    if len(delta_profile_data) > 0:
+        await append_user_event(
+            user_id,
+            project_id,
+            {
+                "profile_delta": delta_profile_data,
+            },
+        )
     # 2. Merge it to thw whole profile
     p = await merge_or_add_new_memos(
         fact_contents=extracted_data["fact_contents"],
         fact_attributes=extracted_data["fact_attributes"],
         profiles=extracted_data["profiles"],
     )
+    print(extracted_data["fact_contents"], extracted_data["fact_attributes"])
     if not p.ok():
         return p
     profile_options = p.data()

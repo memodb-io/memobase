@@ -101,7 +101,7 @@ async def update_project_profile_config(
 @router.get("/project/profile_config", tags=["project"])
 async def get_project_profile_config_string(
     request: Request,
-) -> res.BaseResponse:
+) -> res.ProfileConfigDataResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.project.get_project_profile_config_string(project_id)
     return p.to_response(res.ProfileConfigDataResponse)
@@ -255,6 +255,17 @@ async def delete_user_profile(
     project_id = request.state.memobase_project_id
     p = await controllers.profile.delete_user_profile(user_id, project_id, profile_id)
     return p.to_response(res.IdResponse)
+
+
+@router.get("/users/event/{user_id}", tags=["event"])
+async def get_user_events(
+    request: Request,
+    user_id: str = Path(..., description="The ID of the user"),
+    topk: int = Query(10, description="Number of events to retrieve, default is 10"),
+) -> res.UserEventsDataResponse:
+    project_id = request.state.memobase_project_id
+    p = await controllers.event.get_user_events(user_id, project_id, topk=topk)
+    return p.to_response(res.UserEventsDataResponse)
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
