@@ -155,8 +155,6 @@ async def test_chat_buffer_modal(db_env, mock_extract_llm_complete):
     assert p.ok()
     assert len(p.data().events) == 1
 
-    print("!!!!", p.data())
-
     p = await controllers.buffer.get_buffer_capacity(
         u_id, DEFAULT_PROJECT_ID, BlobType.chat
     )

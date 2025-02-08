@@ -294,6 +294,13 @@ async def test_api_user_flush_buffer(client, db_env, mock_llm_complete):
     assert len(d["data"]["profiles"]) == 1
     assert [dp["content"] for dp in d["data"]["profiles"]] == ["Gus"]
 
+    response = client.get(f"{PREFIX}/users/event/{u_id}?topk=5")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 1
+    print(d)
+
     response = client.delete(f"{PREFIX}/users/{u_id}")
     d = response.json()
     assert response.status_code == 200
