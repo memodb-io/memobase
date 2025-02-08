@@ -532,6 +532,28 @@
                             "title": "User Id"
                         },
                         "description": "The ID of the user to get profiles for"
+                    },
+                    {
+                        "name": "topk",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "description": "Number of profiles to retrieve, default is all",
+                            "title": "Topk"
+                        },
+                        "description": "Number of profiles to retrieve, default is all"
+                    },
+                    {
+                        "name": "max_length",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "description": "Max Character length of total profile content, default is all",
+                            "title": "Max Length"
+                        },
+                        "description": "Max Character length of total profile content, default is all"
                     }
                 ],
                 "responses": {

@@ -151,6 +151,10 @@ async def test_chat_buffer_modal(db_env, mock_extract_llm_complete):
     assert len(p.data().profiles) == 4
     print(p.data())
 
+    p = await controllers.profile.truncate_profiles(p.data(), topk=2)
+    assert p.ok()
+    assert len(p.data().profiles) == 2
+
     p = await controllers.event.get_user_events(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
     assert len(p.data().events) == 1

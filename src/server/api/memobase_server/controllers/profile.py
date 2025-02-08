@@ -6,6 +6,21 @@ from ..connectors import Session, get_redis_client
 from ..env import LOG, CONFIG
 
 
+async def truncate_profiles(
+    profiles: UserProfilesData, topk: int = None, max_length: int = None
+) -> Promise[UserProfilesData]:
+    if topk:
+        profiles.profiles = profiles.profiles[:topk]
+    if max_length:
+        current_length = 0
+        for max_i, p in enumerate(profiles.profiles):
+            current_length += len(p.content)
+            if current_length > max_length:
+                break
+        profiles.profiles = profiles.profiles[: max_i + 1]
+    return Promise.resolve(profiles)
+
+
 async def get_user_profiles(user_id: str, project_id: str) -> Promise[UserProfilesData]:
     async with get_redis_client() as redis_client:
         user_profiles = await redis_client.get(
@@ -23,7 +38,7 @@ async def get_user_profiles(user_id: str, project_id: str) -> Promise[UserProfil
         user_profiles = (
             session.query(UserProfile)
             .filter_by(user_id=user_id, project_id=project_id)
-            .order_by(UserProfile.updated_at)
+            .order_by(UserProfile.updated_at.desc())
             .all()
         )
         results = []

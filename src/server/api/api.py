@@ -224,10 +224,20 @@ async def delete_blob(
 async def get_user_profile(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to get profiles for"),
+    topk: int = Query(
+        None, description="Number of profiles to retrieve, default is all"
+    ),
+    max_length: int = Query(
+        None,
+        description="Max Character length of total profile content, default is all",
+    ),
 ) -> res.UserProfileResponse:
     """Get the real-time user profiles for long term memory"""
     project_id = request.state.memobase_project_id
     p = await controllers.profile.get_user_profiles(user_id, project_id)
+    p = await controllers.profile.truncate_profiles(
+        p.data(), topk=topk, max_length=max_length
+    )
     return p.to_response(res.UserProfileResponse)
 
 
