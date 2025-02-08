@@ -102,6 +102,8 @@ def is_valid_profile_config(profile_config: str) -> bool:
     # check if the profile config is valid yaml
     try:
         r = yaml.safe_load(profile_config)
+        if len(profile_config) > 65535:
+            return False
         return True
     except yaml.YAMLError as e:
         LOG.error(f"Invalid profile config: {e}")

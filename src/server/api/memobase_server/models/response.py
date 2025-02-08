@@ -84,6 +84,10 @@ class QueryData(BaseModel):
     actions: list[ActionData] = Field(..., description="List of action data")
 
 
+class ProfileConfigData(BaseModel):
+    profile_config: str = Field(..., description="Profile config string")
+
+
 # API response format
 class BaseResponse(BaseModel):
     data: Optional[dict] = Field(None, description="Response data payload")
@@ -98,6 +102,12 @@ class IdResponse(BaseResponse):
 class IdsResponse(BaseResponse):
     data: Optional[IdsData] = Field(
         None, description="Response containing multiple IDs"
+    )
+
+
+class ProfileConfigDataResponse(BaseResponse):
+    data: Optional[ProfileConfigData] = Field(
+        None, description="Response containing profile config data"
     )
 
 

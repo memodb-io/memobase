@@ -22,10 +22,12 @@ from sqlalchemy.orm import (
     Mapped,
     mapped_column,
     registry,
+    object_session,
 )
 from sqlalchemy.sql import func
 from sqlalchemy import event
 from .blob import BlobType
+from sqlalchemy.orm.attributes import get_history
 
 REG = registry()
 DEFAULT_PROJECT_ID = "__root__"
@@ -335,13 +337,26 @@ def prevent_insert(mapper, connection, target):
         raise ValueError("The projects table is read-only. Inserts are not allowed.")
 
 
-@event.listens_for(Project, "before_update")
-def prevent_update(mapper, connection, target):
-    if target.project_id != DEFAULT_PROJECT_ID:
-        raise ValueError("The projects table is read-only. Updates are not allowed.")
-
-
 @event.listens_for(Project, "before_delete")
 def prevent_delete(mapper, connection, target):
     # if target.project_id != DEFAULT_PROJECT_ID:
     raise ValueError("The projects table is read-only. Deletions are not allowed.")
+
+
+@event.listens_for(Project, "before_update")
+def prevent_update(mapper, connection, target):
+    session = object_session(target)
+    if not session:
+        return
+
+    # Get the history of all attributes
+    exclude_attrs = ["profile_config"]
+    all_attrs = Project.__mapper__.attrs.keys()
+    for attr in all_attrs:
+        if attr in exclude_attrs:
+            continue
+        history = get_history(target, attr)
+        if history.has_changes():
+            raise ValueError(
+                f"The projects table is read-only except for {exclude_attrs}. Updates to other fields are not allowed."
+            )
