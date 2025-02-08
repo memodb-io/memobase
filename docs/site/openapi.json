@@ -3,7 +3,7 @@
     "info": {
         "title": "Memobase API",
         "summary": "APIs for Memobase, a user memory system for LLM Apps",
-        "version": "0.0.5"
+        "version": "0.0.11"
     },
     "paths": {
         "/api/v1/healthcheck": {
@@ -21,6 +21,67 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/BaseResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/project/profile_config": {
+            "get": {
+                "tags": [
+                    "project"
+                ],
+                "summary": "Get Project Profile Config String",
+                "operationId": "get_project_profile_config_string_api_v1_project_profile_config_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProfileConfigDataResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "project"
+                ],
+                "summary": "Update Project Profile Config",
+                "operationId": "update_project_profile_config_api_v1_project_profile_config_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProfileConfigData",
+                                "description": "The profile config to update"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BaseResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
                                 }
                             }
                         }
@@ -607,6 +668,62 @@
                     }
                 }
             }
+        },
+        "/api/v1/users/event/{user_id}": {
+            "get": {
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get User Events",
+                "operationId": "get_user_events_api_v1_users_event__user_id__get",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "description": "The ID of the user",
+                            "title": "User Id"
+                        },
+                        "description": "The ID of the user"
+                    },
+                    {
+                        "name": "topk",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "description": "Number of events to retrieve, default is 10",
+                            "default": 10,
+                            "title": "Topk"
+                        },
+                        "description": "Number of events to retrieve, default is 10"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserEventsDataResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -750,6 +867,23 @@
                 ],
                 "title": "CODE"
             },
+            "EventData": {
+                "properties": {
+                    "profile_delta": {
+                        "items": {
+                            "$ref": "#/components/schemas/ProfileDelta"
+                        },
+                        "type": "array",
+                        "title": "Profile Delta",
+                        "description": "List of profile data"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "profile_delta"
+                ],
+                "title": "EventData"
+            },
             "HTTPValidationError": {
                 "properties": {
                     "detail": {
@@ -868,6 +1002,48 @@
                 "type": "object",
                 "title": "IdsResponse"
             },
+            "ProfileConfigData": {
+                "properties": {
+                    "profile_config": {
+                        "type": "string",
+                        "title": "Profile Config",
+                        "description": "Profile config string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "profile_config"
+                ],
+                "title": "ProfileConfigData"
+            },
+            "ProfileConfigDataResponse": {
+                "properties": {
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ProfileConfigData"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Response containing profile config data"
+                    },
+                    "errno": {
+                        "$ref": "#/components/schemas/CODE",
+                        "description": "Error code, 0 means success",
+                        "default": 0
+                    },
+                    "errmsg": {
+                        "type": "string",
+                        "title": "Errmsg",
+                        "description": "Error message, empty when success",
+                        "default": ""
+                    }
+                },
+                "type": "object",
+                "title": "ProfileConfigDataResponse"
+            },
             "ProfileData": {
                 "properties": {
                     "id": {
@@ -920,6 +1096,33 @@
                     "content"
                 ],
                 "title": "ProfileData"
+            },
+            "ProfileDelta": {
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "title": "Content",
+                        "description": "The profile content"
+                    },
+                    "attributes": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Attributes",
+                        "description": "User profile attributes in JSON, containing 'topic', 'sub_topic'"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content",
+                    "attributes"
+                ],
+                "title": "ProfileDelta"
             },
             "UserData": {
                 "properties": {
@@ -1009,6 +1212,97 @@
                 },
                 "type": "object",
                 "title": "UserDataResponse"
+            },
+            "UserEventData": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid4"
+                            },
+                            {
+                                "type": "string",
+                                "format": "uuid5"
+                            }
+                        ],
+                        "title": "Id",
+                        "description": "The event's unique identifier"
+                    },
+                    "event_data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EventData"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "User event data in JSON"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "description": "Timestamp when the event was created"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "description": "Timestamp when the event was last updated"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "UserEventData"
+            },
+            "UserEventsData": {
+                "properties": {
+                    "events": {
+                        "items": {
+                            "$ref": "#/components/schemas/UserEventData"
+                        },
+                        "type": "array",
+                        "title": "Events",
+                        "description": "List of user events"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "events"
+                ],
+                "title": "UserEventsData"
+            },
+            "UserEventsDataResponse": {
+                "properties": {
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/UserEventsData"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Response containing user events"
+                    },
+                    "errno": {
+                        "$ref": "#/components/schemas/CODE",
+                        "description": "Error code, 0 means success",
+                        "default": 0
+                    },
+                    "errmsg": {
+                        "type": "string",
+                        "title": "Errmsg",
+                        "description": "Error message, empty when success",
+                        "default": ""
+                    }
+                },
+                "type": "object",
+                "title": "UserEventsDataResponse"
             },
             "UserProfileResponse": {
                 "properties": {

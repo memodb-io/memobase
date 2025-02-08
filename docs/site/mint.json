@@ -72,13 +72,15 @@
       "pages": [
         "api-reference/overview",
         {
-          "group": "Utility",
+          "group": "Project Config",
           "pages": [
+            "api-reference/project/get_profile_config",
+            "api-reference/project/update_profile_config",
             "api-reference/utility/healthcheck"
           ]
         },
         {
-          "group": "Manage User",
+          "group": "Manage Users",
           "pages": [
             "api-reference/users/create_user",
             "api-reference/users/get_user",
@@ -87,7 +89,7 @@
           ]
         },
         {
-          "group": "Manage Data",
+          "group": "User Data",
           "pages": [
             "api-reference/blobs/insert_data",
             {
@@ -102,11 +104,17 @@
           ]
         },
         {
-          "group": "Manage Profile",
+          "group": "User Profiles",
           "pages": [
             "api-reference/profiles/flush",
             "api-reference/profiles/profile",
             "api-reference/profiles/delete_profile"
+          ]
+        },
+        {
+          "group": "User Events",
+          "pages": [
+            "api-reference/events/get_events"
           ]
         }
       ]
