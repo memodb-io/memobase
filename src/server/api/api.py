@@ -24,6 +24,7 @@ from memobase_server.models import response as res
 from memobase_server import controllers
 from memobase_server.env import LOG, TelemetryKeyName
 from memobase_server.telemetry.capture_key import capture_int_key
+from memobase_server.telemetry import telemetry_manager, CounterMetricName
 from uvicorn.config import LOGGING_CONFIG
 from memobase_server.auth.token import (
     parse_project_id,
@@ -31,7 +32,6 @@ from memobase_server.auth.token import (
     get_project_status,
 )
 from memobase_server import utils
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -283,6 +283,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if not request.url.path.startswith("/api"):
             return await call_next(request)
         if request.url.path.startswith("/api/v1/healthcheck"):
+            telemetry_manager.increment_counter_metric(CounterMetricName.HEALTHCHECK, 1, {"source_ip": request.client.host})
             return await call_next(request)
         auth_token = request.headers.get("Authorization")
         if not auth_token or not auth_token.startswith("Bearer "):
@@ -309,6 +310,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 )
             request.state.memobase_project_id = p.data()
         # await capture_int_key(TelemetryKeyName.has_request)
+        telemetry_manager.get_counter_metric(CounterMetricName.REQUEST).add(1, {"project_id": request.state.memobase_project_id})
         response = await call_next(request)
         return response
 
