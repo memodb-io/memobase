@@ -310,7 +310,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 )
             request.state.memobase_project_id = p.data()
         # await capture_int_key(TelemetryKeyName.has_request)
-        telemetry_manager.get_counter_metric(CounterMetricName.REQUEST).add(1, {"project_id": request.state.memobase_project_id})
+        telemetry_manager.increment_counter_metric(
+            CounterMetricName.REQUEST,
+            1,
+            {"project_id": request.state.memobase_project_id},
+        )
         response = await call_next(request)
         return response
 

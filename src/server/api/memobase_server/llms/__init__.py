@@ -1,3 +1,4 @@
+import time
 from ..prompts.utils import convert_response_to_json
 from ..utils import get_encoded_tokens
 from ..env import CONFIG, LOG, TelemetryKeyName
@@ -6,6 +7,12 @@ from ..models.response import CODE
 from .openai import openai_complete
 from .doubao_cache import doubao_cache_complete
 from ..telemetry.capture_key import capture_int_key
+from ..telemetry import (
+    telemetry_manager, 
+    CounterMetricName, 
+    HistogramMetricName,
+    ObservableGaugeMetricName
+)
 
 
 FACTORIES = {"openai": openai_complete, "doubao_cache": doubao_cache_complete}
@@ -24,6 +31,7 @@ async def llm_complete(
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
     try:
+        start_time = time.time()
         results = await FACTORIES[CONFIG.llm_style](
             CONFIG.best_llm_model,
             prompt,
@@ -31,6 +39,7 @@ async def llm_complete(
             history_messages=history_messages,
             **kwargs,
         )
+        latency = (time.time() - start_time) * 1000
     except Exception as e:
         LOG.error(f"Error in llm_complete: {e}")
         return Promise.reject(CODE.SERVICE_UNAVAILABLE, f"Error in llm_complete: {e}")
@@ -47,6 +56,27 @@ async def llm_complete(
     )
     await capture_int_key(
         TelemetryKeyName.llm_output_tokens, out_tokens, project_id=project_id
+    )
+
+    telemetry_manager.increment_counter_metric(
+        CounterMetricName.LLM_INVOCATIONS,
+        1,
+        {"project_id": project_id},
+    )
+    telemetry_manager.record_histogram_metric(
+        HistogramMetricName.LLM_LATENCY_MS,
+        latency,
+        {"project_id": project_id},
+    )
+    telemetry_manager.set_gauge_metric(
+        ObservableGaugeMetricName.INPUT_TOKEN_COUNT,
+        in_tokens,
+        {"project_id": project_id},
+    )
+    telemetry_manager.set_gauge_metric(
+        ObservableGaugeMetricName.OUTPUT_TOKEN_COUNT,
+        out_tokens,
+        {"project_id": project_id},
     )
 
     if not json_mode:
