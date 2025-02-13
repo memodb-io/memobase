@@ -5,7 +5,7 @@ from ....prompts.types import get_specific_subtopics, attribute_unify
 from ....prompts.utils import parse_string_into_subtopics
 from ....models.utils import Promise
 from ....models.response import ProfileData
-from ....env import CONFIG, LOG, ProfileConfig
+from ....env import CONFIG, LOG, ProfileConfig, ContanstTable
 from ....llms import llm_complete
 
 
@@ -18,7 +18,7 @@ async def organize_profiles(
     use_language = config.language or CONFIG.language
     topic_groups = defaultdict(list)
     for p in profiles:
-        topic_groups[p.attributes["topic"]].append(p)
+        topic_groups[p.attributes[ContanstTable.topic]].append(p)
 
     need_to_organize_topics: dict[str, list[ProfileData]] = {}
     for topic, group in topic_groups.items():
@@ -59,12 +59,13 @@ async def organize_profiles_by_topic(
         len(profiles) > CONFIG.max_profile_subtopics
     ), f"Unknown Error,{len(profiles)} is not greater than max_profile_subtopics: {CONFIG.max_profile_subtopics}"
     assert all(
-        p.attributes["topic"] == profiles[0].attributes["topic"] for p in profiles
+        p.attributes[ContanstTable.topic] == profiles[0].attributes[ContanstTable.topic]
+        for p in profiles
     ), f"Unknown Error, all profiles are not in the same topic: {profiles[0].attributes['topic']}"
     LOG.info(
         f"Organizing profiles for topic: {profiles[0].attributes['topic']} with sub_topics {len(profiles)}"
     )
-    topic = attribute_unify(profiles[0].attributes["topic"])
+    topic = attribute_unify(profiles[0].attributes[ContanstTable.topic])
     suggest_subtopics = get_specific_subtopics(
         topic, PROMPTS[use_language]["profile"].CANDIDATE_PROFILE_TOPICS
     )
@@ -95,8 +96,8 @@ async def organize_profiles_by_topic(
         {
             "content": sp["memo"],
             "attributes": {
-                "topic": topic,
-                "sub_topic": sp["sub_topic"],
+                ContanstTable.topic: topic,
+                ContanstTable.sub_topic: sp[ContanstTable.sub_topic],
             },
         }
         for sp in subtopics
@@ -111,7 +112,10 @@ async def organize_profiles_by_topic(
 def deduplicate_profiles(profiles: list[AddProfile]) -> list[AddProfile]:
     topic_subtopic = {}
     for nf in profiles:
-        key = (nf["attributes"]["topic"], nf["attributes"]["sub_topic"])
+        key = (
+            nf["attributes"][ContanstTable.topic],
+            nf["attributes"][ContanstTable.sub_topic],
+        )
         if key in topic_subtopic:
             topic_subtopic[key]["content"] += f"; {nf['content']}"
             continue

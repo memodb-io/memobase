@@ -23,6 +23,12 @@ async def capture_int_key(
         await r_c.expire(key, expire_days * 24 * 60 * 60)
 
 
+async def get_int_key(name: str, project_id: str = DEFAULT_PROJECT_ID) -> int:
+    key = f"{head_key(project_id)}::{name}::{date_key()}"
+    async with get_redis_client() as r_c:
+        return int((await r_c.get(key)) or 0)
+
+
 if __name__ == "__main__":
     import asyncio
 

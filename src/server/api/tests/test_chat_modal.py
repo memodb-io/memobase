@@ -43,6 +43,10 @@ ORGANIZE_FACTS = """
 """
 
 
+def dict_contains(a: dict, b: dict) -> bool:
+    return all(a[k] == v for k, v in b.items())
+
+
 @pytest.fixture
 def mock_extract_llm_complete():
     with patch(
@@ -240,9 +244,13 @@ async def test_chat_merge_modal(
     profiles = p.data().profiles
     profiles = sorted(profiles, key=lambda x: x.content)
 
-    assert profiles[-1].attributes == {"topic": "interest", "sub_topic": "sports"}
+    assert dict_contains(
+        profiles[-1].attributes, {"topic": "interest", "sub_topic": "sports"}
+    )
     assert profiles[-1].content == "user likes to play basketball"
-    assert profiles[-2].attributes == {"topic": "interest", "sub_topic": "foods"}
+    assert dict_contains(
+        profiles[-2].attributes, {"topic": "interest", "sub_topic": "foods"}
+    )
     assert profiles[-2].content == "user likes Chinese and Japanese food"
 
     p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)

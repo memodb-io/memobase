@@ -2,7 +2,7 @@ import asyncio
 from ....env import CONFIG, LOG
 from ....models.utils import Promise
 from ....models.response import ProfileData
-from ....env import ProfileConfig
+from ....env import ProfileConfig, ContanstTable
 from ....llms import llm_complete
 from ....prompts.utils import (
     parse_string_into_merge_action,
@@ -47,8 +47,9 @@ async def merge_or_add_new_memos(
             p
             for p in profiles
             if (
-                p.attributes["topic"] == f_a["topic"]
-                and p.attributes["sub_topic"] == f_a["sub_topic"]
+                p.attributes[ContanstTable.topic] == f_a[ContanstTable.topic]
+                and p.attributes[ContanstTable.sub_topic]
+                == f_a[ContanstTable.sub_topic]
             )
         ]
         # 1 if not same topics exist, directly add this
@@ -69,8 +70,8 @@ async def merge_or_add_new_memos(
         task = llm_complete(
             project_id,
             PROMPTS[use_language]["merge"].get_input(
-                old_p.attributes["topic"],
-                old_p.attributes["sub_topic"],
+                old_p.attributes[ContanstTable.topic],
+                old_p.attributes[ContanstTable.sub_topic],
                 old_p.content,
                 dp["new_profile"]["content"],
             ),
@@ -86,12 +87,15 @@ async def merge_or_add_new_memos(
             LOG.warning(f"Failed to merge profiles: {p.msg()}")
             continue
         old_p: ProfileData = old_new_profile["old_profile"]
-
         update_response: UpdateResponse = parse_string_into_merge_action(p.data())
         if update_response is None:
             LOG.warning(f"Failed to parse merge action: {p.data()}")
             continue
         if update_response["action"] == "UPDATE":
+            if ContanstTable.update_hits not in old_p.attributes:
+                old_p.attributes[ContanstTable.update_hits] = 1
+            else:
+                old_p.attributes[ContanstTable.update_hits] += 1
             profile_option_results["update"].append(
                 {
                     "profile_id": old_p.id,
@@ -103,4 +107,7 @@ async def merge_or_add_new_memos(
         else:
             LOG.warning(f"Invalid action: {update_response['action']}")
             continue
+        old_new_profile["new_profile"]["attributes"][ContanstTable.update_hits] = (
+            old_p.attributes[ContanstTable.update_hits]
+        )
     return Promise.resolve(profile_option_results)

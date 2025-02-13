@@ -120,7 +120,10 @@ Here's a step-by-step guide and breakdown for you.
  ```python
  from memobase import MemoBaseClient, ChatBlob
  
- mb = MemoBaseClient("http://localhost:8019", "secret")
+ mb = MemoBaseClient(
+     project_url=PROJECT_URL,
+     api_key=PROJECT_TOKEN,
+ )
  assert mb.ping()
  ```
 

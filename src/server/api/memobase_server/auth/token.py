@@ -48,6 +48,6 @@ async def get_project_status(project_id: str) -> Promise[str]:
                 return p
             status = p.data()
             await client.set(
-                project_status_redis_key(project_id), status.strip(), ex=60 * 60 * 2
+                project_status_redis_key(project_id), status.strip(), ex=60 * 60
             )
     return Promise.resolve(status)

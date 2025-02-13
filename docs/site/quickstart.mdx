@@ -54,9 +54,10 @@ See [next section](#memobase-backend)
 <CodeGroup>
 ```python Python
 from memobase import MemoBaseClient
+
 client = MemoBaseClient(
-    "PROJECT_URL",
-    api_key="PROJECT_TOKEN"
+    project_url=PROJECT_URL,
+    api_key=PROJECT_TOKEN,
 )
 ```
 ```typescript Node

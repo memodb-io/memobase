@@ -1,4 +1,4 @@
-from ....env import CONFIG, LOG
+from ....env import CONFIG, LOG, ContanstTable
 from ....models.utils import Promise
 from ....models.blob import Blob, BlobType
 from ....models.response import AIUserProfiles, CODE
@@ -19,7 +19,7 @@ from .types import FactResponse, PROMPTS
 def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
     topic_subtopic = {}
     for nf in new_facts:
-        key = (nf["topic"], nf["sub_topic"])
+        key = (nf[ContanstTable.topic], nf[ContanstTable.sub_topic])
         if key in topic_subtopic and isinstance(nf["memo"], str):
             topic_subtopic[key]["memo"] += f"; {nf['memo']}"
             continue
@@ -47,7 +47,15 @@ async def extract_topics(
 
     if len(profiles):
         already_topics_subtopics = sorted(
-            set([(p.attributes["topic"], p.attributes["sub_topic"]) for p in profiles])
+            set(
+                [
+                    (
+                        p.attributes[ContanstTable.topic],
+                        p.attributes[ContanstTable.sub_topic],
+                    )
+                    for p in profiles
+                ]
+            )
         )
         already_topics_prompt = "\n".join(
             [
@@ -90,8 +98,8 @@ async def extract_topics(
         )
 
     for nf in new_facts:
-        nf["topic"] = attribute_unify(nf["topic"])
-        nf["sub_topic"] = attribute_unify(nf["sub_topic"])
+        nf[ContanstTable.topic] = attribute_unify(nf[ContanstTable.topic])
+        nf[ContanstTable.sub_topic] = attribute_unify(nf[ContanstTable.sub_topic])
     new_facts = merge_by_topic_sub_topics(new_facts)
 
     fact_contents = []
@@ -101,8 +109,8 @@ async def extract_topics(
         fact_contents.append(nf["memo"])
         fact_attributes.append(
             {
-                "topic": nf["topic"],
-                "sub_topic": nf["sub_topic"],
+                ContanstTable.topic: nf[ContanstTable.topic],
+                ContanstTable.sub_topic: nf[ContanstTable.sub_topic],
             }
         )
     return Promise.resolve(

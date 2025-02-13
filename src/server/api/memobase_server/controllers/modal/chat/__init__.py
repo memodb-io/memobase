@@ -21,6 +21,17 @@ async def process_blobs(
         return p
     extracted_data = p.data()
 
+    # 2. Merge it to thw whole profile
+    p = await merge_or_add_new_memos(
+        project_id,
+        fact_contents=extracted_data["fact_contents"],
+        fact_attributes=extracted_data["fact_attributes"],
+        profiles=extracted_data["profiles"],
+        config=extracted_data["config"],
+    )
+    if not p.ok():
+        return p
+
     delta_profile_data = [
         {
             "content": extracted_data["fact_contents"][i],
@@ -36,16 +47,6 @@ async def process_blobs(
                 "profile_delta": delta_profile_data,
             },
         )
-    # 2. Merge it to thw whole profile
-    p = await merge_or_add_new_memos(
-        project_id,
-        fact_contents=extracted_data["fact_contents"],
-        fact_attributes=extracted_data["fact_attributes"],
-        profiles=extracted_data["profiles"],
-        config=extracted_data["config"],
-    )
-    if not p.ok():
-        return p
     profile_options = p.data()
 
     # 3. Check if we need to organize profiles

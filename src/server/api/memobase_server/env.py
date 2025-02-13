@@ -15,6 +15,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+class ProjectStatus:
+    active = "active"
+    suspended = "suspended"
+
+
+USAGE_TOKEN_LIMIT_MAP = {
+    ProjectStatus.active: int(os.getenv("USAGE_TOKEN_LIMIT_ACTIVE", -1)),
+}
+
+
+class ContanstTable:
+    topic = "topic"
+    sub_topic = "sub_topic"
+    update_hits = "update_hits"
+
+
 class TelemetryKeyName:
     insert_blob_request = "insert_blob_request"
     insert_blob_success_request = "insert_blob_success_request"
@@ -57,6 +73,8 @@ class Config:
         with open("config.yaml") as f:
             overwrite_config = yaml.safe_load(f)
             LOG.info(f"Load ./config.yaml")
+        if overwrite_config is None:
+            return cls()
         fields = {field.name for field in dataclasses.fields(cls)}
         # Filter out any keys from overwrite_config that aren't in the dataclass
         filtered_config = {k: v for k, v in overwrite_config.items() if k in fields}
@@ -78,6 +96,8 @@ class ProfileConfig:
     @classmethod
     def load_config_string(cls, config_string: str) -> "Config":
         overwrite_config = yaml.safe_load(config_string)
+        if overwrite_config is None:
+            return cls()
         # Get all field names from the dataclass
         fields = {field.name for field in dataclasses.fields(cls)}
         # Filter out any keys from overwrite_config that aren't in the dataclass

@@ -27,6 +27,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 from sqlalchemy import event
 from .blob import BlobType
+from ..env import ProjectStatus
 from sqlalchemy.orm.attributes import get_history
 
 REG = registry()
@@ -62,7 +63,9 @@ class Project(Base):
     project_id: Mapped[str] = mapped_column(VARCHAR(64), nullable=False, unique=True)
     project_secret: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     profile_config: Mapped[str] = mapped_column(TEXT, nullable=True)
-    status: Mapped[str] = mapped_column(VARCHAR(16), nullable=False, default="active")
+    status: Mapped[str] = mapped_column(
+        VARCHAR(16), nullable=False, default=ProjectStatus.active
+    )
 
     related_users: Mapped[list["User"]] = relationship(
         "User", back_populates="project", cascade="all, delete-orphan", init=False

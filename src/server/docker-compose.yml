@@ -12,6 +12,11 @@ services:
     volumes:
       - ${DATABASE_LOCATION}:/var/lib/postgresql/data
       # - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   
   memobase-server-redis:
     image: redis:7.4
@@ -22,6 +27,11 @@ services:
     volumes:
       - ${REDIS_LOCATION}:/data
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
       
   memobase-server-api:
     platform: linux/amd64
@@ -32,8 +42,10 @@ services:
       - ACCESS_TOKEN=${ACCESS_TOKEN}
       - PROJECT_ID=${PROJECT_ID}
     depends_on:
-      - memobase-server-db
-      - memobase-server-redis
+      memobase-server-db:
+        condition: service_healthy
+      memobase-server-redis:
+        condition: service_healthy
     ports:
       - '${API_EXPORT_PORT}:8000'
     build:
