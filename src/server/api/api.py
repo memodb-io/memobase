@@ -1,3 +1,4 @@
+import time
 import memobase_server.env
 
 # Done setting up env
@@ -23,7 +24,7 @@ from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
 from memobase_server.models import response as res
 from memobase_server import controllers
-from memobase_server.telemetry import telemetry_manager, CounterMetricName
+from memobase_server.telemetry import telemetry_manager, CounterMetricName, HistogramMetricName
 from memobase_server.env import (
     LOG,
     TelemetryKeyName,
@@ -339,9 +340,25 @@ class AuthMiddleware(BaseHTTPMiddleware):
         telemetry_manager.increment_counter_metric(
             CounterMetricName.REQUEST,
             1,
-            {"project_id": request.state.memobase_project_id},
+            {
+                "project_id": request.state.memobase_project_id,
+                "source_ip": request.client.host,
+                "path": request.url.path,
+                "method": request.method,
+             },
         )
+        start_time = time.time()
         response = await call_next(request)
+        telemetry_manager.record_histogram_metric(
+            HistogramMetricName.REQUEST_LATENCY_MS,
+            (time.time() - start_time) * 1000,
+            {
+                "project_id": request.state.memobase_project_id,
+                "source_ip": request.client.host,
+                "path": request.url.path,
+                "method": request.method,
+            },
+        )
         return response
 
     def is_valid_root(self, token: str) -> bool:
