@@ -306,12 +306,39 @@ async def get_user_events(
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
+    PATH_MAPPINGS = {
+        "/api/v1/users/blobs/": "/api/v1/users/blobs",
+        "/api/v1/users/profile/": "/api/v1/users/profile", 
+        "/api/v1/users/": "/api/v1/users",
+        "/api/v1/blobs/insert/": "/api/v1/blobs/insert",
+        "/api/v1/blobs/": "/api/v1/blobs",
+        "/api/v1/users/buffer/": "/api/v1/users/buffer",
+        "/api/v1/users/event/": "/api/v1/users/event"
+    }
+
+    def normalize_path(self, path: str) -> str:
+        """Remove dynamic path parameters to get normalized path for metrics"""
+        if not path.startswith("/api/v1"):
+            return path
+            
+        for prefix, normalized in self.PATH_MAPPINGS.items():
+            if path.startswith(prefix):
+                return normalized
+                
+        return path
+
     async def dispatch(self, request, call_next):
         if not request.url.path.startswith("/api"):
             return await call_next(request)
+            
         if request.url.path.startswith("/api/v1/healthcheck"):
-            telemetry_manager.increment_counter_metric(CounterMetricName.HEALTHCHECK, 1, {"source_ip": request.client.host})
+            telemetry_manager.increment_counter_metric(
+                CounterMetricName.HEALTHCHECK, 
+                1, 
+                {"source_ip": request.client.host}
+            )
             return await call_next(request)
+
         auth_token = request.headers.get("Authorization")
         if not auth_token or not auth_token.startswith("Bearer "):
             return JSONResponse(
@@ -337,25 +364,30 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 )
             request.state.memobase_project_id = p.data()
         # await capture_int_key(TelemetryKeyName.has_request)
+
+        normalized_path = self.normalize_path(request.url.path)
+        
         telemetry_manager.increment_counter_metric(
             CounterMetricName.REQUEST,
             1,
             {
                 "project_id": request.state.memobase_project_id,
                 "source_ip": request.client.host,
-                "path": request.url.path,
+                "path": normalized_path,
                 "method": request.method,
              },
         )
+        
         start_time = time.time()
         response = await call_next(request)
+        
         telemetry_manager.record_histogram_metric(
             HistogramMetricName.REQUEST_LATENCY_MS,
             (time.time() - start_time) * 1000,
             {
                 "project_id": request.state.memobase_project_id,
                 "source_ip": request.client.host,
-                "path": request.url.path,
+                "path": normalized_path,
                 "method": request.method,
             },
         )
