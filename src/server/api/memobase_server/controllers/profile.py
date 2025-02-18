@@ -3,19 +3,37 @@ from ..models.utils import Promise
 from ..models.database import GeneralBlob, UserProfile
 from ..models.response import CODE, IdData, IdsData, UserProfilesData
 from ..connectors import Session, get_redis_client
+from ..utils import get_encoded_tokens
 from ..env import LOG, CONFIG
 
 
 async def truncate_profiles(
-    profiles: UserProfilesData, topk: int = None, max_length: int = None
+    profiles: UserProfilesData,
+    prefer_topics: list[str] = None,
+    topk: int = None,
+    max_token_size: int = None,
 ) -> Promise[UserProfilesData]:
+    profiles.profiles.sort(key=lambda p: p.updated_at, reverse=True)
+    if prefer_topics:
+        priority_weights = {t: i for i, t in enumerate(prefer_topics)}
+        priority_profiles = []
+        non_priority_profiles = []
+        for p in profiles.profiles:
+            if p.attributes.get("topic") in priority_weights:
+                priority_profiles.append(p)
+            else:
+                non_priority_profiles.append(p)
+        priority_profiles.sort(
+            key=lambda p: priority_weights[p.attributes.get("topic")]
+        )
+        profiles.profiles = priority_profiles + non_priority_profiles
     if topk:
         profiles.profiles = profiles.profiles[:topk]
-    if max_length:
+    if max_token_size:
         current_length = 0
         for max_i, p in enumerate(profiles.profiles):
-            current_length += len(p.content)
-            if current_length > max_length:
+            current_length += len(get_encoded_tokens(p.content))
+            if current_length > max_token_size:
                 break
         profiles.profiles = profiles.profiles[: max_i + 1]
     return Promise.resolve(profiles)

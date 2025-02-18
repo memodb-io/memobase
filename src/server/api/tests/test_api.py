@@ -231,6 +231,16 @@ async def test_api_user_profile(client, db_env):
     assert [dp["attributes"] for dp in d["data"]["profiles"]] == _attributes
     id1, id2 = d["data"]["profiles"][0]["id"], d["data"]["profiles"][1]["id"]
 
+    response = client.get(
+        f"{PREFIX}/users/profile/{u_id}?prefer_topics=interest&topk=1"
+    )
+    d = response.json()
+    d["data"]["profiles"] = sorted(d["data"]["profiles"], key=lambda x: x["content"])
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["profiles"]) == 1
+    assert d["data"]["profiles"][0]["id"] == id2
+
     response = client.delete(f"{PREFIX}/users/profile/{u_id}/{id1}")
     d = response.json()
     assert response.status_code == 200

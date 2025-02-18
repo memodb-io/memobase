@@ -24,7 +24,11 @@ from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
 from memobase_server.models import response as res
 from memobase_server import controllers
-from memobase_server.telemetry import telemetry_manager, CounterMetricName, HistogramMetricName
+from memobase_server.telemetry import (
+    telemetry_manager,
+    CounterMetricName,
+    HistogramMetricName,
+)
 from memobase_server.env import (
     LOG,
     TelemetryKeyName,
@@ -39,6 +43,7 @@ from memobase_server.auth.token import (
     get_project_status,
 )
 from memobase_server import utils
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -254,16 +259,20 @@ async def get_user_profile(
     topk: int = Query(
         None, description="Number of profiles to retrieve, default is all"
     ),
-    max_length: int = Query(
+    max_token_size: int = Query(
         None,
-        description="Max Character length of total profile content, default is all",
+        description="Max token size of returned profile content, default is all",
+    ),
+    prefer_topics: list[str] = Query(
+        None,
+        description="Rank prefer topics at first to try to keep them in filtering, default order is by updated time",
     ),
 ) -> res.UserProfileResponse:
     """Get the real-time user profiles for long term memory"""
     project_id = request.state.memobase_project_id
     p = await controllers.profile.get_user_profiles(user_id, project_id)
     p = await controllers.profile.truncate_profiles(
-        p.data(), topk=topk, max_length=max_length
+        p.data(), prefer_topics=prefer_topics, topk=topk, max_token_size=max_token_size
     )
     return p.to_response(res.UserProfileResponse)
 
@@ -375,7 +384,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 "source_ip": request.client.host,
                 "path": normalized_path,
                 "method": request.method,
-             },
+            },
         )
         
         start_time = time.time()

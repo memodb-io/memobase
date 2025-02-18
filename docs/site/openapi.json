@@ -3,7 +3,7 @@
     "info": {
         "title": "Memobase API",
         "summary": "APIs for Memobase, a user memory system for LLM Apps",
-        "version": "0.0.11"
+        "version": "0.0.17"
     },
     "paths": {
         "/api/v1/healthcheck": {
@@ -545,15 +545,29 @@
                         "description": "Number of profiles to retrieve, default is all"
                     },
                     {
-                        "name": "max_length",
+                        "name": "max_token_size",
                         "in": "query",
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "description": "Max Character length of total profile content, default is all",
-                            "title": "Max Length"
+                            "description": "Max token size of returned profile content, default is all",
+                            "title": "Max Token Size"
                         },
-                        "description": "Max Character length of total profile content, default is all"
+                        "description": "Max token size of returned profile content, default is all"
+                    },
+                    {
+                        "name": "prefer_topics",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Rank prefer topics at first to try to keep them in filtering, default order is by updated time",
+                            "title": "Prefer Topics"
+                        },
+                        "description": "Rank prefer topics at first to try to keep them in filtering, default order is by updated time"
                     }
                 ],
                 "responses": {
