@@ -1,9 +1,15 @@
 from enum import Enum
+import os
 from typing import Dict
 
 from prometheus_client import start_http_server
 from opentelemetry import metrics
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
+from opentelemetry.sdk.metrics.export import (
+    PeriodicExportingMetricReader,
+    ConsoleMetricExporter,
+)
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics._internal.instrument import (
     Counter,
@@ -12,7 +18,6 @@ from opentelemetry.sdk.metrics._internal.instrument import (
 )
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.metrics import CallbackOptions, Observation
-from ..env import LOG
 
 
 class CounterMetricName(Enum):
@@ -95,20 +100,35 @@ class TelemetryManager:
     def setup_telemetry(self) -> None:
         """Initialize OpenTelemetry with Prometheus exporter."""
         resource = Resource(attributes={SERVICE_NAME: self.service_name})
-        reader = PrometheusMetricReader()
-        provider = MeterProvider(resource=resource, metric_readers=[reader])
-        metrics.set_meter_provider(provider)
+        # TODO: remove this
+        debug = os.getenv("DEBUG")
+        if debug:
+            reader = PeriodicExportingMetricReader(ConsoleMetricExporter())
+        else:
+            reader = PeriodicExportingMetricReader(
+                # oltp collector endpoint, interval by default 1 minute
+                exporter=OTLPMetricExporter(
+                    endpoint="http://0.0.0.0:4318/v1/metrics",
+                ),
+            )
+
+        meterProvider = MeterProvider(resource=resource, metric_readers=[reader])
+        metrics.set_meter_provider(meterProvider)
+
+        # reader = PrometheusMetricReader()
+        # provider = MeterProvider(resource=resource, metric_readers=[reader])
+        # metrics.set_meter_provider(provider)
 
         # Start Prometheus HTTP server, skip if port is already in use
-        try:
-            start_http_server(self.prometheus_port)
-        except OSError as e:
-            if e.errno == 48:  # Address already in use
-                LOG.warning(
-                    f"Prometheus HTTP server already running on port {self.prometheus_port}"
-                )
-            else:
-                raise e
+        # try:
+        #     start_http_server(self.prometheus_port)
+        # except OSError as e:
+        #     if e.errno == 48:  # Address already in use
+        #         LOG.warning(
+        #             f"Prometheus HTTP server already running on port {self.prometheus_port}"
+        #         )
+        #     else:
+        #         raise e
 
         # Initialize meter
         self._meter = metrics.get_meter(self.service_name)
