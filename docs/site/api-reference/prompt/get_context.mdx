@@ -1,0 +1,20 @@
+---
+title: 'Get User Personalized Context'
+openapi: get /api/v1/users/context/{user_id}
+---
+
+
+Return a string of the user's personalized context you can directly insert it into your prompt.
+
+Format:
+```
+<memory>
+# Below is the user profile:
+{profile}
+
+# Below is the latest events of the user:
+{event}
+</memory>
+Please provide your answer using the information within the <memory> tag at the appropriate time.
+```
+

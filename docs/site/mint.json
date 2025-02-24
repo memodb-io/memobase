@@ -116,6 +116,12 @@
           "pages": [
             "api-reference/events/get_events"
           ]
+        },
+        {
+          "group": "Prompt",
+          "pages": [
+            "api-reference/prompt/get_context"
+          ]
         }
       ]
     }

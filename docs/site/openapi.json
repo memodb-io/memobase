@@ -3,7 +3,7 @@
     "info": {
         "title": "Memobase API",
         "summary": "APIs for Memobase, a user memory system for LLM Apps",
-        "version": "0.0.17"
+        "version": "0.0.18"
     },
     "paths": {
         "/api/v1/healthcheck": {
@@ -568,6 +568,20 @@
                             "title": "Prefer Topics"
                         },
                         "description": "Rank prefer topics at first to try to keep them in filtering, default order is by updated time"
+                    },
+                    {
+                        "name": "only_topics",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Only return profiles with these topics, default is all",
+                            "title": "Only Topics"
+                        },
+                        "description": "Only return profiles with these topics, default is all"
                     }
                 ],
                 "responses": {
@@ -735,6 +749,17 @@
                             "title": "Topk"
                         },
                         "description": "Number of events to retrieve, default is 10"
+                    },
+                    {
+                        "name": "max_token_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "description": "Max token size of returned events",
+                            "title": "Max Token Size"
+                        },
+                        "description": "Max token size of returned events"
                     }
                 ],
                 "responses": {
@@ -744,6 +769,90 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/UserEventsDataResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/context/{user_id}": {
+            "get": {
+                "tags": [
+                    "context"
+                ],
+                "summary": "Get User Context",
+                "operationId": "get_user_context_api_v1_users_context__user_id__get",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "description": "The ID of the user",
+                            "title": "User Id"
+                        },
+                        "description": "The ID of the user"
+                    },
+                    {
+                        "name": "max_token_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "description": "Max token size of returned Context",
+                            "default": 1000,
+                            "title": "Max Token Size"
+                        },
+                        "description": "Max token size of returned Context"
+                    },
+                    {
+                        "name": "prefer_topics",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Rank prefer topics at first to try to keep them in filtering, default order is by updated time",
+                            "title": "Prefer Topics"
+                        },
+                        "description": "Rank prefer topics at first to try to keep them in filtering, default order is by updated time"
+                    },
+                    {
+                        "name": "only_topics",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Only return profiles with these topics, default is all",
+                            "title": "Only Topics"
+                        },
+                        "description": "Only return profiles with these topics, default is all"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserContextDataResponse"
                                 }
                             }
                         }
@@ -902,6 +1011,20 @@
                     504
                 ],
                 "title": "CODE"
+            },
+            "ContextData": {
+                "properties": {
+                    "context": {
+                        "type": "string",
+                        "title": "Context",
+                        "description": "Context string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "context"
+                ],
+                "title": "ContextData"
             },
             "EventData": {
                 "properties": {
@@ -1159,6 +1282,34 @@
                     "attributes"
                 ],
                 "title": "ProfileDelta"
+            },
+            "UserContextDataResponse": {
+                "properties": {
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ContextData"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Response containing user context"
+                    },
+                    "errno": {
+                        "$ref": "#/components/schemas/CODE",
+                        "description": "Error code, 0 means success",
+                        "default": 0
+                    },
+                    "errmsg": {
+                        "type": "string",
+                        "title": "Errmsg",
+                        "description": "Error message, empty when success",
+                        "default": ""
+                    }
+                },
+                "type": "object",
+                "title": "UserContextDataResponse"
             },
             "UserData": {
                 "properties": {
