@@ -129,9 +129,21 @@ class User:
         )
         return True
 
-    def profile(self) -> list[UserProfile]:
+    def profile(
+        self,
+        max_token_size: int = 1000,
+        prefer_topics: list[str] = None,
+        only_topics: list[str] = None,
+    ) -> list[UserProfile]:
+        params = f"?max_token_size={max_token_size}"
+        if prefer_topics:
+            prefer_topics_query = [f"&prefer_topics={pt}" for pt in prefer_topics]
+            params += "&".join(prefer_topics_query)
+        if only_topics:
+            only_topics_query = [f"&only_topics={ot}" for ot in only_topics]
+            params += "&".join(only_topics_query)
         r = unpack_response(
-            self.project_client.client.get(f"/users/profile/{self.user_id}")
+            self.project_client.client.get(f"/users/profile/{self.user_id}{params}")
         )
         data = r.data["profiles"]
         return [UserProfileData.model_validate(p).to_ds() for p in data]
@@ -149,3 +161,21 @@ class User:
             self.project_client.client.get(f"/users/event/{self.user_id}?topk={topk}")
         )
         return [UserEventData.model_validate(e) for e in r.data["events"]]
+
+    def context(
+        self,
+        max_token_size: int = 1000,
+        prefer_topics: list[str] = None,
+        only_topics: list[str] = None,
+    ) -> str:
+        params = f"?max_token_size={max_token_size}"
+        if prefer_topics:
+            prefer_topics_query = [f"&prefer_topics={pt}" for pt in prefer_topics]
+            params += "&".join(prefer_topics_query)
+        if only_topics:
+            only_topics_query = [f"&only_topics={ot}" for ot in only_topics]
+            params += "&".join(only_topics_query)
+        r = unpack_response(
+            self.project_client.client.get(f"/users/context/{self.user_id}{params}")
+        )
+        return r.data["context"]
