@@ -175,7 +175,7 @@ And what will you get?
 
 ```python
 print(u.profile())
-# [UserProfile(topic="basic_info", sub_topic="name", content="Gus",...)]
+# [UserProfile(topic="basic_info", sub_topic="name", content="Gus",...)], []
 ```
 
 `u.profile()` will return a list of profiles that are learned from this user, including `topic`, `sub_topic` and `content`. As you insert more blobs, the profile will become better.
@@ -188,8 +188,35 @@ In Memobase, we don't memoize users in [hot path](https://langchain-ai.github.io
 When the buffer zone becomes too large (e.g., 1024 tokens) or remains idle for an extended period (e.g., 1 hour), Memobase will flush the entire buffer into memory.  Alternatively, you can use `flush()` manually decide when to flush, such as when a chat session is closed in your app.
 </details>
 
+
+
+### 5. Integrate memory into your prompt
+
+Memobase has a context api to pack everything you need into a simple string, where you can insert it into your prompt directly:
+
+```python
+print(u.context(max_token_size=500, prefer_topics=["basic_info"]))
+```
+
+Something like:
+
+```
+<memory>
+# Below is the user profile:
+- basic_info::name: Gus
+...
+# Below is the latest events of the user:
+2025/02/24 04:25PM:
+- work::meetings: Scheduled a meeting with John.
+</memory>
+Please provide your answer using the information within the <memory> tag at the appropriate time.
+```
+
+Checkout the detail params [here](https://docs.memobase.io/api-reference/prompt/get_context).
+
 ### What's next?
 
+- Checkout the [quickstart script](./assets/quickstart.py) for more details
 - You may want to explore the [customization](https://docs.memobase.io/features/customization/profile) of Memobase to make sure the system works as your expectation.
 - If you want to test Memobase on your own data, we offer a [script](./docs/experiments/chat_sessions) that allows you to set multiple chat sessions and see how the memory grows.
 

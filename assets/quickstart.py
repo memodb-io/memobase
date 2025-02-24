@@ -38,5 +38,21 @@ u.flush()
 
 prompts = [m.describe for m in u.profile()]
 
-print("Below is your profile:")
+print("\n--------------\nBelow is your profile:")
 print("* " + "\n* ".join(sorted(prompts)))
+
+print("\n--------------\nYou can use Memobase Event to recent details of the user:")
+for e in u.event():
+    print("📅", e.created_at.astimezone().strftime("%Y-%m-%d %H:%M:%S"))
+    for i in e.event_data.profile_delta:
+        print("-", i.attributes["topic"], i.attributes["sub_topic"], i.content)
+
+print(
+    "\n--------------\nYou can use Memobase Context to get a memory prompt and insert it into your prompt:"
+)
+print(
+    f"""```
+{u.context()}
+```
+"""
+)
