@@ -5,7 +5,21 @@ from functools import wraps
 from .env import ENCODER, LOG
 from .models.blob import Blob, BlobType, ChatBlob, DocBlob, OpenAICompatibleMessage
 from .models.database import GeneralBlob
+from .models.response import UserEventData
 from .connectors import get_redis_client, PROJECT_ID
+
+
+def event_str_repr(event: UserEventData) -> str:
+    happened_at = event.created_at.astimezone().strftime("%Y/%m/%d %I:%M%p")
+    event_data = event.event_data
+
+    profile_deltas = [
+        f"- {ed.attributes['topic']}::{ed.attributes['sub_topic']}: {ed.content}"
+        for ed in event_data.profile_delta
+    ]
+    profile_delta_str = "\n".join(profile_deltas)
+    return f"""{happened_at}:
+{profile_delta_str}"""
 
 
 def get_encoded_tokens(content: str) -> list[int]:

@@ -316,30 +316,40 @@ async def get_user_events(
     request: Request,
     user_id: str = Path(..., description="The ID of the user"),
     topk: int = Query(10, description="Number of events to retrieve, default is 10"),
+    max_token_size: int = Query(
+        None,
+        description="Max token size of returned events",
+    ),
 ) -> res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
-    p = await controllers.event.get_user_events(user_id, project_id, topk=topk)
+    p = await controllers.event.get_user_events(
+        user_id, project_id, topk=topk, max_token_size=max_token_size
+    )
     return p.to_response(res.UserEventsDataResponse)
 
 
-# @router.get("/users/context/{user_id}", tags=["context"])
-# async def get_user_context(
-#     request: Request,
-#     user_id: str = Path(..., description="The ID of the user"),
-#     max_token_size: int = Query(
-#         1000,
-#         description="Max token size of returned Context",
-#     ),
-#     prefer_topics: list[str] = Query(
-#         None,
-#         description="Rank prefer topics at first to try to keep them in filtering, default order is by updated time",
-#     ),
-# ) -> res.UserContextDataResponse:
-#     project_id = request.state.memobase_project_id
-#     p = await controllers.context.get_user_context(
-#         user_id, project_id, max_token_size, prefer_topics
-#     )
-#     return p.to_response(res.UserContextDataResponse)
+@router.get("/users/context/{user_id}", tags=["context"])
+async def get_user_context(
+    request: Request,
+    user_id: str = Path(..., description="The ID of the user"),
+    max_token_size: int = Query(
+        1000,
+        description="Max token size of returned Context",
+    ),
+    prefer_topics: list[str] = Query(
+        None,
+        description="Rank prefer topics at first to try to keep them in filtering, default order is by updated time",
+    ),
+    only_topics: list[str] = Query(
+        None,
+        description="Only return profiles with these topics, default is all",
+    ),
+) -> res.UserContextDataResponse:
+    project_id = request.state.memobase_project_id
+    p = await controllers.context.get_user_context(
+        user_id, project_id, max_token_size, prefer_topics, only_topics
+    )
+    return p.to_response(res.UserContextDataResponse)
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
