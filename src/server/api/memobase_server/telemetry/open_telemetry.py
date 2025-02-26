@@ -8,10 +8,9 @@ from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics._internal.instrument import (
     Counter,
     Histogram,
-    ObservableGauge,
+    Gauge,
 )
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.metrics import CallbackOptions, Observation
 from ..env import LOG
 
 
@@ -21,6 +20,8 @@ class CounterMetricName(Enum):
     REQUEST = "requests_total"
     HEALTHCHECK = "healthcheck_total"
     LLM_INVOCATIONS = "llm_invocations_total"
+    LLM_TOKENS_INPUT = "llm_tokens_input_total"
+    LLM_TOKENS_OUTPUT = "llm_tokens_output_total"
 
     def get_description(self) -> str:
         """Get the description for this metric."""
@@ -28,6 +29,8 @@ class CounterMetricName(Enum):
             CounterMetricName.REQUEST: "Total number of requests to the memobase server",
             CounterMetricName.HEALTHCHECK: "Total number of healthcheck requests to the memobase server",
             CounterMetricName.LLM_INVOCATIONS: "Total number of LLM invocations",
+            CounterMetricName.LLM_TOKENS_INPUT: "Total number of input tokens",
+            CounterMetricName.LLM_TOKENS_OUTPUT: "Total number of output tokens",
         }
         return descriptions[self]
 
@@ -55,17 +58,17 @@ class HistogramMetricName(Enum):
         return f"memobase_server_{self.value}"
 
 
-class ObservableGaugeMetricName(Enum):
-    """Enum for observable gauge metrics."""
+class GaugeMetricName(Enum):
+    """Enum for gauge metrics."""
 
-    INPUT_TOKEN_COUNT = "input_token_count"
-    OUTPUT_TOKEN_COUNT = "output_token_count"
+    INPUT_TOKEN_COUNT = "input_token_count_per_call"
+    OUTPUT_TOKEN_COUNT = "output_token_count_per_call"
 
     def get_description(self) -> str:
         """Get the description for this metric."""
         descriptions = {
-            ObservableGaugeMetricName.INPUT_TOKEN_COUNT: "Number of input tokens",
-            ObservableGaugeMetricName.OUTPUT_TOKEN_COUNT: "Number of output tokens",
+            GaugeMetricName.INPUT_TOKEN_COUNT: "Number of input tokens per call",
+            GaugeMetricName.OUTPUT_TOKEN_COUNT: "Number of output tokens per call",
         }
         return descriptions[self]
 
@@ -83,14 +86,10 @@ class TelemetryManager:
         self.service_name = service_name
         self.prometheus_port = prometheus_port
         self.metrics: Dict[
-            CounterMetricName | HistogramMetricName | ObservableGaugeMetricName,
-            Counter | Histogram | ObservableGauge,
+            CounterMetricName | HistogramMetricName | GaugeMetricName,
+            Counter | Histogram | Gauge,
         ] = {}
         self._meter = None
-        # Store the latest values for observable gauges
-        self._gauge_values: Dict[ObservableGaugeMetricName, Dict[str, float]] = {
-            metric: {} for metric in ObservableGaugeMetricName
-        }
 
     def setup_telemetry(self) -> None:
         """Initialize OpenTelemetry with Prometheus exporter."""
@@ -134,22 +133,12 @@ class TelemetryManager:
                 description=metric.get_description(),
             )
 
-        # Create observable gauges for token counts
-        for metric in ObservableGaugeMetricName:
-
-            def make_callback(metric_name):
-                def callback(options: CallbackOptions):
-                    values = self._gauge_values[metric_name]
-                    for value in values.values():
-                        yield Observation(value["value"], value["attributes"])
-
-                return callback
-
-            self.metrics[metric] = self._meter.create_observable_gauge(
+        # Create gauges for token counts
+        for metric in GaugeMetricName:
+            self.metrics[metric] = self._meter.create_gauge(
                 metric.get_metric_name(),
                 unit="1",
                 description=metric.get_description(),
-                callbacks=[make_callback(metric)],
             )
 
     def increment_counter_metric(
@@ -176,20 +165,14 @@ class TelemetryManager:
 
     def set_gauge_metric(
         self,
-        metric: ObservableGaugeMetricName,
+        metric: GaugeMetricName,
         value: float,
         attributes: Dict[str, str] = None,
     ) -> None:
-        """Set an observable gauge metric."""
+        """Set a gauge metric."""
         if metric not in self.metrics:
             raise KeyError(f"Metric {metric} not initialized")
-
-        # Store the value with its attributes
-        attr_key = attributes["project_id"]
-        self._gauge_values[metric][attr_key] = {
-            "value": value,
-            "attributes": attributes,
-        }
+        self.metrics[metric].set(value, attributes)
 
 
 # Create a global instance
