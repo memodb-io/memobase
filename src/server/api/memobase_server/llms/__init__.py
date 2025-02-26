@@ -11,7 +11,7 @@ from ..telemetry import (
     telemetry_manager, 
     CounterMetricName, 
     HistogramMetricName,
-    ObservableGaugeMetricName
+    GaugeMetricName
 )
 
 
@@ -59,6 +59,16 @@ async def llm_complete(
     )
 
     telemetry_manager.increment_counter_metric(
+        CounterMetricName.LLM_TOKENS_INPUT,
+        in_tokens,
+        {"project_id": project_id},
+    )
+    telemetry_manager.increment_counter_metric(
+        CounterMetricName.LLM_TOKENS_OUTPUT,
+        out_tokens,
+        {"project_id": project_id},
+    )
+    telemetry_manager.increment_counter_metric(
         CounterMetricName.LLM_INVOCATIONS,
         1,
         {"project_id": project_id},
@@ -69,12 +79,12 @@ async def llm_complete(
         {"project_id": project_id},
     )
     telemetry_manager.set_gauge_metric(
-        ObservableGaugeMetricName.INPUT_TOKEN_COUNT,
+        GaugeMetricName.INPUT_TOKEN_COUNT,
         in_tokens,
         {"project_id": project_id},
     )
     telemetry_manager.set_gauge_metric(
-        ObservableGaugeMetricName.OUTPUT_TOKEN_COUNT,
+        GaugeMetricName.OUTPUT_TOKEN_COUNT,
         out_tokens,
         {"project_id": project_id},
     )
