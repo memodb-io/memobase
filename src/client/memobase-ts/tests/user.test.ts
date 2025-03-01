@@ -1,6 +1,6 @@
 import { User } from '../src/user';
 import { MemoBaseClient } from '../src/client';
-import type { Blob, BaseResponse, IdResponse, ProfileResponse } from '../src/types';
+import type { Blob, BaseResponse, IdResponse, ProfileResponse, EventResponse } from '../src/types';
 import { projectUrl, apiKey, apiVersion } from './env';
 
 // 模拟 fetch
@@ -167,6 +167,65 @@ describe('User', () => {
     expect(fetch).toHaveBeenCalledWith(
       `${projectUrl}/${apiVersion}/users/profile/user123/profile123`,
       expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('should get user events', async () => {
+    const mockResponse: BaseResponse<EventResponse> = {
+      data: {
+        events: [
+          {
+            id: 'event123',
+            created_at: new Date('2025-03-01T00:00:00Z'),
+            updated_at: new Date('2025-03-01T00:00:00Z'),
+            event_data: {
+              profile_delta: {
+                content: 'Content1',
+                attributes: { topic: 'Topic1', sub_topic: 'SubTopic1' },
+              },
+            },
+          },
+        ],
+      },
+      errmsg: '',
+      errno: 0,
+    };
+
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockResponse),
+    });
+
+    const events = await user.event('user123');
+
+    expect(events).toEqual({
+      events: [
+        expect.objectContaining({
+          id: 'event123',
+        }),
+      ],
+    });
+    expect(fetch).toHaveBeenCalledWith(`${projectUrl}/${apiVersion}/users/event/user123`, expect.any(Object));
+  });
+
+  it('should get user events with topk and max_token_size', async () => {
+    const mockResponse: BaseResponse<EventResponse> = {
+      data: { events: [] },
+      errmsg: '',
+      errno: 0,
+    };
+
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockResponse),
+    });
+
+    const events = await user.event('user123', { topk: 1, max_token_size: 100 });
+
+    expect(events).toEqual({ events: [] });
+    expect(fetch).toHaveBeenCalledWith(
+      `${projectUrl}/${apiVersion}/users/event/user123?topk=1&max_token_size=100`,
+      expect.any(Object),
     );
   });
 });

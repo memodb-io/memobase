@@ -113,3 +113,24 @@ export const ProfileResponse = z.object({
   ),
 });
 export type ProfileResponse = z.infer<typeof ProfileResponse>;
+
+export const EventResponse = z.object({
+  events: z.array(
+    z.object({
+      id: z.string(),
+      event_data: z
+        .object({
+          profile_delta: z
+            .object({
+              content: z.string(),
+              attributes: z.record(z.any()),
+            })
+            .nullable(),
+        })
+        .nullable(),
+      created_at: z.coerce.date(),
+      updated_at: z.coerce.date(),
+    }),
+  ),
+});
+export type EventResponse = z.infer<typeof EventResponse>;
