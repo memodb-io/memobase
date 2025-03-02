@@ -146,7 +146,7 @@ describe('User', () => {
       json: jest.fn().mockResolvedValue(mockResponse),
     });
 
-    const result = await user.profile();
+    const result = await user.profile(2000, ['Topic1'], ['SubTopic1'], 200, { Topic1: 200 });
 
     expect(result).toEqual(
       mockResponse.data?.profiles.map((p) => ({
@@ -159,7 +159,7 @@ describe('User', () => {
       })),
     );
     expect(fetch).toHaveBeenCalledWith(
-      `${projectUrl}/${apiVersion}/users/profile/user123`,
+      `${projectUrl}/${apiVersion}/users/profile/user123?max_token_size=2000&prefer_topics=Topic1&only_topics=SubTopic1&max_subtopic_size=200&topic_limits=%7B%22Topic1%22%3A200%7D`,
       expect.any(Object),
     );
   });

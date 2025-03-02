@@ -51,8 +51,36 @@ export class User {
     return true;
   }
 
-  async profile(): Promise<UserProfile[]> {
-    const response = await this.projectClient.fetch<ProfileResponse>(`/users/profile/${this.userId}`);
+  async profile(
+    maxTokenSize = 1000,
+    preferTopics?: string[],
+    onlyTopics?: string[],
+    maxSubtopicSize?: number,
+    topicLimits?: Record<string, number>,
+  ): Promise<UserProfile[]> {
+    const params = new URLSearchParams();
+
+    params.append('max_token_size', maxTokenSize.toString());
+    if (preferTopics !== undefined && preferTopics.length > 0) {
+      preferTopics.forEach((topic) => {
+        params.append('prefer_topics', topic);
+      });
+    }
+    if (onlyTopics !== undefined && onlyTopics.length > 0) {
+      onlyTopics.forEach((topic) => {
+        params.append('only_topics', topic);
+      });
+    }
+    if (maxSubtopicSize !== undefined) {
+      params.append('max_subtopic_size', maxSubtopicSize.toString());
+    }
+    if (topicLimits !== undefined) {
+      params.append('topic_limits', JSON.stringify(topicLimits));
+    }
+
+    const response = await this.projectClient.fetch<ProfileResponse>(
+      `/users/profile/${this.userId}?${params.toString()}`,
+    );
     return response.data!.profiles.reduce((acc, cur) => {
       acc.push({
         id: cur.id,

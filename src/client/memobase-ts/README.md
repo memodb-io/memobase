@@ -90,7 +90,7 @@ const main = async () => {
     user = await client.getOrCreateUser(userId)
     console.log(user)
 
-    const profiles = await user.profile()
+    const profiles = await user.profile(2000, ['Topic1'], ['SubTopic1'], 200, { Topic1: 200 })
     console.log(profiles)
 
     const event = await user.event(10, 1000)
