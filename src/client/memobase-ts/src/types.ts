@@ -77,10 +77,12 @@ export type Blob = z.infer<typeof Blob>;
 
 // UserProfile 类型
 export const UserProfile = z.object({
-  updated_at: z.date(),
+  id: z.string(),
+  content: z.string(),
   topic: z.string(),
   sub_topic: z.string(),
-  content: z.string(),
+  created_at: z.date(),
+  updated_at: z.date(),
 });
 export type UserProfile = z.infer<typeof UserProfile>;
 
@@ -103,13 +105,53 @@ export type IdResponse = z.infer<typeof IdResponse>;
 export const ProfileResponse = z.object({
   profiles: z.array(
     z.object({
-      updated_at: z.string(),
+      id: z.string(),
+      content: z.string(),
       attributes: z.object({
         topic: z.string(),
         sub_topic: z.string(),
       }),
-      content: z.string(),
+      created_at: z.string(),
+      updated_at: z.string(),
     }),
   ),
 });
 export type ProfileResponse = z.infer<typeof ProfileResponse>;
+
+// UserEvent 类型
+export const UserEvent = z.object({
+  id: z.string(),
+  event_data: z
+    .object({
+      profile_delta: z
+        .array(
+          z.object({
+            content: z.string(),
+            attributes: z.record(z.any()).optional(),
+          }),
+        )
+        .optional(),
+    })
+    .optional(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+});
+export type UserEvent = z.infer<typeof UserEvent>;
+
+// EventResponse 类型
+export const EventResponse = z.object({
+  events: z.array(UserEvent),
+});
+export type EventResponse = z.infer<typeof EventResponse>;
+
+// ContextResponse 类型
+export const ContextResponse = z.object({
+  context: z.string(),
+});
+export type ContextResponse = z.infer<typeof ContextResponse>;
+
+// GetConfigResponse 类型
+export const GetConfigResponse = z.object({
+  profile_config: z.string(),
+});
+export type GetConfigResponse = z.infer<typeof GetConfigResponse>;

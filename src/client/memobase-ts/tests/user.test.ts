@@ -1,6 +1,14 @@
 import { User } from '../src/user';
 import { MemoBaseClient } from '../src/client';
-import type { Blob, BaseResponse, IdResponse, ProfileResponse } from '../src/types';
+import type {
+  Blob,
+  BaseResponse,
+  IdResponse,
+  ProfileResponse,
+  UserEvent,
+  EventResponse,
+  ContextResponse,
+} from '../src/types';
 import { projectUrl, apiKey, apiVersion } from './env';
 
 // 模拟 fetch
@@ -29,9 +37,9 @@ describe('User', () => {
       json: jest.fn().mockResolvedValue(mockResponse),
     });
 
-    const blobId = await user.insert(mockBlobData);
+    const result = await user.insert(mockBlobData);
 
-    expect(blobId).toBe('blob123');
+    expect(result).toBe('blob123');
     expect(fetch).toHaveBeenCalledWith(
       `${projectUrl}/${apiVersion}/blobs/insert/user123`,
       expect.any(Object),
@@ -70,9 +78,9 @@ describe('User', () => {
       json: jest.fn().mockResolvedValue(mockResponse),
     });
 
-    const blobIds = await user.getAll('chat');
+    const result = await user.getAll('chat');
 
-    expect(blobIds).toEqual(['blob123', 'blob456']);
+    expect(result).toEqual(['blob123', 'blob456']);
     expect(fetch).toHaveBeenCalledWith(
       `${projectUrl}/${apiVersion}/users/blobs/user123/chat?page=0&page_size=10`,
       expect.any(Object),
@@ -120,9 +128,11 @@ describe('User', () => {
       data: {
         profiles: [
           {
-            updated_at: '2023-01-01T00:00:00Z',
-            attributes: { topic: 'Topic1', sub_topic: 'SubTopic1' },
+            id: 'profile123',
             content: 'Content1',
+            attributes: { topic: 'Topic1', sub_topic: 'SubTopic1' },
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
           },
         ],
       },
@@ -136,16 +146,18 @@ describe('User', () => {
       json: jest.fn().mockResolvedValue(mockResponse),
     });
 
-    const profiles = await user.profile();
+    const result = await user.profile();
 
-    expect(profiles).toEqual([
-      {
-        updated_at: new Date('2023-01-01T00:00:00Z'),
-        topic: 'Topic1',
-        sub_topic: 'SubTopic1',
-        content: 'Content1',
-      },
-    ]);
+    expect(result).toEqual(
+      mockResponse.data?.profiles.map((p) => ({
+        id: p.id,
+        content: p.content,
+        topic: p.attributes.topic || 'NONE',
+        sub_topic: p.attributes.sub_topic || 'NONE',
+        created_at: new Date(p.created_at),
+        updated_at: new Date(p.updated_at),
+      })),
+    );
     expect(fetch).toHaveBeenCalledWith(
       `${projectUrl}/${apiVersion}/users/profile/user123`,
       expect.any(Object),
@@ -167,6 +179,77 @@ describe('User', () => {
     expect(fetch).toHaveBeenCalledWith(
       `${projectUrl}/${apiVersion}/users/profile/user123/profile123`,
       expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('should get user events', async () => {
+    const events: UserEvent[] = [
+      {
+        id: 'event123',
+        created_at: new Date('2025-03-01T00:00:00Z'),
+        updated_at: new Date('2025-03-01T00:00:00Z'),
+        event_data: {
+          profile_delta: [
+            {
+              content: 'Content1',
+              attributes: { topic: 'Topic1', sub_topic: 'SubTopic1' },
+            },
+          ],
+        },
+      },
+    ];
+    const mockResponse: BaseResponse<EventResponse> = {
+      data: {
+        events: events,
+      },
+      errmsg: '',
+      errno: 0,
+    };
+
+    // 模拟 fetch 的成功响应
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockResponse),
+    });
+
+    const result = await user.event(100, 1000);
+    expect(result).toEqual(events);
+
+    expect(fetch).toHaveBeenCalledWith(
+      `${projectUrl}/${apiVersion}/users/event/user123?topk=100&max_token_size=1000`,
+      expect.any(Object),
+    );
+  });
+
+  it('should get user context', async () => {
+    const data: ContextResponse = {
+      context: 'context123',
+    };
+    const mockResponse: BaseResponse<ContextResponse> = {
+      data: data,
+      errmsg: '',
+      errno: 0,
+    };
+
+    // 模拟 fetch 的成功响应
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockResponse),
+    });
+
+    const result = await user.context(
+      2000,
+      1000,
+      ['topic1', 'topic2'],
+      ['topic3'],
+      { topic1: 5, topic2: 3 },
+      0.5,
+    );
+
+    expect(result).toBe(data.context);
+    expect(fetch).toHaveBeenCalledWith(
+      `${projectUrl}/${apiVersion}/users/context/user123?max_token_size=2000&max_subtopic_size=1000&prefer_topics=topic1&prefer_topics=topic2&only_topics=topic3&topic_limits=%7B%22topic1%22%3A5%2C%22topic2%22%3A3%7D&profile_event_ratio=0.5`,
+      expect.any(Object),
     );
   });
 });

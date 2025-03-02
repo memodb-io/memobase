@@ -1,5 +1,6 @@
 import { MemoBaseClient } from '../src/client';
 import { User } from '../src/user';
+import type { BaseResponse, GetConfigResponse } from '../src/types';
 import { projectUrl, apiKey, apiVersion } from './env';
 
 // 模拟 fetch
@@ -30,6 +31,41 @@ describe('MemoBaseClient', () => {
     it('should throw an error if no apiKey is provided', () => {
       expect(() => new MemoBaseClient(projectUrl)).toThrow(
         'apiKey is required. Pass it as argument or set MEMOBASE_API_KEY environment variable',
+      );
+    });
+  });
+
+  describe('Project method', () => {
+    it('should return the project config', async () => {
+      const mockConfig: GetConfigResponse = { profile_config: 'config-data' };
+      const mockResponse: BaseResponse<GetConfigResponse> = { data: mockConfig, errmsg: '', errno: 0 };
+
+      // 模拟 fetch 的成功响应
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await client.getConfig();
+      expect(result).toBe(mockConfig.profile_config);
+    });
+
+    it('should update the project config', async () => {
+      const mockConfig: GetConfigResponse = { profile_config: 'new-config-data' };
+      const mockResponse: BaseResponse<null> = { errmsg: '', errno: 0 };
+
+      // 模拟 fetch 的成功响应
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await client.updateConfig(mockConfig.profile_config);
+
+      expect(result).toBe(true);
+      expect(fetch).toHaveBeenCalledWith(
+        `${projectUrl}/${apiVersion}/project/profile_config`,
+        expect.objectContaining({ method: 'POST', body: JSON.stringify(mockConfig) }),
       );
     });
   });
@@ -67,8 +103,8 @@ describe('MemoBaseClient', () => {
         json: jest.fn().mockResolvedValue({ data: { id: '123' }, errmsg: '', errno: 0 }),
       });
 
-      const userId = await client.addUser({ name: 'John' }, 'user123');
-      expect(userId).toBe('123');
+      const result = await client.addUser({ name: 'John' }, 'user123');
+      expect(result).toBe('123');
       expect(fetch).toHaveBeenCalledWith(
         `${projectUrl}/${apiVersion}/users`,
         expect.objectContaining({
@@ -79,8 +115,8 @@ describe('MemoBaseClient', () => {
     });
 
     it('should update a user and return user id', async () => {
-      const userId = await client.updateUser('user123', { name: 'Updated Name' });
-      expect(userId).toBe('123');
+      const result = await client.updateUser('user123', { name: 'Updated Name' });
+      expect(result).toBe('123');
       expect(fetch).toHaveBeenCalledWith(
         `${projectUrl}/${apiVersion}/users/user123`,
         expect.objectContaining({
@@ -91,8 +127,8 @@ describe('MemoBaseClient', () => {
     });
 
     it('should get a user', async () => {
-      const user = await client.getUser('user123');
-      expect(user).toBeInstanceOf(User);
+      const result = await client.getUser('user123');
+      expect(result).toBeInstanceOf(User);
       expect(fetch).toHaveBeenCalledWith(`${projectUrl}/${apiVersion}/users/user123`, expect.any(Object));
     });
 
@@ -100,8 +136,8 @@ describe('MemoBaseClient', () => {
       // 模拟首次未找到用户
       (fetch as jest.Mock).mockRejectedValueOnce(new Error('User not found'));
 
-      const user = await client.getOrCreateUser('user123');
-      expect(user).toBeInstanceOf(User);
+      const result = await client.getOrCreateUser('user123');
+      expect(result).toBeInstanceOf(User);
       expect(fetch).toHaveBeenCalledTimes(2); // 调用两次：一次是 getUser，另一次是 addUser
     });
 

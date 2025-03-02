@@ -1,5 +1,14 @@
 import { MemoBaseClient } from './client';
-import type { Blob, BlobType, UserProfile, IdResponse, ProfileResponse } from './types';
+import {
+  Blob,
+  BlobType,
+  UserProfile,
+  IdResponse,
+  ProfileResponse,
+  UserEvent,
+  EventResponse,
+  ContextResponse,
+} from './types';
 
 export class User {
   constructor(
@@ -44,16 +53,73 @@ export class User {
 
   async profile(): Promise<UserProfile[]> {
     const response = await this.projectClient.fetch<ProfileResponse>(`/users/profile/${this.userId}`);
-    return response.data!.profiles.map((p: any) => ({
-      updated_at: new Date(p.updated_at),
-      topic: p.attributes.topic || 'NONE',
-      sub_topic: p.attributes.sub_topic || 'NONE',
-      content: p.content,
-    }));
+    return response.data!.profiles.reduce((acc, cur) => {
+      acc.push({
+        id: cur.id,
+        content: cur.content,
+        topic: cur.attributes.topic || 'NONE',
+        sub_topic: cur.attributes.sub_topic || 'NONE',
+        created_at: new Date(cur.created_at),
+        updated_at: new Date(cur.updated_at),
+      });
+      return acc;
+    }, [] as UserProfile[]);
   }
 
   async deleteProfile(profileId: string): Promise<boolean> {
     await this.projectClient.fetch(`/users/profile/${this.userId}/${profileId}`, { method: 'DELETE' });
     return true;
+  }
+
+  async event(topk = 10, maxTokenSize?: number): Promise<UserEvent[]> {
+    const params = new URLSearchParams();
+
+    params.append('topk', topk.toString());
+    if (maxTokenSize !== undefined) {
+      params.append('max_token_size', maxTokenSize.toString());
+    }
+
+    const response = await this.projectClient.fetch<EventResponse>(
+      `/users/event/${this.userId}?${params.toString()}`,
+    );
+
+    return response.data!.events.map((e) => UserEvent.parse(e));
+  }
+
+  async context(
+    maxTokenSize = 1000,
+    maxSubtopicSize?: number,
+    preferTopics?: string[],
+    onlyTopics?: string[],
+    topicLimits?: Record<string, number>,
+    profileEventRatio?: number,
+  ): Promise<string> {
+    const params = new URLSearchParams();
+
+    params.append('max_token_size', maxTokenSize.toString());
+    if (maxSubtopicSize !== undefined) {
+      params.append('max_subtopic_size', maxSubtopicSize.toString());
+    }
+    if (preferTopics !== undefined && preferTopics.length > 0) {
+      preferTopics.forEach((topic) => {
+        params.append('prefer_topics', topic);
+      });
+    }
+    if (onlyTopics !== undefined && onlyTopics.length > 0) {
+      onlyTopics.forEach((topic) => {
+        params.append('only_topics', topic);
+      });
+    }
+    if (topicLimits !== undefined) {
+      params.append('topic_limits', JSON.stringify(topicLimits));
+    }
+    if (profileEventRatio !== undefined) {
+      params.append('profile_event_ratio', profileEventRatio.toString());
+    }
+
+    const response = await this.projectClient.fetch<ContextResponse>(
+      `/users/context/${this.userId}?${params.toString()}`,
+    );
+    return response.data!.context;
   }
 }

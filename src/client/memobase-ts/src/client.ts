@@ -1,6 +1,6 @@
 import { User } from './user';
 import { unpackResponse } from './network';
-import type { BaseResponse, HttpUrl } from './types';
+import type { BaseResponse, HttpUrl, GetConfigResponse } from './types';
 
 export class MemoBaseClient {
   private readonly baseUrl: HttpUrl;
@@ -38,6 +38,23 @@ export class MemoBaseClient {
   async ping(): Promise<boolean> {
     try {
       await this.fetch('/healthcheck');
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async getConfig(): Promise<string> {
+    const response = await this.fetch<GetConfigResponse>('/project/profile_config');
+    return response.data!.profile_config;
+  }
+
+  async updateConfig(config: string): Promise<boolean> {
+    try {
+      await this.fetch('/project/profile_config', {
+        method: 'POST',
+        body: JSON.stringify({ profile_config: config }),
+      });
       return true;
     } catch (error) {
       return false;
