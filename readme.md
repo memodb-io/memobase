@@ -174,11 +174,21 @@ u.flush()
 And what will you get?
 
 ```python
-print(u.profile())
-# [UserProfile(topic="basic_info", sub_topic="name", content="Gus",...)], []
+print(u.profile(need_json=True))
+
+# results
+{
+  "basic_info": {
+    "name": {
+      "content": "Gus",
+      "id": ...,
+      "created_at": ...
+    }
+  }
+}
 ```
 
-`u.profile()` will return a list of profiles that are learned from this user, including `topic`, `sub_topic` and `content`. As you insert more blobs, the profile will become better.
+`u.profile()` will return structured profiles that are learned from this user, including `topic`, `sub_topic` and `content`. As you insert more blobs, the profile will become better.
 
 <details>
 <summary> Why need a flush?</summary>

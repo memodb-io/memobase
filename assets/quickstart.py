@@ -1,3 +1,4 @@
+from rich import print
 from memobase import MemoBaseClient, ChatBlob
 
 PROJECT_URL = "http://localhost:8019"
@@ -36,16 +37,18 @@ print("Blob ID is", bid)
 print("Start processing...")
 u.flush()
 
-prompts = [m.describe for m in u.profile()]
 
 print("\n--------------\nBelow is your profile:")
-print("* " + "\n* ".join(sorted(prompts)))
+print(u.profile(need_json=True))
+
 
 print("\n--------------\nYou can use Memobase Event to recent details of the user:")
 for e in u.event():
     print("📅", e.created_at.astimezone().strftime("%Y-%m-%d %H:%M:%S"))
     for i in e.event_data.profile_delta:
-        print("-", i.attributes["topic"], i.attributes["sub_topic"], i.content)
+        print(
+            "-", i.attributes["topic"], i.attributes["sub_topic"], i.content, sep="::"
+        )
 
 print(
     "\n--------------\nYou can use Memobase Context to get a memory prompt and insert it into your prompt:"
