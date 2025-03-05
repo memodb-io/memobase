@@ -10,8 +10,7 @@ from ..telemetry.capture_key import capture_int_key
 from ..telemetry import (
     telemetry_manager, 
     CounterMetricName, 
-    HistogramMetricName,
-    GaugeMetricName
+    HistogramMetricName
 )
 
 
@@ -76,16 +75,6 @@ async def llm_complete(
     telemetry_manager.record_histogram_metric(
         HistogramMetricName.LLM_LATENCY_MS,
         latency,
-        {"project_id": project_id},
-    )
-    telemetry_manager.set_gauge_metric(
-        GaugeMetricName.INPUT_TOKEN_COUNT,
-        in_tokens,
-        {"project_id": project_id},
-    )
-    telemetry_manager.set_gauge_metric(
-        GaugeMetricName.OUTPUT_TOKEN_COUNT,
-        out_tokens,
         {"project_id": project_id},
     )
 
