@@ -15,3 +15,5 @@ opentelemetry-api
 opentelemetry-sdk
 opentelemetry-exporter-prometheus
 opentelemetry-exporter-otlp-proto-http
+opentelemetry-instrumentation=0.51b0
+opentelemetry-semantic-conventions=0.51b0
