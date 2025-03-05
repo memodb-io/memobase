@@ -402,25 +402,27 @@ async def get_user_context(
     return p.to_response(res.UserContextDataResponse)
 
 
-class AuthMiddleware(BaseHTTPMiddleware):
-    PATH_MAPPINGS = {
-        "/api/v1/users/blobs": "/api/v1/users/blobs",
-        "/api/v1/users/profile": "/api/v1/users/profile",
-        "/api/v1/users": "/api/v1/users",
-        "/api/v1/blobs/insert": "/api/v1/blobs/insert",
-        "/api/v1/blobs": "/api/v1/blobs",
-        "/api/v1/users/buffer": "/api/v1/users/buffer",
-        "/api/v1/users/event": "/api/v1/users/event",
-    }
+PATH_MAPPINGS = [
+    "/api/v1/users/blobs",
+    "/api/v1/users/profile",
+    "/api/v1/users/buffer",
+    "/api/v1/users/event",
+    "/api/v1/users/context",
+    "/api/v1/users",
+    "/api/v1/blobs/insert",
+    "/api/v1/blobs",
+]
 
+
+class AuthMiddleware(BaseHTTPMiddleware):
     def normalize_path(self, path: str) -> str:
         """Remove dynamic path parameters to get normalized path for metrics"""
-        if not path.startswith("/api/v1"):
+        if not path.startswith("/api"):
             return path
 
-        for prefix, normalized in self.PATH_MAPPINGS.items():
+        for prefix in PATH_MAPPINGS:
             if path.startswith(prefix):
-                return normalized
+                return prefix
 
         return path
 
