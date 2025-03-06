@@ -10,9 +10,8 @@ from opentelemetry.sdk.metrics._internal.instrument import (
     Histogram,
     Gauge,
 )
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from ..env import LOG
-
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource, DEPLOYMENT_ENVIRONMENT
+from ..env import LOG, CONFIG
 
 class CounterMetricName(Enum):
     """Enum for all available metrics."""
@@ -20,8 +19,8 @@ class CounterMetricName(Enum):
     REQUEST = "requests_total"
     HEALTHCHECK = "healthcheck_total"
     LLM_INVOCATIONS = "llm_invocations_total"
-    LLM_TOKENS_INPUT = "llm_tokens_input_total"
-    LLM_TOKENS_OUTPUT = "llm_tokens_output_total"
+    LLM_TOKENS_INPUT = "llm_input_tokens_total"
+    LLM_TOKENS_OUTPUT = "llm_output_tokens_total"
 
     def get_description(self) -> str:
         """Get the description for this metric."""
@@ -81,45 +80,58 @@ class TelemetryManager:
     """Manages telemetry setup and metrics for the memobase server."""
 
     def __init__(
-        self, service_name: str = "memobase-server", prometheus_port: int = 9464
+        self, service_name: str = "memobase-server", prometheus_port: int = 9464, deployment_environment: str = "default"
     ):
-        self.service_name = service_name
-        self.prometheus_port = prometheus_port
-        self.metrics: Dict[
+        self._service_name = service_name
+        self._prometheus_port = prometheus_port
+        self._deployment_environment = deployment_environment
+        self._metrics: Dict[
             CounterMetricName | HistogramMetricName | GaugeMetricName,
             Counter | Histogram | Gauge,
-        ] = {}
+        ] = None
         self._meter = None
 
     def setup_telemetry(self) -> None:
         """Initialize OpenTelemetry with Prometheus exporter."""
-        resource = Resource(attributes={SERVICE_NAME: self.service_name})
+        resource = Resource(attributes={
+            SERVICE_NAME: self._service_name,
+            DEPLOYMENT_ENVIRONMENT: self._deployment_environment,
+            })
         reader = PrometheusMetricReader()
         provider = MeterProvider(resource=resource, metric_readers=[reader])
         metrics.set_meter_provider(provider)
 
         # Start Prometheus HTTP server, skip if port is already in use
         try:
-            start_http_server(self.prometheus_port)
+            start_http_server(self._prometheus_port)
         except OSError as e:
             if e.errno == 48:  # Address already in use
                 LOG.warning(
-                    f"Prometheus HTTP server already running on port {self.prometheus_port}"
+                    f"Prometheus HTTP server already running on port {self._prometheus_port}"
                 )
             else:
                 raise e
 
         # Initialize meter
-        self._meter = metrics.get_meter(self.service_name)
+        self._meter = metrics.get_meter(self._service_name)
+    
+    def _construct_attributes(self, **kwargs) -> Dict[str, str]:
+        return {
+            DEPLOYMENT_ENVIRONMENT: self._deployment_environment,
+            **kwargs,
+        }
 
     def setup_metrics(self) -> None:
         """Initialize all metrics."""
         if not self._meter:
             raise RuntimeError("Call setup_telemetry() before setup_metrics()")
 
+        if self._metrics is None:
+            self._metrics = {}
+
         # Create counters
         for metric in CounterMetricName:
-            self.metrics[metric] = self._meter.create_counter(
+            self._metrics[metric] = self._meter.create_counter(
                 metric.get_metric_name(),
                 unit="1",
                 description=metric.get_description(),
@@ -127,7 +139,7 @@ class TelemetryManager:
 
         # Create histogram for latency
         for metric in HistogramMetricName:
-            self.metrics[metric] = self._meter.create_histogram(
+            self._metrics[metric] = self._meter.create_histogram(
                 metric.get_metric_name(),
                 unit="ms",
                 description=metric.get_description(),
@@ -135,7 +147,7 @@ class TelemetryManager:
 
         # Create gauges for token counts
         for metric in GaugeMetricName:
-            self.metrics[metric] = self._meter.create_gauge(
+            self._metrics[metric] = self._meter.create_gauge(
                 metric.get_metric_name(),
                 unit="1",
                 description=metric.get_description(),
@@ -148,9 +160,9 @@ class TelemetryManager:
         attributes: Dict[str, str] = None,
     ) -> None:
         """Increment a counter metric."""
-        if metric not in self.metrics:
-            raise KeyError(f"Metric {metric} not initialized")
-        self.metrics[metric].add(value, attributes)
+        self._validate_metric(metric)
+        complete_attributes = self._construct_attributes(**(attributes or {}))
+        self._metrics[metric].add(value, complete_attributes)
 
     def record_histogram_metric(
         self,
@@ -159,9 +171,9 @@ class TelemetryManager:
         attributes: Dict[str, str] = None,
     ) -> None:
         """Record a histogram metric value."""
-        if metric not in self.metrics:
-            raise KeyError(f"Metric {metric} not initialized")
-        self.metrics[metric].record(value, attributes)
+        self._validate_metric(metric)
+        complete_attributes = self._construct_attributes(**(attributes or {}))
+        self._metrics[metric].record(value, complete_attributes)
 
     def set_gauge_metric(
         self,
@@ -170,12 +182,17 @@ class TelemetryManager:
         attributes: Dict[str, str] = None,
     ) -> None:
         """Set a gauge metric."""
-        if metric not in self.metrics:
+        self._validate_metric(metric)
+        complete_attributes = self._construct_attributes(**(attributes or {}))
+        self._metrics[metric].set(value, complete_attributes)
+
+    def _validate_metric(self, metric) -> None:
+        """Validate if the metric is initialized."""
+        if metric not in self._metrics:
             raise KeyError(f"Metric {metric} not initialized")
-        self.metrics[metric].set(value, attributes)
 
 
 # Create a global instance
-telemetry_manager = TelemetryManager()
+telemetry_manager = TelemetryManager(deployment_environment=CONFIG.telemetry_deployment_environment)
 telemetry_manager.setup_telemetry()
 telemetry_manager.setup_metrics()

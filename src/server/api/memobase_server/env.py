@@ -77,6 +77,9 @@ class Config:
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
 
+    # Telemetry
+    telemetry_deployment_environment: str = "local"
+
     @classmethod
     def load_config(cls) -> "Config":
         if not os.path.exists("config.yaml"):

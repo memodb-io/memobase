@@ -432,7 +432,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         if request.url.path.startswith("/api/v1/healthcheck"):
             telemetry_manager.increment_counter_metric(
-                CounterMetricName.HEALTHCHECK, 1, {"source_ip": request.client.host}
+                CounterMetricName.HEALTHCHECK, 1, 
             )
             return await call_next(request)
 
@@ -469,7 +469,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
             1,
             {
                 "project_id": request.state.memobase_project_id,
-                "source_ip": request.client.host,
                 "path": normalized_path,
                 "method": request.method,
             },
@@ -483,7 +482,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
             (time.time() - start_time) * 1000,
             {
                 "project_id": request.state.memobase_project_id,
-                "source_ip": request.client.host,
                 "path": normalized_path,
                 "method": request.method,
             },
