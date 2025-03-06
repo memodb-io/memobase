@@ -4,6 +4,7 @@ Initialize logger, encoder, and config.
 
 import os
 import datetime
+import json
 from rich.logging import RichHandler
 import yaml
 import logging
@@ -14,6 +15,7 @@ from typing import Optional, Literal, Union
 from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
 from datetime import timezone
+from typeguard import check_type
 
 load_dotenv()
 
@@ -78,17 +80,66 @@ class Config:
     overwrite_user_profiles: Optional[list[dict]] = None
 
     @classmethod
+    def _process_env_vars(cls, config_dict):
+        """
+        Process all environment variables for the config class.
+
+        Args:
+            cls: The config class
+            config_dict: The current configuration dictionary
+
+        Returns:
+            Updated configuration dictionary with environment variables applied
+        """
+        # Ensure we have a dictionary to work with
+        if not isinstance(config_dict, dict):
+            config_dict = {}
+
+        for field in dataclasses.fields(cls):
+            field_name = field.name
+            field_type = field.type
+            env_var_name = f"MEMOBASE_{field_name.upper()}"
+            if env_var_name in os.environ:
+                env_value = os.environ[env_var_name]
+
+                # Try to parse as JSON first
+                try:
+                    parsed_value = json.loads(env_value)
+                    # Check if parsed value matches the type
+                    try:
+                        check_type(parsed_value, field_type)
+                        config_dict[field_name] = parsed_value
+                        continue
+                    except TypeError:
+                        # Parsed value doesn't match type, fall through to try raw string
+                        pass
+                except json.JSONDecodeError:
+                    # Not valid JSON, fall through to try raw string
+                    pass
+
+                # Try the raw string
+                try:
+                    check_type(env_value, field_type)
+                    config_dict[field_name] = env_value
+                except TypeError as e:
+                    LOG.warning(f"Value for {env_var_name} is not compatible with field type {field_type}. Ignoring.")
+
+        return config_dict
+
+    @classmethod
     def load_config(cls) -> "Config":
         if not os.path.exists("config.yaml"):
-            LOG.warning("No config file found, using default config")
-            return cls()
-        with open("config.yaml") as f:
-            overwrite_config = yaml.safe_load(f)
-            LOG.info(f"Load ./config.yaml")
-        if overwrite_config is None:
-            return cls()
-        fields = {field.name for field in dataclasses.fields(cls)}
+            overwrite_config = {}
+        else:
+            with open("config.yaml") as f:
+                overwrite_config = yaml.safe_load(f)
+                LOG.info(f"Load ./config.yaml")
+
+        # Process environment variables
+        overwrite_config = cls._process_env_vars(overwrite_config)
+
         # Filter out any keys from overwrite_config that aren't in the dataclass
+        fields = {field.name for field in dataclasses.fields(cls)}
         filtered_config = {k: v for k, v in overwrite_config.items() if k in fields}
         overwrite_config = dataclasses.replace(cls(), **filtered_config)
         LOG.info(f"{overwrite_config}")

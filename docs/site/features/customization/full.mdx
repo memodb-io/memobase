@@ -56,3 +56,27 @@ The final profiles slots will be those you defined in here.
 - `llm_base_url`: string, default to `https://api.openai.com/v1/`. The base URL of any OpenAI-Compatible API.
 - `llm_api_key`: string, default to `null`. Your LLM API key.
 - `best_llm_model`: string, default to `gpt-4o-mini`. The AI model to use.
+
+### Environment Variable Overrides
+
+All configuration values can be overridden using environment variables. The naming convention is to prefix the configuration field name with `MEMOBASE_` and convert it to uppercase.
+
+For example, to override the `llm_api_key` configuration:
+
+```bash
+export MEMOBASE_LLM_API_KEY="your-api-key-here"
+```
+
+This is particularly useful for:
+- Keeping sensitive information like API keys out of configuration files
+- Deploying to different environments (development, staging, production)
+- Containerized deployments where environment variables are the preferred configuration method
+
+For complex data types (lists, dictionaries, etc.), you can use JSON-formatted strings:
+
+```bash
+# Override additional_user_profiles with a JSON array
+export MEMOBASE_ADDITIONAL_USER_PROFILES='[{"topic": "gaming", "sub_topics": ["RPG", "Strategy"]}]'
+```
+
+The server will automatically parse JSON-formatted environment variables when appropriate.
