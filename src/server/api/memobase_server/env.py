@@ -20,6 +20,12 @@ from typeguard import check_type
 load_dotenv()
 
 
+class BillingStatus:
+    free = "free"
+    pro = "pro"
+    usage_based = "usage_based"
+
+
 class ProjectStatus:
     ultra = "ultra"
     pro = "pro"
@@ -125,7 +131,9 @@ class Config:
                     check_type(env_value, field_type)
                     config_dict[field_name] = env_value
                 except TypeError as e:
-                    LOG.warning(f"Value for {env_var_name} is not compatible with field type {field_type}. Ignoring.")
+                    LOG.warning(
+                        f"Value for {env_var_name} is not compatible with field type {field_type}. Ignoring."
+                    )
 
         return config_dict
 

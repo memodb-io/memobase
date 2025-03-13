@@ -1,4 +1,4 @@
-__version__ = "0.0.24"
+__version__ = "0.0.28"
 
 __author__ = "memobase.io"
 __url__ = "https://github.com/memodb-io/memobase"

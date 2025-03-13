@@ -27,7 +27,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 from sqlalchemy import event
 from .blob import BlobType
-from ..env import ProjectStatus
+from ..env import ProjectStatus, BillingStatus
 from sqlalchemy.orm.attributes import get_history
 
 REG = registry()
@@ -57,6 +57,62 @@ class Base:
 
 
 @REG.mapped_as_dataclass
+class Billing(Base):
+    __tablename__ = "billings"
+
+    # Specific columns
+
+    next_refill_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+    refill_amount: Mapped[int] = mapped_column(Integer, nullable=True)
+    usage_left: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    billing_status: Mapped[str] = mapped_column(
+        VARCHAR(16), nullable=False, default=BillingStatus.free
+    )
+    # Relationships
+    related_projects: Mapped[list["ProjectBilling"]] = relationship(
+        "ProjectBilling",
+        back_populates="billing",
+        cascade="all, delete-orphan",
+        init=False,
+    )
+
+    __table_args__ = (PrimaryKeyConstraint("id"),)
+
+
+@REG.mapped_as_dataclass
+class ProjectBilling(Base):
+    __tablename__ = "project_billings"
+
+    project_id: Mapped[str] = mapped_column(
+        VARCHAR(64),
+        ForeignKey("projects.project_id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    billing_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("billings.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+
+    # Relationships
+    project: Mapped["Project"] = relationship(
+        "Project", back_populates="billing_link", init=False
+    )
+    billing: Mapped[Billing] = relationship(
+        "Billing", back_populates="related_projects", init=False
+    )
+
+    __table_args__ = (
+        PrimaryKeyConstraint("id"),
+        Index("idx_project_billings_project_id", "project_id"),
+        Index("idx_project_billings_billing_id", "billing_id"),
+    )
+
+
+@REG.mapped_as_dataclass
 class Project(Base):
     __tablename__ = "projects"
 
@@ -69,6 +125,13 @@ class Project(Base):
 
     related_users: Mapped[list["User"]] = relationship(
         "User", back_populates="project", cascade="all, delete-orphan", init=False
+    )
+
+    billing_link: Mapped[list[ProjectBilling]] = relationship(
+        "ProjectBilling",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        init=False,
     )
 
     __table_args__ = (
