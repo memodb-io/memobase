@@ -123,29 +123,8 @@ async def get_project_profile_config_string(
 @router.get("/project/billing", tags=["project"])
 async def get_project_billing(request: Request) -> res.BillingResponse:
     project_id = request.state.memobase_project_id
-    this_month_token_costs = await asyncio.gather(
-        get_int_key(TelemetryKeyName.llm_input_tokens, project_id, in_month=True),
-        get_int_key(TelemetryKeyName.llm_output_tokens, project_id, in_month=True),
-    )
-    p = await get_project_status(project_id)
-    if not p.ok():
-        return p.to_response(res.IdResponse)
-    status = p.data()
-    if status not in USAGE_TOKEN_LIMIT_MAP:
-        return Promise.reject(
-            CODE.INTERNAL_SERVER_ERROR, f"Invalid project status: {status}"
-        ).to_response(res.IdResponse)
-    usage_token_limit = USAGE_TOKEN_LIMIT_MAP[status]
-    if usage_token_limit < 0:
-        this_month_left_tokens = None
-    else:
-        this_month_left_tokens = usage_token_limit - sum(this_month_token_costs)
-    return res.BillingResponse(
-        data=res.BillingData(
-            token_left_month=this_month_left_tokens,
-            token_cost_month=sum(this_month_token_costs),
-        )
-    )
+    p = await controllers.billing.get_project_billing(project_id)
+    return p.to_response(res.BillingResponse)
 
 
 @router.post("/users", tags=["user"])
