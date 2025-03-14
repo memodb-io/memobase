@@ -128,7 +128,7 @@ class BillingData(BaseModel):
     token_left: Optional[int] = Field(None, description="Token left for this month")
 
     next_refill_at: Optional[datetime] = Field(None, description="Next refill time")
-    token_cost_month: int = Field(..., description="Token cost for this month")
+    project_token_cost_month: int = Field(..., description="Token cost for this month")
 
 
 # API response format

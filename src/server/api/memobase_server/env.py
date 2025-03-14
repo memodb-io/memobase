@@ -26,6 +26,12 @@ class BillingStatus:
     usage_based = "usage_based"
 
 
+BILLING_REFILL_AMOUNT_MAP = {
+    BillingStatus.free: int(os.getenv("USAGE_TOKEN_LIMIT_ACTIVE", -1)),
+    BillingStatus.pro: int(os.getenv("USAGE_TOKEN_LIMIT_PRO", -1)),
+}
+
+
 class ProjectStatus:
     ultra = "ultra"
     pro = "pro"

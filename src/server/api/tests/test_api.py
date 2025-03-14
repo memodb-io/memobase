@@ -271,7 +271,7 @@ async def test_api_user_profile(client, db_env):
     assert response.status_code == 200
     assert d["errno"] == 0
     assert d["data"]["token_left"] is None
-    assert d["data"]["token_cost_month"] >= 0
+    assert d["data"]["project_token_cost_month"] >= 0
     assert d["data"]["billing_status"] == "active"
     assert d["data"]["next_refill_at"] is not None
 

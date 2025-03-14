@@ -34,7 +34,7 @@ from memobase_server.env import (
     LOG,
     TelemetryKeyName,
     ProjectStatus,
-    USAGE_TOKEN_LIMIT_MAP,
+    BILLING_REFILL_AMOUNT_MAP,
 )
 from memobase_server.telemetry.capture_key import capture_int_key, get_int_key
 from uvicorn.config import LOGGING_CONFIG
@@ -197,24 +197,19 @@ async def insert_blob(
     background_tasks.add_task(
         capture_int_key, TelemetryKeyName.insert_blob_request, project_id=project_id
     )
-    this_month_token_costs = await asyncio.gather(
-        get_int_key(TelemetryKeyName.llm_input_tokens, project_id, in_month=True),
-        get_int_key(TelemetryKeyName.llm_output_tokens, project_id, in_month=True),
-    )
-    p = await get_project_status(project_id)
+
+    p = await controllers.billing.get_project_billing(project_id)
     if not p.ok():
         return p.to_response(res.IdResponse)
-    status = p.data()
-    if status not in USAGE_TOKEN_LIMIT_MAP:
-        return Promise.reject(
-            CODE.INTERNAL_SERVER_ERROR, f"Invalid project status: {status}"
-        ).to_response(res.IdResponse)
-    usage_token_limit = USAGE_TOKEN_LIMIT_MAP[status]
-    if usage_token_limit >= 0 and (usage_token_limit < sum(this_month_token_costs)):
+    billing = p.data()
+
+    if billing.token_left < 0:
+        usage_token_limit = BILLING_REFILL_AMOUNT_MAP[billing.billing_status]
         return Promise.reject(
             CODE.SERVICE_UNAVAILABLE,
-            f"Your project reaches Memobase token limit this month. "
-            f"quota: {usage_token_limit}, used: {sum(this_month_token_costs)}. "
+            f"Your project reaches Memobase token limit, "
+            f"quota: {usage_token_limit}, this project used: {billing.project_token_cost_month}. "
+            f"Your quota will be refilled on {billing.next_refill_at}. "
             "\nhttps://www.memobase.io/pricing for more information.",
         ).to_response(res.IdResponse)
 

@@ -1,6 +1,12 @@
 from pydantic import ValidationError
 from ..models.utils import Promise
-from ..models.database import GeneralBlob, UserProfile, ProjectBilling, Billing
+from ..models.database import (
+    GeneralBlob,
+    UserProfile,
+    ProjectBilling,
+    Billing,
+    next_month_first_day,
+)
 from ..models.response import CODE, IdData, IdsData, UserProfilesData, BillingData
 from ..connectors import Session
 from ..telemetry.capture_key import get_int_key
@@ -28,14 +34,25 @@ async def get_project_billing(project_id: str) -> Promise[BillingData]:
         this_month_token_costs_out = await get_int_key(
             TelemetryKeyName.llm_output_tokens, project_id, in_month=True
         )
+        billing_status = billing.billing_status
+        usage_left_this_billing = billing.usage_left
 
-        billing_data = BillingData(
-            billing_status=billing.billing_status,
-            token_left=billing.usage_left,
-            next_refill_at=billing.next_refill_at,
-            token_cost_month=this_month_token_costs_in + this_month_token_costs_out,
-        )
-        return Promise.resolve(billing_data)
+        today = datetime.now()
+        next_refill_date = billing.next_refill_at
+        if today > next_refill_date:
+            usage_left_this_billing = billing.refill_amount
+
+            billing.next_refill_at = next_month_first_day()
+            billing.usage_left = usage_left_this_billing
+            session.commit()
+
+    billing_data = BillingData(
+        billing_status=billing_status,
+        token_left=usage_left_this_billing,
+        next_refill_at=next_refill_date,
+        project_token_cost_month=this_month_token_costs_in + this_month_token_costs_out,
+    )
+    return Promise.resolve(billing_data)
 
 
 async def fallback_billing_data(project_id: str) -> Promise[BillingData]:
@@ -75,6 +92,6 @@ async def fallback_billing_data(project_id: str) -> Promise[BillingData]:
             billing_status=status,
             token_left=this_month_left_tokens,
             next_refill_at=next_month,
-            token_cost_month=this_month_token_costs,
+            project_token_cost_month=this_month_token_costs,
         )
     )

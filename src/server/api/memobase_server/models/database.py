@@ -35,6 +35,15 @@ DEFAULT_PROJECT_ID = "__root__"
 DEFAULT_PROJECT_SECRET = "__root__"
 
 
+def next_month_first_day() -> datetime:
+    today = datetime.now()
+    # If we're in the last month of the year, move to January of next year
+    if today.month == 12:
+        return datetime(today.year + 1, 1, 1)
+    # Otherwise, move to the first day of next month
+    return datetime(today.year, today.month + 1, 1)
+
+
 @dataclass
 class Base:
     __abstract__ = True
@@ -63,7 +72,7 @@ class Billing(Base):
     # Specific columns
 
     next_refill_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True
+        TIMESTAMP(timezone=True), nullable=True, default_factory=next_month_first_day
     )
     refill_amount: Mapped[int] = mapped_column(Integer, nullable=True)
     usage_left: Mapped[int] = mapped_column(Integer, nullable=True)
