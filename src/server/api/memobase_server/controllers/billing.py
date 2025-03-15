@@ -35,8 +35,8 @@ async def get_project_billing(project_id: str) -> Promise[BillingData]:
         billing_status = billing.billing_status
         usage_left_this_billing = billing.usage_left
 
-        today = datetime.now()
         next_refill_date = billing.next_refill_at
+        today = datetime.now(next_refill_date.tzinfo)
         if today > next_refill_date:
             usage_left_this_billing = billing.refill_amount
 
@@ -114,6 +114,8 @@ async def project_cost_token_billing(
             return Promise.reject(CODE.NOT_FOUND, "Billing not found")
         billing = _billing.billing
 
-        billing.usage_left -= input_tokens + output_tokens
+        if billing.usage_left is not None:
+            billing.usage_left -= input_tokens + output_tokens
         session.commit()
+        print(billing.usage_left, billing.refill_amount, billing.billing_status)
     return Promise.resolve(None)

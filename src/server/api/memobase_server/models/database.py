@@ -71,18 +71,14 @@ class Billing(Base):
 
     # Specific columns
 
-    usage_left: Mapped[int] = mapped_column(
+    usage_left: Mapped[Optional[int]] = mapped_column(
         Integer,
         nullable=True,
-        default_factory=lambda: BILLING_REFILL_AMOUNT_MAP[BillingStatus.free],
     )
+    refill_amount: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
     next_refill_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True, default_factory=next_month_first_day
-    )
-    refill_amount: Mapped[int] = mapped_column(
-        Integer,
-        nullable=True,
-        default_factory=lambda: BILLING_REFILL_AMOUNT_MAP[BillingStatus.free],
     )
 
     billing_status: Mapped[str] = mapped_column(
@@ -100,7 +96,7 @@ class Billing(Base):
 
 
 @REG.mapped_as_dataclass
-class ProjectBilling(Base):
+class ProjectBilling:
     __tablename__ = "project_billings"
 
     project_id: Mapped[str] = mapped_column(
@@ -113,6 +109,9 @@ class ProjectBilling(Base):
         ForeignKey("billings.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now(), init=False
+    )
 
     # Relationships
     project: Mapped["Project"] = relationship(
@@ -123,7 +122,7 @@ class ProjectBilling(Base):
     )
 
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
+        PrimaryKeyConstraint("project_id", "billing_id"),
         Index("idx_project_billings_project_id", "project_id"),
         Index("idx_project_billings_billing_id", "billing_id"),
     )
@@ -169,7 +168,18 @@ class Project(Base):
                 profile_config=None,
             )
             session.add(root_project)
-            session.commit()
+        if_project_billing = (
+            session.query(ProjectBilling)
+            .filter_by(project_id=DEFAULT_PROJECT_ID)
+            .one_or_none()
+        )
+        if if_project_billing is None:
+            billing = Billing(usage_left=None, refill_amount=None)
+            session.add(billing)
+            session.add(
+                ProjectBilling(project_id=DEFAULT_PROJECT_ID, billing_id=billing.id)
+            )
+        session.commit()
         return root_project
 
 
