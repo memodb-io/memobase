@@ -203,7 +203,7 @@ async def insert_blob(
         return p.to_response(res.IdResponse)
     billing = p.data()
 
-    if billing.token_left < 0:
+    if billing.token_left is not None and billing.token_left < 0:
         usage_token_limit = BILLING_REFILL_AMOUNT_MAP[billing.billing_status]
         return Promise.reject(
             CODE.SERVICE_UNAVAILABLE,

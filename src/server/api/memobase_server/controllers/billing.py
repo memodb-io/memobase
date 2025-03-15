@@ -1,15 +1,13 @@
 from pydantic import ValidationError
 from ..models.utils import Promise
 from ..models.database import (
-    GeneralBlob,
-    UserProfile,
     ProjectBilling,
     Billing,
     next_month_first_day,
 )
 from ..models.response import CODE, IdData, IdsData, UserProfilesData, BillingData
 from ..connectors import Session
-from ..telemetry.capture_key import get_int_key
+from ..telemetry.capture_key import get_int_key, capture_int_key
 from ..env import LOG, CONFIG, TelemetryKeyName, USAGE_TOKEN_LIMIT_MAP
 from datetime import datetime, date
 
@@ -95,3 +93,27 @@ async def fallback_billing_data(project_id: str) -> Promise[BillingData]:
             project_token_cost_month=this_month_token_costs,
         )
     )
+
+
+async def project_cost_token_billing(
+    project_id: str, input_tokens: int, output_tokens: int
+) -> Promise[None]:
+    await capture_int_key(
+        TelemetryKeyName.llm_input_tokens, input_tokens, project_id=project_id
+    )
+    await capture_int_key(
+        TelemetryKeyName.llm_output_tokens, input_tokens, project_id=project_id
+    )
+    with Session() as session:
+        _billing = (
+            session.query(ProjectBilling)
+            .filter(ProjectBilling.project_id == project_id)
+            .one_or_none()
+        )
+        if _billing is None:
+            return Promise.reject(CODE.NOT_FOUND, "Billing not found")
+        billing = _billing.billing
+
+        billing.usage_left -= input_tokens + output_tokens
+        session.commit()
+    return Promise.resolve(None)

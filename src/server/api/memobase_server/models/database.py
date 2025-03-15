@@ -27,7 +27,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 from sqlalchemy import event
 from .blob import BlobType
-from ..env import ProjectStatus, BillingStatus
+from ..env import ProjectStatus, BillingStatus, BILLING_REFILL_AMOUNT_MAP
 from sqlalchemy.orm.attributes import get_history
 
 REG = registry()
@@ -71,11 +71,19 @@ class Billing(Base):
 
     # Specific columns
 
+    usage_left: Mapped[int] = mapped_column(
+        Integer,
+        nullable=True,
+        default_factory=lambda: BILLING_REFILL_AMOUNT_MAP[BillingStatus.free],
+    )
     next_refill_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True, default_factory=next_month_first_day
     )
-    refill_amount: Mapped[int] = mapped_column(Integer, nullable=True)
-    usage_left: Mapped[int] = mapped_column(Integer, nullable=True)
+    refill_amount: Mapped[int] = mapped_column(
+        Integer,
+        nullable=True,
+        default_factory=lambda: BILLING_REFILL_AMOUNT_MAP[BillingStatus.free],
+    )
 
     billing_status: Mapped[str] = mapped_column(
         VARCHAR(16), nullable=False, default=BillingStatus.free
