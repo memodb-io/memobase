@@ -1,0 +1,164 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Memobase",
+  "colors": {
+    "primary": "#6c60f0",
+    "light": "#ececdb",
+    "dark": "#a3df02"
+  },
+  "favicon": "/logo/favicon.png",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "features",
+              "cost"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/openai",
+              {
+                "group": "Customization",
+                "pages": [
+                  "features/customization/profile",
+                  "features/customization/full"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Practices",
+            "pages": [
+              "practices/tips"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/overview",
+              {
+                "group": "Project Config",
+                "pages": [
+                  "api-reference/project/get_profile_config",
+                  "api-reference/project/update_profile_config",
+                  "api-reference/utility/healthcheck"
+                ]
+              },
+              {
+                "group": "Manage Users",
+                "pages": [
+                  "api-reference/users/create_user",
+                  "api-reference/users/get_user",
+                  "api-reference/users/update_user",
+                  "api-reference/users/delete_user"
+                ]
+              },
+              {
+                "group": "User Data",
+                "pages": [
+                  "api-reference/blobs/insert_data",
+                  {
+                    "group": "Supported Blobs",
+                    "pages": [
+                      "api-reference/blobs/modal/chat"
+                    ]
+                  },
+                  "api-reference/blobs/get_all_data",
+                  "api-reference/blobs/get_blob",
+                  "api-reference/blobs/delete_blob"
+                ]
+              },
+              {
+                "group": "User Profiles",
+                "pages": [
+                  "api-reference/profiles/flush",
+                  "api-reference/profiles/profile",
+                  "api-reference/profiles/delete_profile"
+                ]
+              },
+              {
+                "group": "User Events",
+                "pages": [
+                  "api-reference/events/get_events"
+                ]
+              },
+              {
+                "group": "Prompt",
+                "pages": [
+                  "api-reference/prompt/get_context"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Open Source",
+          "href": "https://github.com/memodb-io/memobase",
+          "icon": "github"
+        },
+        {
+          "anchor": "Community",
+          "href": "https://discord.gg/YdgwU4d9NB",
+          "icon": "discord"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://memobase.io"
+  },
+  "background": {
+    "color": {
+      "light": "#fff",
+      "dark": "#0f1117"
+    }
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "https://github.com/memodb-io/memobase?tab=readme-ov-file#support"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://memobase.io/dashboard"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/memobase_io",
+      "github": "https://github.com/memodb-io",
+      "discord": "https://discord.gg/YdgwU4d9NB"
+    }
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-SLW10C7BL1"
+    },
+    "gtm": {
+      "tagId": "GTM-PDC577XR"
+    }
+  }
+}
