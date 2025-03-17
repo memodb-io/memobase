@@ -99,7 +99,15 @@ LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 LOGGING_CONFIG["formatters"]["access"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 
 
-@router.get("/healthcheck", tags=["chore"])
+@router.get("/healthcheck", tags=["chore"],
+            openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n memobase = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n assert memobase.ping()\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def healthcheck() -> BaseResponse:
     """Check if your memobase is set up correctly"""
     LOG.info("Healthcheck requested")
@@ -116,7 +124,15 @@ async def healthcheck() -> BaseResponse:
     return BaseResponse()
 
 
-@router.post("/project/profile_config", tags=["project"])
+@router.post("/project/profile_config", tags=["project"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n memobase = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n memobase.update_config('your_profile_config')\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def update_project_profile_config(
     request: Request,
     profile_config: res.ProfileConfigData = Body(
@@ -134,7 +150,15 @@ async def update_project_profile_config(
     return p.to_response(res.BaseResponse)
 
 
-@router.get("/project/profile_config", tags=["project"])
+@router.get("/project/profile_config", tags=["project"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n memobase = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n config = memobase.get_config()\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def get_project_profile_config_string(
     request: Request,
 ) -> res.ProfileConfigDataResponse:
@@ -150,7 +174,15 @@ async def get_project_billing(request: Request) -> res.BillingResponse:
     return p.to_response(res.BillingResponse)
 
 
-@router.post("/users", tags=["user"])
+@router.post("/users", tags=["user"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n uid = client.add_user({\"ANY\": \"DATA\"})\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def create_user(
     request: Request,
     user_data: res.UserData = Body(
@@ -163,7 +195,15 @@ async def create_user(
     return p.to_response(res.IdResponse)
 
 
-@router.get("/users/{user_id}", tags=["user"])
+@router.get("/users/{user_id}", tags=["user"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n u = client.get_user(uid)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def get_user(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to retrieve"),
@@ -173,7 +213,15 @@ async def get_user(
     return p.to_response(res.UserDataResponse)
 
 
-@router.put("/users/{user_id}", tags=["user"])
+@router.put("/users/{user_id}", tags=["user"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n client.update_user(uid, {\"ANY\": \"NEW_DATA\"})\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def update_user(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to update"),
@@ -184,7 +232,15 @@ async def update_user(
     return p.to_response(res.IdResponse)
 
 
-@router.delete("/users/{user_id}", tags=["user"])
+@router.delete("/users/{user_id}", tags=["user"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n client.delete_user(uid)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def delete_user(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to delete"),
@@ -194,7 +250,15 @@ async def delete_user(
     return p.to_response(BaseResponse)
 
 
-@router.get("/users/blobs/{user_id}/{blob_type}", tags=["user"])
+@router.get("/users/blobs/{user_id}/{blob_type}", tags=["user"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n from memobase.core.types import BlobType\n\n memobase = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n blobs = memobase.get_user_blobs('user_id', BlobType.CHAT, page=0, page_size=10)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def get_user_all_blobs(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to fetch blobs for"),
@@ -209,7 +273,15 @@ async def get_user_all_blobs(
     return p.to_response(res.IdsResponse)
 
 
-@router.post("/blobs/insert/{user_id}", tags=["blob"])
+@router.post("/blobs/insert/{user_id}", tags=["blob"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n from memobase import ChatBlob\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n b = ChatBlob(messages=[\n    {\n        \"role\": \"user\",\n        \"content\": \"Hi, I'm here again\"\n    },\n    {\n        \"role\": \"assistant\",\n        \"content\": \"Hi, Gus! How can I help you?\"\n    }\n])\n u = client.get_user(uid)\n bid = u.insert(b)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def insert_blob(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to insert the blob for"),
@@ -261,7 +333,15 @@ async def insert_blob(
     return p.to_response(res.IdResponse)
 
 
-@router.get("/blobs/{user_id}/{blob_id}", tags=["blob"])
+@router.get("/blobs/{user_id}/{blob_id}", tags=["blob"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n b = u.get(bid)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def get_blob(
     request: Request,
     user_id: str = Path(..., description="The ID of the user"),
@@ -272,7 +352,15 @@ async def get_blob(
     return p.to_response(res.BlobDataResponse)
 
 
-@router.delete("/blobs/{user_id}/{blob_id}", tags=["blob"])
+@router.delete("/blobs/{user_id}/{blob_id}", tags=["blob"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n u.delete(bid)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def delete_blob(
     request: Request,
     user_id: str = Path(..., description="The ID of the user"),
@@ -283,7 +371,15 @@ async def delete_blob(
     return p.to_response(res.BaseResponse)
 
 
-@router.get("/users/profile/{user_id}", tags=["profile"])
+@router.get("/users/profile/{user_id}", tags=["profile"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n u.profile()\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def get_user_profile(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to get profiles for"),
@@ -333,7 +429,15 @@ async def get_user_profile(
     return p.to_response(res.UserProfileResponse)
 
 
-@router.post("/users/buffer/{user_id}/{buffer_type}", tags=["buffer"])
+@router.post("/users/buffer/{user_id}/{buffer_type}", tags=["buffer"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n u.flush()\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def flush_buffer(
     request: Request,
     user_id: str = Path(..., description="The ID of the user"),
@@ -347,7 +451,15 @@ async def flush_buffer(
     return p.to_response(res.BaseResponse)
 
 
-@router.delete("/users/profile/{user_id}/{profile_id}", tags=["profile"])
+@router.delete("/users/profile/{user_id}/{profile_id}", tags=["profile"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n memobase = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n memobase.delete_user_profile('user_id', 'profile_id')\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def delete_user_profile(
     request: Request,
     user_id: str = Path(..., description="The ID of the user"),
@@ -359,7 +471,15 @@ async def delete_user_profile(
     return p.to_response(res.IdResponse)
 
 
-@router.get("/users/event/{user_id}", tags=["event"])
+@router.get("/users/event/{user_id}", tags=["event"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n events = u.events(topk=10, max_token_size=1000)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def get_user_events(
     request: Request,
     user_id: str = Path(..., description="The ID of the user"),
@@ -376,7 +496,15 @@ async def get_user_events(
     return p.to_response(res.UserEventsDataResponse)
 
 
-@router.get("/users/context/{user_id}", tags=["context"])
+@router.get("/users/context/{user_id}", tags=["context"],
+             openapi_extra={"x-code-samples": [
+                {
+                    "lang": "Python",
+                    "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\n from memobase import Memobase\n\n client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\n context = u.context(max_token_size=1000, \n                    prefer_topics=['work', 'family'], \n                    only_topics=None, \n                    max_subtopic_size=5, \n                    topic_limits={'work': 3, 'family': 2}, \n                    profile_event_ratio=0.8)\n\n",
+                    "label": "Python"
+                }
+            ]}
+)
 async def get_user_context(
     request: Request,
     user_id: str = Path(..., description="The ID of the user"),
