@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks, Request
 from fastapi import Path, Query, Body
 from fastapi.responses import JSONResponse
+from fastapi.openapi.utils import get_openapi
 from starlette.middleware.base import BaseHTTPMiddleware
 from memobase_server.connectors import (
     db_health_check,
@@ -54,11 +55,34 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    summary="APIs for Memobase, a user memory system for LLM Apps",
-    version=memobase_server.__version__,
-    title="Memobase API",
     lifespan=lifespan,
 )
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="Memobase API",
+        version=memobase_server.__version__,
+        summary="APIs for Memobase, a user memory system for LLM Apps",
+        routes=app.routes,
+        servers=[
+            {"url": "https://api.memobase.dev"},
+            {"url": "https://api.memboase.cn"},
+        ],
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+        }
+    }
+    openapi_schema["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
 router = APIRouter(prefix="/api/v1")
 LOGGING_CONFIG["formatters"]["default"][
     "fmt"
