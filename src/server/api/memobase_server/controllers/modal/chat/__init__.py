@@ -1,6 +1,6 @@
 import asyncio
 
-from ....env import LOG
+from ....env import LOG, ProfileConfig
 from ....models.blob import Blob
 from ....models.utils import Promise
 from ...profile import add_user_profiles, update_user_profiles, delete_user_profiles
@@ -10,6 +10,7 @@ from .merge import merge_or_add_new_memos
 from .summary import re_summary
 from .organize import organize_profiles
 from .types import MergeAddResult
+from .event_summary import summary_event
 
 
 async def process_blobs(
@@ -33,6 +34,7 @@ async def process_blobs(
     if not p.ok():
         return p
 
+    profile_options = p.data()
     delta_profile_data = [
         {
             "content": extracted_data["fact_contents"][i],
@@ -40,15 +42,13 @@ async def process_blobs(
         }
         for i in range(len(extracted_data["fact_contents"]))
     ]
-    if len(delta_profile_data) > 0:
-        await append_user_event(
-            user_id,
-            project_id,
-            {
-                "profile_delta": delta_profile_data,
-            },
-        )
-    profile_options = p.data()
+    await handle_session_event(
+        user_id,
+        project_id,
+        blobs,
+        delta_profile_data,
+        extracted_data["config"],
+    )
 
     # 3. Check if we need to organize profiles
     p = await organize_profiles(
@@ -77,6 +77,30 @@ async def process_blobs(
     if not all([p.ok() for p in ps]):
         return Promise.reject("Failed to add or update profiles")
     return Promise.resolve(None)
+
+
+async def handle_session_event(
+    user_id: str,
+    project_id: str,
+    blobs: list[Blob],
+    delta_profile_data: list[dict],
+    config: ProfileConfig,
+) -> Promise[None]:
+    if not len(delta_profile_data):
+        return Promise.resolve(None)
+    p = await summary_event(project_id, blobs, config)
+    if not p.ok():
+        LOG.error(f"Failed to summary event: {p.msg()}")
+    event_tip = p.data() if p.ok() else None
+    print(event_tip)
+    await append_user_event(
+        user_id,
+        project_id,
+        {
+            "event_tip": event_tip,
+            "profile_delta": delta_profile_data,
+        },
+    )
 
 
 async def exe_user_profile_add(

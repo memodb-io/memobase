@@ -12,14 +12,15 @@ from .connectors import get_redis_client, PROJECT_ID
 def event_str_repr(event: UserEventData) -> str:
     happened_at = event.created_at.astimezone(CONFIG.timezone).strftime("%Y/%m/%d")
     event_data = event.event_data
-
-    profile_deltas = [
-        f"- {ed.attributes['topic']}::{ed.attributes['sub_topic']}: {ed.content}"
-        for ed in event_data.profile_delta
-    ]
-    profile_delta_str = "\n".join(profile_deltas)
-    return f"""{happened_at}:
-{profile_delta_str}"""
+    if event_data.event_tip is None:
+        profile_deltas = [
+            f"- {ed.attributes['topic']}::{ed.attributes['sub_topic']}: {ed.content}"
+            for ed in event_data.profile_delta
+        ]
+        profile_delta_str = "\n".join(profile_deltas)
+        return f"{happened_at}:\n{profile_delta_str}"
+    else:
+        return f"{happened_at}:\n{event_data.event_tip}"
 
 
 def get_encoded_tokens(content: str) -> list[int]:

@@ -74,11 +74,12 @@ class ProfileDelta(BaseModel):
 
 class EventData(BaseModel):
     profile_delta: list[ProfileDelta] = Field(..., description="List of profile data")
+    event_tip: Optional[str] = Field(None, description="Event tip")
 
 
 class UserEventData(BaseModel):
     id: UUID = Field(..., description="The event's unique identifier")
-    event_data: Optional[EventData] = Field(None, description="User event data in JSON")
+    event_data: EventData = Field(None, description="User event data in JSON")
     created_at: datetime = Field(
         None, description="Timestamp when the event was created"
     )
