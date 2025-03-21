@@ -20,7 +20,6 @@ async def summary_event(
     )
     if not ENABLE_EVENT_SUMMARY:
         return Promise.resolve(None)
-    print(tag_chat_blobs_in_order_xml(blobs))
     r = await llm_complete(
         project_id,
         tag_chat_blobs_in_order_xml(blobs),

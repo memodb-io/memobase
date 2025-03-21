@@ -92,7 +92,6 @@ async def handle_session_event(
     if not p.ok():
         LOG.error(f"Failed to summary event: {p.msg()}")
     event_tip = p.data() if p.ok() else None
-    print(event_tip)
     await append_user_event(
         user_id,
         project_id,

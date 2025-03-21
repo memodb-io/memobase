@@ -46,6 +46,7 @@ async def get_project_billing(project_id: str) -> Promise[BillingData]:
         if (
             today > next_refill_date
             and usage_left_this_billing is not None
+            and BILLING_REFILL_AMOUNT_MAP[BillingStatus.free] is not None
             and usage_left_this_billing < BILLING_REFILL_AMOUNT_MAP[BillingStatus.free]
         ):
             usage_left_this_billing = BILLING_REFILL_AMOUNT_MAP[BillingStatus.free]

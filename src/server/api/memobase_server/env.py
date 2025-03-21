@@ -28,7 +28,6 @@ class BillingStatus:
 
 BILLING_REFILL_AMOUNT_MAP = {
     BillingStatus.free: int(os.getenv("USAGE_TOKEN_LIMIT_ACTIVE", 0)) or None,
-    BillingStatus.pro: int(os.getenv("USAGE_TOKEN_LIMIT_PRO", 0)) or None,
 }
 
 
