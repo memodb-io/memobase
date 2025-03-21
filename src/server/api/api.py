@@ -38,7 +38,7 @@ def custom_openapi():
         routes=app.routes,
         servers=[
             {"url": "https://api.memobase.dev"},
-            {"url": "https://api.memboase.cn"},
+            {"url": "https://api.memobase.cn"},
         ],
     )
     openapi_schema["components"]["securitySchemes"] = {
