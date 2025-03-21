@@ -1572,6 +1572,18 @@
 						"type": "array",
 						"title": "Profile Delta",
 						"description": "List of profile data"
+					},
+					"event_tip": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Event Tip",
+						"description": "Event tip"
 					}
 				},
 				"type": "object",
@@ -1954,14 +1966,7 @@
 						"description": "The event's unique identifier"
 					},
 					"event_data": {
-						"anyOf": [
-							{
-								"$ref": "#/components/schemas/EventData"
-							},
-							{
-								"type": "null"
-							}
-						],
+						"$ref": "#/components/schemas/EventData",
 						"description": "User event data in JSON"
 					},
 					"created_at": {
