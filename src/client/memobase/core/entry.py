@@ -72,6 +72,10 @@ class MemoBaseClient:
         )
         return True
 
+    def get_usage(self) -> dict:
+        r = unpack_response(self._client.get("/project/billing"))
+        return r.data
+
     def add_user(self, data: dict = None, id=None) -> str:
         r = unpack_response(self._client.post("/users", json={"data": data, "id": id}))
         return r.data["id"]

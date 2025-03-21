@@ -46,6 +46,7 @@ class ProfileDelta(BaseModel):
 
 class EventData(BaseModel):
     profile_delta: list[ProfileDelta] = Field(..., description="List of profile data")
+    event_tip: Optional[str] = Field(None, description="Event tip")
 
 
 class UserEventData(BaseModel):
