@@ -90,7 +90,7 @@ class Config:
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
     profile_strict_mode: bool = False
-    enable_event_summary: bool = False
+    enable_event_summary: bool = True
 
     # Telemetry
     telemetry_deployment_environment: str = "local"

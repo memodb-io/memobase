@@ -44,6 +44,19 @@ def mock_llm_complete():
         yield mock_llm
 
 
+@pytest.fixture
+def mock_event_summary_llm_complete():
+    with patch(
+        "memobase_server.controllers.modal.chat.event_summary.llm_complete"
+    ) as mock_llm:
+        mock_client1 = AsyncMock()
+        mock_client1.ok = Mock(return_value=True)
+        mock_client1.data = Mock(return_value="Melinda is a software engineer")
+
+        mock_llm.side_effect = [mock_client1]
+        yield mock_llm
+
+
 def test_user_api_curd(client, db_env):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
     d = response.json()
@@ -281,7 +294,9 @@ async def test_api_user_profile(client, db_env):
 
 
 @pytest.mark.asyncio
-async def test_api_user_flush_buffer(client, db_env, mock_llm_complete):
+async def test_api_user_flush_buffer(
+    client, db_env, mock_llm_complete, mock_event_summary_llm_complete
+):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
     d = response.json()
     assert response.status_code == 200

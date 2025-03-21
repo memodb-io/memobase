@@ -52,7 +52,7 @@ async def append_user_event(
         validated_event = EventData(**event_data)
     except ValidationError as e:
         return Promise.reject(
-            CODE.INVALID_REQUEST,
+            CODE.INTERNAL_SERVER_ERROR,
             f"Invalid event data: {str(e)}",
         )
     with Session() as session:
