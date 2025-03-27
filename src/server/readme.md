@@ -59,7 +59,7 @@ Check out the [docs](https://docs.memobase.io/quickstart) of how to use Memobase
 
 4. Run the service:
    ```bash
-   docker run --env-file env.list ./api/config.yaml:/app/config.yaml -p 8019:8000 ghcr.io/memodb-io/memobase:main
+   docker run --env-file env.list -v ./api/config.yaml:/app/config.yaml -p 8019:8000 ghcr.io/memodb-io/memobase:main
    ```
 
 
