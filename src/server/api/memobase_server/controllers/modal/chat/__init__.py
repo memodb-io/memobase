@@ -10,7 +10,7 @@ from .merge import merge_or_add_new_memos
 from .summary import re_summary
 from .organize import organize_profiles
 from .types import MergeAddResult
-from .event_summary import summary_event
+from .event_summary import summary_event, tag_event
 
 
 async def process_blobs(
@@ -92,11 +92,27 @@ async def handle_session_event(
     if not p.ok():
         LOG.error(f"Failed to summary event: {p.msg()}")
     event_tip = p.data() if p.ok() else None
+
+    if event_tip is not None:
+        profile_delta_str = "\n".join(
+            [
+                f"- {dp['attributes']['topic']}:{dp['attributes']['sub_topic']}: {dp['content']}"
+                for dp in delta_profile_data
+            ]
+        )
+        p = await tag_event(project_id, config, profile_delta_str, event_tip)
+        if not p.ok():
+            LOG.error(f"Failed to tag event: {p.msg()}")
+        event_tags = p.data() if p.ok() else None
+    else:
+        event_tags = None
+
     await append_user_event(
         user_id,
         project_id,
         {
             "event_tip": event_tip,
+            "event_tags": event_tags,
             "profile_delta": delta_profile_data,
         },
     )

@@ -16,6 +16,16 @@ SubTopic = TypedDict(
 
 
 @dataclass
+class EventTag:
+    name: str
+    description: Optional[str] = None
+
+    def __post_init__(self):
+        self.name = attribute_unify(self.name)
+        self.description = self.description or ""
+
+
+@dataclass
 class UserProfileTopic:
     topic: str
     description: Optional[str] = None
@@ -132,3 +142,17 @@ def export_user_profile_to_yaml(profiles: list[UserProfileTopic]):
         final_results["profiles"].append(res)
     print(final_results)
     return yaml.dump(final_results, allow_unicode=True)
+
+
+def init_event_tags(event_tags: list[dict]) -> list[EventTag]:
+    event_tags = [
+        et if isinstance(et, dict) else {"name": et, "description": None}
+        for et in event_tags
+    ]
+    return [EventTag(et["name"], et.get("description", None)) for et in event_tags]
+
+
+def read_out_event_tags(config: ProfileConfig) -> list[EventTag]:
+    if config.event_tags is None:
+        return init_event_tags(CONFIG.event_tags)
+    return init_event_tags(config.event_tags)

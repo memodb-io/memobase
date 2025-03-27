@@ -92,9 +92,10 @@ class Config:
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
     profile_strict_mode: bool = False
+
     enable_event_summary: bool = True
     minimum_chats_token_size_for_event_summary: int = 256
-
+    event_tags: list[dict] = field(default_factory=list)
     # Telemetry
     telemetry_deployment_environment: str = "local"
 
@@ -178,10 +179,12 @@ class Config:
 @dataclass
 class ProfileConfig:
     language: Literal["en", "zh"] = None
-    enable_event_summary: bool = None
     profile_strict_mode: bool | None = None
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
+
+    enable_event_summary: bool = None
+    event_tags: list[dict] = None
 
     def __post_init__(self):
         if self.language not in ["en", "zh"]:
