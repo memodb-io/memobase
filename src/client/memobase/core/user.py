@@ -44,9 +44,15 @@ class ProfileDelta(BaseModel):
     )
 
 
+class EventTag(BaseModel):
+    tag: str = Field(..., description="The event tag")
+    value: str = Field(..., description="The event tag value")
+
+
 class EventData(BaseModel):
     profile_delta: list[ProfileDelta] = Field(..., description="List of profile data")
     event_tip: Optional[str] = Field(None, description="Event tip")
+    event_tags: Optional[list[EventTag]] = Field(None, description="List of event tags")
 
 
 class UserEventData(BaseModel):
