@@ -64,7 +64,6 @@ async def tag_event(
         {"tag": attribute_unify(et["sub_topic"]), "value": et["memo"]}
         for et in parsed_event_tags
     ]
-    print(f"{profile_delta}\n\n{event_summary}", event_tags_str, parsed_event_tags)
     strict_parsed_event_tags = [
         et for et in parsed_event_tags if et["tag"] in available_event_tags
     ]

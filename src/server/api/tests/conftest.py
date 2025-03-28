@@ -6,6 +6,10 @@ from fastapi.testclient import TestClient
 
 PREFIX = "/api/v1"
 CONFIG.minimum_chats_token_size_for_event_summary = 5
+CONFIG.event_tags = [
+    {"name": "emotion", "description": "Record the current emotion of user"},
+    {"name": "goal", "description": "Record the current goal of user"},
+]
 # @pytest.fixture(scope="session")
 # def event_loop():
 #     try:
