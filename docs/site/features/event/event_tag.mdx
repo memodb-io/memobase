@@ -1,0 +1,25 @@
+---
+title: Event Tag
+---
+
+Event tag is a way to tag anything attributes of event automatically.
+You can use event tag to enrich the user event, and doing some tracking on the user sequential behavior, something like:
+- emotion
+- goal
+- romance
+- ...
+
+## How to set event tag?
+By default, Memobase will record no event tag. You need to set the event tag in your `config.yaml`:
+```yaml
+event_tags:
+  - name: "emotion"
+    description: "Record the current emotion of user"
+  - name: "romance"
+    description: "Record anything about romance between user and assistant"
+...
+```
+where `name` is the name of the event tag, and `description` is the description of the event tag.
+
+Once you set the event tag, Memobase will record the event tag automatically and return events with event tags.
+Check [here](/api-reference/events/get_events) for more details.

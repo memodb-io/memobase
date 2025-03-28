@@ -3,14 +3,14 @@
 	"info": {
 		"title": "Memobase API",
 		"summary": "APIs for Memobase, a user memory system for LLM Apps",
-		"version": "0.0.29"
+		"version": "0.0.30-alpha1"
 	},
 	"servers": [
 		{
 			"url": "https://api.memobase.dev"
 		},
 		{
-			"url": "https://api.memboase.cn"
+			"url": "https://api.memobase.cn"
 		}
 	],
 	"paths": {
@@ -914,6 +914,61 @@
 				]
 			}
 		},
+		"/api/v1/users/profile/import/{user_id}": {
+			"post": {
+				"tags": [
+					"profile"
+				],
+				"summary": "Import User Context",
+				"operationId": "import_user_context_api_v1_users_profile_import__user_id__post",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The ID of the user",
+							"title": "User Id"
+						},
+						"description": "The ID of the user"
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UserContextImport",
+								"description": "The content of the user context to import"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BaseResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/users/profile/{user_id}/{profile_id}": {
 			"put": {
 				"tags": [
@@ -1210,6 +1265,139 @@
 				]
 			}
 		},
+		"/api/v1/users/event/{user_id}/{event_id}": {
+			"put": {
+				"tags": [
+					"event"
+				],
+				"summary": "Update User Event",
+				"operationId": "update_user_event_api_v1_users_event__user_id___event_id__put",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The ID of the user",
+							"title": "User Id"
+						},
+						"description": "The ID of the user"
+					},
+					{
+						"name": "event_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The ID of the event",
+							"title": "Event Id"
+						},
+						"description": "The ID of the event"
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/EventData",
+								"description": "Event data to update"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BaseResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				},
+				"x-code-samples": [
+					{
+						"lang": "Python",
+						"source": "# To use the Python SDK, install the package:\n# pip install memobase\n\nfrom memobase import Memobase\n\nclient = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\nuid = client.add_user()\nu = client.get_user(uid)\n# ... insert messages to user\n\nevents = u.event(topk=5)\neid = events[0].id\n\nu.update_event(eid, {\"event_tip\": \"The event is about...\"})\nprint(u.event(topk=1))\n",
+						"label": "Python"
+					}
+				]
+			},
+			"delete": {
+				"tags": [
+					"event"
+				],
+				"summary": "Delete User Event",
+				"operationId": "delete_user_event_api_v1_users_event__user_id___event_id__delete",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The ID of the user",
+							"title": "User Id"
+						},
+						"description": "The ID of the user"
+					},
+					{
+						"name": "event_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The ID of the event",
+							"title": "Event Id"
+						},
+						"description": "The ID of the event"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BaseResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				},
+				"x-code-samples": [
+					{
+						"lang": "Python",
+						"source": "# To use the Python SDK, install the package:\n# pip install memobase\n\nfrom memobase import Memobase\n\nclient = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\nuid = client.add_user()\nu = client.get_user(uid)\n# ... insert messages to user\n\nevents = u.event(topk=1)\nprint(events)\n\neid = events[0].id\nu.delete_event(eid)\n\nprint(u.event(topk=1))\n",
+						"label": "Python"
+					}
+				]
+			}
+		},
 		"/api/v1/users/context/{user_id}": {
 			"get": {
 				"tags": [
@@ -1298,7 +1486,7 @@
 						"schema": {
 							"type": "number",
 							"description": "Profile event ratio of returned Context",
-							"default": 0.8,
+							"default": 0.6,
 							"title": "Profile Event Ratio"
 						},
 						"description": "Profile event ratio of returned Context"
@@ -1566,10 +1754,17 @@
 			"EventData": {
 				"properties": {
 					"profile_delta": {
-						"items": {
-							"$ref": "#/components/schemas/ProfileDelta"
-						},
-						"type": "array",
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/ProfileDelta"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Profile Delta",
 						"description": "List of profile data"
 					},
@@ -1584,13 +1779,45 @@
 						],
 						"title": "Event Tip",
 						"description": "Event tip"
+					},
+					"event_tags": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/EventTag"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Event Tags",
+						"description": "List of event tags"
+					}
+				},
+				"type": "object",
+				"title": "EventData"
+			},
+			"EventTag": {
+				"properties": {
+					"tag": {
+						"type": "string",
+						"title": "Tag",
+						"description": "The event tag"
+					},
+					"value": {
+						"type": "string",
+						"title": "Value",
+						"description": "The event tag value"
 					}
 				},
 				"type": "object",
 				"required": [
-					"profile_delta"
+					"tag",
+					"value"
 				],
-				"title": "EventData"
+				"title": "EventTag"
 			},
 			"HTTPValidationError": {
 				"properties": {
@@ -1859,6 +2086,20 @@
 				},
 				"type": "object",
 				"title": "UserContextDataResponse"
+			},
+			"UserContextImport": {
+				"properties": {
+					"context": {
+						"type": "string",
+						"title": "Context",
+						"description": "The user context you want to import to Memobase"
+					}
+				},
+				"type": "object",
+				"required": [
+					"context"
+				],
+				"title": "UserContextImport"
 			},
 			"UserData": {
 				"properties": {

@@ -28,11 +28,17 @@
               {
                 "group": "User Profile",
                 "pages": [
-                  "features/profile",
-                  "features/profile_desc"
+                  "features/profile/profile",
+                  "features/profile/profile_desc"
                 ]
               },
-              "features/event",
+              {
+                "group": "User Event",
+                "pages": [
+                  "features/event/event",
+                  "features/event/event_tag"
+                ]
+              },
               "features/context"
             ]
           },
@@ -104,7 +110,9 @@
               {
                 "group": "User Events",
                 "pages": [
-                  "api-reference/events/get_events"
+                  "api-reference/events/get_events",
+                  "api-reference/events/update_event",
+                  "api-reference/events/delete_event"
                 ]
               },
               {
