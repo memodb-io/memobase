@@ -97,7 +97,11 @@ def mock_event_summary_llm_complete():
         mock_client1.ok = Mock(return_value=True)
         mock_client1.data = Mock(return_value="Melinda is a software engineer")
 
-        mock_llm.side_effect = [mock_client1]
+        mock_client2 = AsyncMock()
+        mock_client2.ok = Mock(return_value=True)
+        mock_client2.data = Mock(return_value="- emotion::happy")
+
+        mock_llm.side_effect = [mock_client1, mock_client2]
         yield mock_llm
 
 

@@ -11,6 +11,7 @@ INT_INT_PATTERN = re.compile(r"\[(\d+)\]")
 
 EXCLUDE_PROFILE_VALUES = [
     # Chinese variations
+    "无",
     "未提及",
     "不清楚",
     "用户未提及",
@@ -20,7 +21,10 @@ EXCLUDE_PROFILE_VALUES = [
     "没有提到",
     "没有说明",
     "无法确定",
+    "无相关内容",
+    "未明确提及",
     # English variations
+    "none",
     "unknown",
     "not mentioned",
     "not mentioned by user",
@@ -31,6 +35,8 @@ EXCLUDE_PROFILE_VALUES = [
     "not determined",
     "no information",
     "n/a",
+    "no related content",
+    "no related information",
 ]
 
 
@@ -213,6 +219,8 @@ def parse_line_into_subtopic(line: str) -> dict:
     line = line[2:]
     parts = line.split(CONFIG.llm_tab_separator)
     if not len(parts) == 2:
+        return None
+    if meaningless_profile_memo(parts[1].strip()):
         return None
     return {"sub_topic": attribute_unify(parts[0].strip()), "memo": parts[1].strip()}
 

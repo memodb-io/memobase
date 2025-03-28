@@ -187,6 +187,17 @@ router.get(
     openapi_extra=API_X_CODE_DOCS["GET /users/event/{user_id}"],
 )(api_layer.event.get_user_events)
 
+router.put(
+    "/users/event/{user_id}/{event_id}",
+    tags=["event"],
+    openapi_extra=API_X_CODE_DOCS["PUT /users/event/{user_id}/{event_id}"],
+)(api_layer.event.update_user_event)
+
+router.delete(
+    "/users/event/{user_id}/{event_id}",
+    tags=["event"],
+    openapi_extra=API_X_CODE_DOCS["DELETE /users/event/{user_id}/{event_id}"],
+)(api_layer.event.delete_user_event)
 
 router.get(
     "/users/context/{user_id}",

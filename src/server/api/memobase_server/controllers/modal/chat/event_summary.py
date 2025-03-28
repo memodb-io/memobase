@@ -4,7 +4,7 @@ from ....models.utils import Promise
 from ....models.blob import Blob, BlobType
 from ....env import ProfileConfig, ContanstTable, CONFIG
 from ....prompts.utils import tag_chat_blobs_in_order_xml, parse_string_into_subtopics
-from ....prompts.types import read_out_event_tags
+from ....prompts.types import read_out_event_tags, attribute_unify
 from ....llms import llm_complete
 from ....utils import get_encoded_tokens
 
@@ -45,6 +45,7 @@ async def tag_event(
     project_id: str, config: ProfileConfig, profile_delta: str, event_summary: str
 ) -> Promise[Optional[list]]:
     event_tags = read_out_event_tags(config)
+    available_event_tags = set([et.name for et in event_tags])
     if len(event_tags) == 0:
         return Promise.resolve(None)
     event_tags_str = "\n".join([f"- {et.name}({et.description})" for et in event_tags])
@@ -53,15 +54,18 @@ async def tag_event(
         f"{profile_delta}\n\n{event_summary}",
         system_prompt=event_tagging_prompt.get_prompt(event_tags_str),
         temperature=0.2,
-        model=CONFIG.summary_llm_model,
+        model=CONFIG.best_llm_model,
         **event_tagging_prompt.get_kwargs(),
     )
     if not r.ok():
         return r
     parsed_event_tags = parse_string_into_subtopics(r.data())
     parsed_event_tags = [
-        {"tag": et["sub_topic"], "value": et["memo"]} for et in parsed_event_tags
+        {"tag": attribute_unify(et["sub_topic"]), "value": et["memo"]}
+        for et in parsed_event_tags
     ]
-    print(f"{profile_delta}\n\n{event_summary}")
-    print(parsed_event_tags)
-    return Promise.resolve(parsed_event_tags)
+    print(f"{profile_delta}\n\n{event_summary}", event_tags_str, parsed_event_tags)
+    strict_parsed_event_tags = [
+        et for et in parsed_event_tags if et["tag"] in available_event_tags
+    ]
+    return Promise.resolve(strict_parsed_event_tags)

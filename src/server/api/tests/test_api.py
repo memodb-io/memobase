@@ -53,7 +53,11 @@ def mock_event_summary_llm_complete():
         mock_client1.ok = Mock(return_value=True)
         mock_client1.data = Mock(return_value="Melinda is a software engineer")
 
-        mock_llm.side_effect = [mock_client1]
+        mock_client2 = AsyncMock()
+        mock_client2.ok = Mock(return_value=True)
+        mock_client2.data = Mock(return_value="- emotion::happy")
+
+        mock_llm.side_effect = [mock_client1, mock_client2]
         yield mock_llm
 
 
@@ -397,6 +401,58 @@ def test_chat_blob_param_api(client, db_env):
     assert response.status_code == 200
     assert d["errno"] == 0
     b_id = d["data"]["id"]
+
+    response = client.delete(f"{PREFIX}/users/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+
+@pytest.mark.asyncio
+async def test_api_user_event(
+    client, db_env, mock_llm_complete, mock_event_summary_llm_complete
+):
+    response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    u_id = d["data"]["id"]
+
+    response = client.post(
+        f"{PREFIX}/blobs/insert/{u_id}",
+        json={
+            "blob_type": "chat",
+            "blob_data": {
+                "messages": [
+                    {"role": "user", "content": "hello, I'm Gus"},
+                    {"role": "assistant", "content": "hi"},
+                ]
+            },
+        },
+    )
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+    response = client.post(f"{PREFIX}/users/buffer/{u_id}/chat")
+    assert response.status_code == 200
+    assert response.json()["errno"] == 0
+
+    response = client.get(f"{PREFIX}/users/event/{u_id}?topk=5")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 1
+
+    print(d["data"]["events"])
+    assert (
+        d["data"]["events"][0]["event_data"]["event_tip"]
+        == "Melinda is a software engineer"
+    )
+    assert d["data"]["events"][0]["event_data"]["event_tags"] == [
+        {"tag": "emotion", "value": "happy"}
+    ]
+    print(d)
 
     response = client.delete(f"{PREFIX}/users/{u_id}")
     d = response.json()

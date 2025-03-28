@@ -933,3 +933,55 @@ u.update_profile(profile_id, "value2", "topic2", "sub_topic2")
         },
     ]
 }
+
+API_X_CODE_DOCS["PUT /users/event/{user_id}/{event_id}"] = {
+    "x-code-samples": [
+        {
+            "lang": "Python",
+            "source": """# To use the Python SDK, install the package:
+# pip install memobase
+
+from memobase import Memobase
+
+client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+uid = client.add_user()
+u = client.get_user(uid)
+# ... insert messages to user
+
+events = u.event(topk=5)
+eid = events[0].id
+
+u.update_event(eid, {"event_tip": "The event is about..."})
+print(u.event(topk=1))
+""",
+            "label": "Python",
+        },
+    ]
+}
+
+API_X_CODE_DOCS["DELETE /users/event/{user_id}/{event_id}"] = {
+    "x-code-samples": [
+        {
+            "lang": "Python",
+            "source": """# To use the Python SDK, install the package:
+# pip install memobase
+
+from memobase import Memobase
+
+client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+uid = client.add_user()
+u = client.get_user(uid)
+# ... insert messages to user
+
+events = u.event(topk=1)
+print(events)
+
+eid = events[0].id
+u.delete_event(eid)
+
+print(u.event(topk=1))
+""",
+            "label": "Python",
+        },
+    ]
+}

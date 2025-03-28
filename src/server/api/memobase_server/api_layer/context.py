@@ -36,6 +36,10 @@ async def get_user_context(
         0.6,
         description="Profile event ratio of returned Context",
     ),
+    require_event_summary: bool = Query(
+        False,
+        description="Whether to require event summary in returned Context",
+    ),
 ) -> res.UserContextDataResponse:
     project_id = request.state.memobase_project_id
     topic_limits_json = topic_limits_json or "{}"
@@ -54,5 +58,6 @@ async def get_user_context(
         max_subtopic_size,
         topic_limits,
         profile_event_ratio,
+        require_event_summary,
     )
     return p.to_response(res.UserContextDataResponse)

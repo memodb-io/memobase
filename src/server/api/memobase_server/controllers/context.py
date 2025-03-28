@@ -17,6 +17,7 @@ async def get_user_context(
     max_subtopic_size: int,
     topic_limits: dict[str, int],
     profile_event_ratio: float,
+    require_event_summary: bool,
 ) -> Promise[ContextData]:
     assert 0 < profile_event_ratio <= 1, "profile_event_ratio must be between 0 and 1"
     max_profile_token_size = int(max_token_size * profile_event_ratio)
@@ -66,7 +67,11 @@ async def get_user_context(
 
     # max 40 events, then truncate to max_event_token_size
     p = await get_user_events(
-        user_id, project_id, topk=40, max_token_size=max_event_token_size
+        user_id,
+        project_id,
+        topk=40,
+        max_token_size=max_event_token_size,
+        need_summary=require_event_summary,
     )
     if not p.ok():
         return p

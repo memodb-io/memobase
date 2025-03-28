@@ -1,10 +1,11 @@
 import pytest
 import asyncio
 from api import app
+from memobase_server.env import CONFIG
 from fastapi.testclient import TestClient
 
 PREFIX = "/api/v1"
-
+CONFIG.minimum_chats_token_size_for_event_summary = 5
 # @pytest.fixture(scope="session")
 # def event_loop():
 #     try:
