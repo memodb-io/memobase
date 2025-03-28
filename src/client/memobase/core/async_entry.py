@@ -233,6 +233,22 @@ class AsyncUser:
         )
         return [UserEventData.model_validate(e) for e in r.data["events"]]
 
+    async def delete_event(self, event_id: str) -> bool:
+        r = unpack_response(
+            await self.project_client.client.delete(
+                f"/users/event/{self.user_id}/{event_id}"
+            )
+        )
+        return True
+
+    async def update_event(self, event_id: str, event_data: dict) -> bool:
+        r = unpack_response(
+            await self.project_client.client.put(
+                f"/users/event/{self.user_id}/{event_id}", json=event_data
+            )
+        )
+        return True
+
     async def context(
         self,
         max_token_size: int = 1000,

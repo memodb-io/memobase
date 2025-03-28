@@ -216,6 +216,20 @@ class User:
         )
         return [UserEventData.model_validate(e) for e in r.data["events"]]
 
+    def delete_event(self, event_id: str) -> bool:
+        r = unpack_response(
+            self.project_client.client.delete(f"/users/event/{self.user_id}/{event_id}")
+        )
+        return True
+
+    def update_event(self, event_id: str, event_data: dict) -> bool:
+        r = unpack_response(
+            self.project_client.client.put(
+                f"/users/event/{self.user_id}/{event_id}", json=event_data
+            )
+        )
+        return True
+
     def context(
         self,
         max_token_size: int = 1000,
@@ -224,6 +238,7 @@ class User:
         max_subtopic_size: int = None,
         topic_limits: dict[str, int] = None,
         profile_event_ratio: float = None,
+        require_event_summary: bool = None,
     ) -> str:
         params = f"?max_token_size={max_token_size}"
         if prefer_topics:
@@ -238,6 +253,10 @@ class User:
             params += f"&topic_limits_json={json.dumps(topic_limits)}"
         if profile_event_ratio:
             params += f"&profile_event_ratio={profile_event_ratio}"
+        if require_event_summary is not None:
+            params += (
+                f"&require_event_summary={'true' if require_event_summary else 'false'}"
+            )
         r = unpack_response(
             self.project_client.client.get(f"/users/context/{self.user_id}{params}")
         )
