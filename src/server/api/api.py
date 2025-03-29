@@ -3,7 +3,7 @@ import memobase_server.env
 # Done setting up env
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
 from fastapi.openapi.utils import get_openapi
 from memobase_server.connectors import (
     close_connection,
@@ -36,10 +36,6 @@ def custom_openapi():
         version=memobase_server.__version__,
         summary="APIs for Memobase, a user memory system for LLM Apps",
         routes=app.routes,
-        servers=[
-            {"url": "https://api.memobase.dev"},
-            {"url": "https://api.memobase.cn"},
-        ],
     )
     openapi_schema["components"]["securitySchemes"] = {
         "BearerAuth": {
@@ -54,18 +50,32 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
+
+@app.get("/openapi.json", include_in_schema=False)
+async def get_open_api_endpoint(request: Request):
+    """
+    Endpoint to get the openapi.json
+    """
+    host = request.headers.get("host")
+    if not host:
+        return app.openapi()
+    new_openapi_schema = app.openapi()
+    new_openapi_schema["servers"] = [{"url": f"http://{host}"}]
+    return new_openapi_schema
+
+
 router = APIRouter(prefix="/api/v1")
-LOGGING_CONFIG["formatters"]["default"][
-    "fmt"
-] = "%(levelprefix)s %(asctime)s %(message)s"
+LOGGING_CONFIG["formatters"]["default"]["fmt"] = (
+    "%(levelprefix)s %(asctime)s %(message)s"
+)
 LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 
-LOGGING_CONFIG["formatters"]["default"][
-    "fmt"
-] = "%(levelprefix)s %(asctime)s %(message)s"
-LOGGING_CONFIG["formatters"]["access"][
-    "fmt"
-] = "%(levelprefix)s %(asctime)s %(client_addr)s - %(request_line)s %(status_code)s"
+LOGGING_CONFIG["formatters"]["default"]["fmt"] = (
+    "%(levelprefix)s %(asctime)s %(message)s"
+)
+LOGGING_CONFIG["formatters"]["access"]["fmt"] = (
+    "%(levelprefix)s %(asctime)s %(client_addr)s - %(request_line)s %(status_code)s"
+)
 LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 LOGGING_CONFIG["formatters"]["access"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 
