@@ -1,10 +1,12 @@
 import memobase_server.env
+import os
 
 # Done setting up env
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter, Request
+from fastapi import FastAPI, APIRouter
 from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 from memobase_server.connectors import (
     close_connection,
     init_redis_pool,
@@ -27,15 +29,40 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS - Allow requests from ANY origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
+
+    servers: list = []
+    extra_hosts_str = os.environ.get("API_EXTRA_HOSTS")
+    if extra_hosts_str:
+        extra_hosts = [host.strip() for host in extra_hosts_str.split(",")]
+        for host in extra_hosts:
+            servers.append({"url": host})
+
+    servers.extend(
+        [
+            {"url": "https://api.memobase.dev"},
+            {"url": "https://api.memobase.cn"},
+        ]
+    )
+
     openapi_schema = get_openapi(
         title="Memobase API",
         version=memobase_server.__version__,
         summary="APIs for Memobase, a user memory system for LLM Apps",
         routes=app.routes,
+        servers=servers,
     )
     openapi_schema["components"]["securitySchemes"] = {
         "BearerAuth": {
@@ -49,20 +76,6 @@ def custom_openapi():
 
 
 app.openapi = custom_openapi
-
-
-@app.get("/openapi.json", include_in_schema=False)
-async def get_open_api_endpoint(request: Request):
-    """
-    Endpoint to get the openapi.json
-    """
-    host = request.headers.get("host")
-    if not host:
-        return app.openapi()
-    new_openapi_schema = app.openapi()
-    new_openapi_schema["servers"] = [{"url": f"http://{host}"}]
-    return new_openapi_schema
-
 
 router = APIRouter(prefix="/api/v1")
 LOGGING_CONFIG["formatters"]["default"]["fmt"] = (
