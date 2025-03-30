@@ -29,14 +29,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS - Allow requests from ANY origin
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+# CORS configuration
+USE_CORS = os.environ.get("USE_CORS", "False").lower() == "true"  # Default to False
+API_HOSTS_STR = os.environ.get(
+    "API_HOSTS", "https://api.memobase.dev,https://api.memobase.cn"
 )
+API_HOSTS = [host.strip() for host in API_HOSTS_STR.split(",")]
+
+if USE_CORS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=API_HOSTS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 def custom_openapi():
@@ -44,20 +51,10 @@ def custom_openapi():
         return app.openapi_schema
 
     servers: list = []
-    extra_hosts_str = os.environ.get("API_EXTRA_HOSTS")
-    if extra_hosts_str:
-        extra_hosts = [host.strip() for host in extra_hosts_str.split(",")]
-        for host in extra_hosts:
-            servers.append({"url": host})
+    for host in API_HOSTS:
+        servers.append({"url": host})
 
-    servers.extend(
-        [
-            {"url": "https://api.memobase.dev"},
-            {"url": "https://api.memobase.cn"},
-        ]
-    )
-
-    openapi_schema = get_openapi(
+    openapi_schema = get_openapi(  # type: ignore
         title="Memobase API",
         version=memobase_server.__version__,
         summary="APIs for Memobase, a user memory system for LLM Apps",
@@ -71,7 +68,8 @@ def custom_openapi():
         }
     }
     openapi_schema["security"] = [{"BearerAuth": []}]
-    app.openapi_schema = openapi_schema
+
+    app.openapi_schema = openapi_schema  # type: ignore
     return app.openapi_schema
 
 
