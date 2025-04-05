@@ -93,6 +93,7 @@ async def merge_or_add_new_memos(
                 old_p.content,
                 dp["new_profile"]["content"],
                 update_instruction=slot_description["update_description"],
+                topic_description=slot_description["description"],
             ),
             system_prompt=PROMPTS[USE_LANGUAGE]["merge"].get_prompt(),
             temperature=0.2,  # precise

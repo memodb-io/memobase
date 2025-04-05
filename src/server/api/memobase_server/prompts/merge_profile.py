@@ -1,3 +1,4 @@
+from datetime import datetime
 from .utils import pack_merge_action_into_string
 from ..env import CONFIG
 
@@ -100,23 +101,36 @@ You need to understand the instruction and update the memo accordingly.
 {example_special}
 </example>
 
+Make sure you understand the topic description(In `### Topic Description` section) if it exists and update the final memo accordingly.
 Understand the memos wisely, you are allowed to infer the information from the new memo and old memo to decide the final memo.
 Follow the instruction mentioned below:
 - Do not return anything from the custom few shot prompts provided above.
 - Stick to the correct format.
 - Make sure the final memo is no more than 5 sentences.
 - Always concise and output the guts of the memo.
+- Do not make any explanations in the memo, only output the final value related to the topic.
 """
 
 
-def get_input(topic, subtopic, old_memo, new_memo, update_instruction=None):
+def get_input(
+    topic, subtopic, old_memo, new_memo, update_instruction=None, topic_description=None
+):
+    today = datetime.now().astimezone(CONFIG.timezone).strftime("%Y-%m-%d")
     header = ""
     if update_instruction:
         header = f"""## Update Instruction
 {update_instruction}"""
-    return f"""{header}
-## User Topic
-{topic}, {subtopic}
+    topic_section = f"""## User Topic
+{topic}, {subtopic}"""
+    if topic_description:
+        topic_section += f"""
+### Topic Description
+{topic_description}"""
+
+    return f"""Today is {today}.
+{header}
+{topic_section}
+
 ## Old Memo
 {old_memo}
 ## New Memo
