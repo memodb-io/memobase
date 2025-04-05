@@ -17,7 +17,7 @@ Attributes = TypedDict("Attributes", {"topic": str, "sub_topic": str})
 AddProfile = TypedDict("AddProfile", {"content": str, "attributes": Attributes})
 UpdateProfile = TypedDict(
     "UpdateProfile",
-    {"profile_id": str, "content": str, "attributes": Attributes, "action": str},
+    {"profile_id": str, "content": str, "attributes": Attributes},
 )
 
 MergeAddResult = TypedDict(
@@ -25,8 +25,8 @@ MergeAddResult = TypedDict(
     {
         "add": list[AddProfile],
         "update": list[UpdateProfile],
-        "before_profiles": list[ProfileData],
         "delete": list[str],
+        "before_profiles": list[ProfileData],
     },
 )
 
