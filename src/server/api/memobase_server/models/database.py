@@ -130,7 +130,7 @@ class Project(Base):
 
     project_id: Mapped[str] = mapped_column(VARCHAR(64), nullable=False, unique=True)
     project_secret: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
-    profile_config: Mapped[str] = mapped_column(TEXT, nullable=True)
+    profile_config: Mapped[str | None] = mapped_column(TEXT, nullable=True)
     status: Mapped[str] = mapped_column(
         VARCHAR(16), nullable=False, default=ProjectStatus.active
     )

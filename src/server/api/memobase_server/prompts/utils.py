@@ -24,6 +24,7 @@ EXCLUDE_PROFILE_VALUES = [
     "无法确定",
     "无相关内容",
     "未明确提及",
+    "无明确信息"
     # English variations
     "none",
     "unknown",
@@ -137,13 +138,11 @@ def convert_response_to_json(response: str) -> dict:
 
 
 def pack_merge_action_into_string(action: dict) -> str:
-    CONFIG.llm_tab_separator
     return f"- {action['action']}{CONFIG.llm_tab_separator}{action['memo']}"
 
 
 def parse_string_into_merge_action(results: str) -> dict | None:
-    lines = results.split("\n")[0]
-    lines = [l for l in lines.split("\n") if l.strip()]
+    lines = [l for l in results.split("\n") if l.strip()]
     lines = [l for l in lines if l.startswith("- ")]
     if not len(lines):
         return None
@@ -223,6 +222,10 @@ def parse_line_into_subtopic(line: str) -> dict:
 
 
 if __name__ == "__main__":
-    print(parse_line_into_profile("- basic_info::name::Gus"))
-    print(parse_line_into_profile("- basic_info::name::从未提及过"))
-    # print(parse_string_into_merge_action("- REPLACE::G"))
+    print(
+        parse_string_into_merge_action(
+            """The topic description requires the value to be the user's academic stage such as 'Senior One', 'Junior Three', 'Ph.D.'. The provided value is '博士' which is a valid academic stage and matches the description.
+---
+- REVISE::博士"""
+        )
+    )

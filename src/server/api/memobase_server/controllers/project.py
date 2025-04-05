@@ -45,7 +45,7 @@ async def get_project_profile_config(project_id: str) -> Promise[ProfileConfig]:
 
 
 async def update_project_profile_config(
-    project_id: str, profile_config: str
+    project_id: str, profile_config: str | None
 ) -> Promise[None]:
     with Session() as session:
         p = (

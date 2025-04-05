@@ -1,3 +1,4 @@
+import asyncio
 from ....env import CONFIG, LOG, ContanstTable
 from ....models.utils import Promise
 from ....models.blob import Blob, BlobType
@@ -7,8 +8,9 @@ from ....prompts.utils import (
     tag_chat_blobs_in_order_xml,
     attribute_unify,
     parse_string_into_profiles,
+    parse_string_into_merge_action,
 )
-from ....prompts.profile_init_utils import read_out_profile_config
+from ....prompts.profile_init_utils import read_out_profile_config, UserProfileTopic
 from ...profile import get_user_profiles
 from ...project import get_project_profile_config
 
@@ -69,8 +71,8 @@ async def extract_topics(
             ]
         )
         if STRICT_MODE:
-            already_topics_subtopics = (
-                already_topics_subtopics - allowed_topic_subtopics
+            already_topics_subtopics = already_topics_subtopics.intersection(
+                allowed_topic_subtopics
             )
         already_topics_subtopics = sorted(already_topics_subtopics)
         already_topics_prompt = "\n".join(
