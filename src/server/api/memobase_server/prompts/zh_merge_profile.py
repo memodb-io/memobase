@@ -96,24 +96,34 @@ MERGE_FACTS_PROMPT = """你是一个智能备忘录管理器，负责控制用�
 {example_special}
 </example>
 
-
+如果有的话, 请确保你理解用户主题描述（在 `### 主题描述` 部分），并相应地更新最终备忘录。
 理解备忘录，你可以从新备忘录和旧备忘录中推断信息以决定正确的操作。
 遵循以下说明：
 - 不要返回上面提供的自定义少量提示中的任何内容。
 - 严格遵守正确的格式。
 - 最终的备忘录不能超过5句话, 不能超过100个字
 - 保持备忘录的简洁性
+- 不要在备忘录中做任何解释，只输出最终和主题相关的值
 """
 
 
-def get_input(topic, subtopic, old_memo, new_memo, update_instruction=None):
+def get_input(
+    topic, subtopic, old_memo, new_memo, update_instruction=None, topic_description=None
+):
     header = ""
     if update_instruction:
         header = f"""## 更新说明
 {update_instruction}"""
+
+    topic_section = f"""## 用户主题
+{topic}, {subtopic}"""
+    if topic_description:
+        topic_section += f"""
+### 主题描述
+{topic_description}"""
+
     return f"""{header}
-## 用户主题
-{topic}, {subtopic}
+{topic_section}
 ## 旧备忘录
 {old_memo}
 ## 新备忘录
