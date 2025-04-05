@@ -34,8 +34,10 @@ OVER_MAX_PROFILE_ATTRS = [
 ]
 
 MERGE_FACTS = [
+    "- UPDATE::Gus",
     "- UPDATE::user likes Chinese and Japanese food",
     "- UPDATE::High School",
+    "- UPDATE::Feels bored with high school",
 ]
 
 ORGANIZE_FACTS = """
@@ -63,15 +65,23 @@ def mock_extract_llm_complete():
 @pytest.fixture
 def mock_merge_llm_complete():
     with patch("memobase_server.controllers.modal.chat.merge.llm_complete") as mock_llm:
+        mock_client1 = AsyncMock()
+        mock_client1.ok = Mock(return_value=True)
+        mock_client1.data = Mock(return_value=MERGE_FACTS[0])
+
         mock_client2 = AsyncMock()
         mock_client2.ok = Mock(return_value=True)
-        mock_client2.data = Mock(return_value=MERGE_FACTS[0])
+        mock_client2.data = Mock(return_value=MERGE_FACTS[1])
 
         mock_client3 = AsyncMock()
         mock_client3.ok = Mock(return_value=True)
-        mock_client3.data = Mock(return_value=MERGE_FACTS[1])
+        mock_client3.data = Mock(return_value=MERGE_FACTS[2])
 
-        mock_llm.side_effect = [mock_client2, mock_client3]
+        mock_client4 = AsyncMock()
+        mock_client4.ok = Mock(return_value=True)
+        mock_client4.data = Mock(return_value=MERGE_FACTS[3])
+
+        mock_llm.side_effect = [mock_client1, mock_client2, mock_client3, mock_client4]
         yield mock_llm
 
 
@@ -107,7 +117,10 @@ def mock_event_summary_llm_complete():
 
 @pytest.mark.asyncio
 async def test_chat_buffer_modal(
-    db_env, mock_extract_llm_complete, mock_event_summary_llm_complete
+    db_env,
+    mock_extract_llm_complete,
+    mock_merge_llm_complete,
+    mock_event_summary_llm_complete,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
@@ -279,13 +292,14 @@ async def test_chat_merge_modal(
     assert p.ok()
 
     assert mock_extract_llm_complete.await_count == 1
-    assert mock_merge_llm_complete.await_count == 2
+    assert mock_merge_llm_complete.await_count == 4
 
 
 @pytest.mark.asyncio
 async def test_chat_organize_modal(
     db_env,
     mock_extract_llm_complete,
+    mock_merge_llm_complete,
     mock_organize_llm_complete,
     mock_event_summary_llm_complete,
 ):
@@ -330,4 +344,5 @@ async def test_chat_organize_modal(
     p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
     assert mock_extract_llm_complete.await_count == 1
+    assert mock_merge_llm_complete.await_count == 4
     assert mock_organize_llm_complete.await_count == 1
