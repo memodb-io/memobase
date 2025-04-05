@@ -184,43 +184,6 @@ def test_blob_api_curd(client, db_env):
 
 
 @pytest.mark.asyncio
-async def test_api_project(client, db_env):
-    response = client.get(f"{PREFIX}/project/profile_config")
-    d = response.json()
-    print(d)
-    assert response.status_code == 200
-    assert d["errno"] == 0
-    before_config = d["data"]["profile_config"]
-
-    response = client.post(
-        f"{PREFIX}/project/profile_config", json={"profile_config": "a: 1"}
-    )
-    d = response.json()
-    print(d)
-
-    response = client.get(f"{PREFIX}/project/profile_config")
-    d = response.json()
-    print(d)
-    assert d["data"]["profile_config"] == "a: 1"
-
-    response = client.post(
-        f"{PREFIX}/project/profile_config", json={"profile_config": before_config}
-    )
-    d = response.json()
-
-    response = client.get(f"{PREFIX}/project/profile_config")
-    d = response.json()
-    print(d)
-
-    response = client.post(
-        f"{PREFIX}/project/profile_config", json={"profile_config": "a: ["}
-    )
-    d = response.json()
-    print(d)
-    assert d["errno"] != 0
-
-
-@pytest.mark.asyncio
 async def test_api_user_profile(client, db_env):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
     d = response.json()
@@ -462,6 +425,12 @@ async def test_api_user_event(
 
 @pytest.mark.asyncio
 async def test_api_project_invalid_profile_config(client, db_env):
+    response = client.get(f"{PREFIX}/project/profile_config")
+    d = response.json()
+    print(d)
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert d["data"]["profile_config"] == ""
 
     response = client.post(
         f"{PREFIX}/project/profile_config",
@@ -510,3 +479,10 @@ overwrite_user_profiles:
     d = response.json()
     assert d["errno"] != 0
     print(d["errmsg"])
+
+    response = client.post(
+        f"{PREFIX}/project/profile_config",
+        json={"profile_config": None},
+    )
+    d = response.json()
+    assert d["errno"] == 0

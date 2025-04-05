@@ -11,7 +11,6 @@ from ....prompts.utils import (
     parse_string_into_merge_action,
 )
 from ....prompts.profile_init_utils import read_out_profile_config, UserProfileTopic
-from ....prompts import validate_profile as validate_profile_prompt
 from ...profile import get_user_profiles
 from ...project import get_project_profile_config
 
@@ -141,13 +140,6 @@ async def extract_topics(
                 ContanstTable.sub_topic: nf[ContanstTable.sub_topic],
             }
         )
-    p = await validate_topics(
-        project_id, fact_contents, fact_attributes, project_profiles_slots
-    )
-    if not p.ok():
-        return p
-    fact_contents = p.data()["fact_contents"]
-    fact_attributes = p.data()["fact_attributes"]
     return Promise.resolve(
         {
             "fact_contents": fact_contents,
@@ -155,73 +147,5 @@ async def extract_topics(
             "profiles": profiles,
             "config": project_profiles,
             "total_profiles": project_profiles_slots,
-        }
-    )
-
-
-async def validate_topics(
-    project_id: str,
-    fact_contents: list[str],
-    fact_attributes: list[dict],
-    project_profiles: list[UserProfileTopic],
-) -> Promise[dict]:
-    profile_maps = {
-        (up.topic, sp.name): sp for up in project_profiles for sp in up.sub_topics
-    }
-    # print(profile_maps)
-    tasks = []
-    update_i = []
-    for i, (fc, fa) in enumerate(zip(fact_contents, fact_attributes)):
-        topic = fa[ContanstTable.topic]
-        sub_topic = fa[ContanstTable.sub_topic]
-        if (topic, sub_topic) not in profile_maps:
-            continue
-        sp_struct = profile_maps[(topic, sub_topic)]
-        if not sp_struct.description:
-            continue
-        if not sp_struct.validate_value:
-            continue
-        print("Validate", fc, fa)
-        tasks.append(
-            llm_complete(
-                project_id,
-                validate_profile_prompt.get_input(
-                    topic, sub_topic, fc, sp_struct.description
-                ),
-                system_prompt=validate_profile_prompt.get_prompt(),
-                **validate_profile_prompt.get_kwargs(),
-            )
-        )
-        update_i.append(i)
-    results: list[Promise[str]] = await asyncio.gather(*tasks)
-    remove_i = set()
-    for i, r in zip(update_i, results):
-        if not r.ok():
-            LOG.error(f"Failed to validate topic {fact_attributes[i]}: {r.msg()}")
-            continue
-        raw_result = r.data()
-
-        result = parse_string_into_merge_action(raw_result)
-        if result is None:
-            remove_i.add(i)
-            continue
-        if result["action"] == "SAVE":
-            LOG.info(f"Validate topic {fact_attributes[i]}: {result['memo']}")
-            fact_contents[i] = result["memo"]
-        else:
-            LOG.error(
-                f"Invalid action {result['action']} for topic {fact_attributes[i]}"
-            )
-    LOG.info(f"Remove {len(remove_i)} topics for not valid")
-    left_fact_contents = []
-    left_fact_attributes = []
-    for i in range(len(fact_contents)):
-        if i not in remove_i:
-            left_fact_contents.append(fact_contents[i])
-            left_fact_attributes.append(fact_attributes[i])
-    return Promise.resolve(
-        {
-            "fact_contents": left_fact_contents,
-            "fact_attributes": left_fact_attributes,
         }
     )

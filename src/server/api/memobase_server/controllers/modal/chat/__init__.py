@@ -6,7 +6,7 @@ from ....models.utils import Promise
 from ...profile import add_user_profiles, update_user_profiles, delete_user_profiles
 from ...event import append_user_event
 from .extract import extract_topics
-from .merge import merge_or_add_new_memos
+from .merge import merge_or_valid_new_memos
 from .summary import re_summary
 from .organize import organize_profiles
 from .types import MergeAddResult
@@ -23,7 +23,7 @@ async def process_blobs(
     extracted_data = p.data()
 
     # 2. Merge it to thw whole profile
-    p = await merge_or_add_new_memos(
+    p = await merge_or_valid_new_memos(
         project_id,
         fact_contents=extracted_data["fact_contents"],
         fact_attributes=extracted_data["fact_attributes"],

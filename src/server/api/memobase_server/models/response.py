@@ -28,6 +28,7 @@ class CODE(IntEnum):
     BAD_GATEWAY = 502  # The server, while acting as a gateway or proxy, received an invalid response from the upstream server.
     SERVICE_UNAVAILABLE = 503  # The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.
     GATEWAY_TIMEOUT = 504  # The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server.
+    SERVER_PARSE_ERROR = 520  # The server could not parse the request.
 
 
 class AIUserProfile(BaseModel):
@@ -129,7 +130,7 @@ class QueryData(BaseModel):
 
 
 class ProfileConfigData(BaseModel):
-    profile_config: str = Field(..., description="Profile config string")
+    profile_config: str | None = Field(..., description="Profile config string")
 
 
 class BillingData(BaseModel):

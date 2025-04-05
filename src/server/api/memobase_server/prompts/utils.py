@@ -24,6 +24,7 @@ EXCLUDE_PROFILE_VALUES = [
     "无法确定",
     "无相关内容",
     "未明确提及",
+    "无明确信息"
     # English variations
     "none",
     "unknown",
@@ -137,7 +138,6 @@ def convert_response_to_json(response: str) -> dict:
 
 
 def pack_merge_action_into_string(action: dict) -> str:
-    CONFIG.llm_tab_separator
     return f"- {action['action']}{CONFIG.llm_tab_separator}{action['memo']}"
 
 

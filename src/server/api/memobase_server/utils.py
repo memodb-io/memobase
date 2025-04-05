@@ -128,7 +128,9 @@ def user_id_lock(scope, lock_timeout=128, blocking_timeout=32):
     return __user_id_lock
 
 
-def is_valid_profile_config(profile_config: str) -> Promise[None]:
+def is_valid_profile_config(profile_config: str | None) -> Promise[None]:
+    if profile_config is None:
+        return Promise.resolve(None)
     # check if the profile config is valid yaml
     try:
         if len(profile_config) > 65535:
