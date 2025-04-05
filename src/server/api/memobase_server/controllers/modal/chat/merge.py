@@ -67,54 +67,28 @@ async def handle_profile_merge_or_valid(
         profile_attributes[ContanstTable.sub_topic],
     )
     USE_LANGUAGE = config.language or CONFIG.language
-    # if KEY not in profile_runtime_maps:
-    #     define_sub_topic = profile_define_maps.get(KEY, SubTopic(name=""))
-    #     if define_sub_topic.description:
-    #         print(
-    #             PROMPTS[USE_LANGUAGE]["merge"].get_input(
-    #                 KEY[0],
-    #                 KEY[1],
-    #                 None,
-    #                 profile_content,
-    #                 update_instruction=None,
-    #                 topic_description=define_sub_topic.description,
-    #             )
-    #         )
-    #         r = await llm_complete(
-    #             project_id,
-    #             PROMPTS[USE_LANGUAGE]["merge"].get_input(
-    #                 KEY[0],
-    #                 KEY[1],
-    #                 None,
-    #                 profile_content,
-    #                 update_instruction=None,
-    #                 topic_description=define_sub_topic.description,
-    #             ),
-    #             system_prompt=PROMPTS[USE_LANGUAGE]["merge"].get_prompt(),
-    #             temperature=0.2,  # precise
-    #             **PROMPTS[USE_LANGUAGE]["merge"].get_kwargs(),
-    #         )
-    #         if not r.ok():
-    #             LOG.warning(f"Failed to valide profile: {r.msg()}")
-    #             return r
-    #         update_response: UpdateResponse | None = parse_string_into_merge_action(
-    #             r.data()
-    #         )
-    #         print("ADD", KEY, profile_content)
-    #         print(r.data())
-    #         if update_response is None:
-    #             return Promise.reject(
-    #                 CODE.SERVER_PARSE_ERROR, "Failed to parse merge action of Memobase"
-    #             )
-    #     session_merge_validate_results["add"].append(
-    #         {
-    #             "content": profile_content,
-    #             "attributes": profile_attributes,
-    #         }
-    #     )
-    #     return Promise.resolve(None)
+    PROFILE_VALIDATE_MODE = (
+        config.profile_validate_mode
+        if config.profile_validate_mode is not None
+        else CONFIG.profile_validate_mode
+    )
     runtime_profile = profile_runtime_maps.get(KEY, None)
     define_sub_topic = profile_define_maps.get(KEY, SubTopic(name=""))
+
+    if (
+        not PROFILE_VALIDATE_MODE
+        and not define_sub_topic.validate_value
+        and runtime_profile is None
+    ):
+        LOG.info(f"Skip validation: {KEY}")
+        session_merge_validate_results["add"].append(
+            {
+                "content": profile_content,
+                "attributes": profile_attributes,
+            }
+        )
+        return Promise.resolve(None)
+
     r = await llm_complete(
         project_id,
         PROMPTS[USE_LANGUAGE]["merge"].get_input(
