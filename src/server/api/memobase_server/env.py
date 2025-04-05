@@ -93,6 +93,7 @@ class Config:
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
     profile_strict_mode: bool = False
+    profile_validate_mode: bool = True
 
     enable_event_summary: bool = True
     minimum_chats_token_size_for_event_summary: int = 256
@@ -187,6 +188,7 @@ class Config:
 class ProfileConfig:
     language: Literal["en", "zh"] = None
     profile_strict_mode: bool | None = None
+    profile_validate_mode: bool | None = None
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
 
