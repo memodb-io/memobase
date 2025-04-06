@@ -27,8 +27,9 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 from sqlalchemy import event
 from .blob import BlobType
-from ..env import ProjectStatus, BillingStatus, BILLING_REFILL_AMOUNT_MAP
+from ..env import ProjectStatus, BillingStatus, BILLING_REFILL_AMOUNT_MAP, CONFIG
 from sqlalchemy.orm.attributes import get_history
+from pgvector.sqlalchemy import Vector
 
 REG = registry()
 DEFAULT_PROJECT_ID = "__root__"
@@ -407,6 +408,10 @@ class UserEvent(Base):
         back_populates="related_user_events",
         init=False,
         foreign_keys=[user_id, project_id],
+    )
+
+    embedding: Mapped[Vector] = mapped_column(
+        Vector(dimensions=CONFIG.embedding_dim), nullable=True, default=None
     )
 
     __table_args__ = (

@@ -1003,3 +1003,6 @@ print(u.event(topk=1))
         },
     ]
 }
+
+API_X_CODE_DOCS["GET /users/event/search/{user_id}"] = {}
+

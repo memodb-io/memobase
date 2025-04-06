@@ -4,7 +4,8 @@ from ..models.response import UserEventData, UserEventsData, EventData
 from ..models.utils import Promise, CODE
 from ..connectors import Session
 from ..utils import get_encoded_tokens, event_str_repr
-
+from ..llms.embedding import get_embedding
+from datetime import datetime, timedelta
 
 async def get_user_events(
     user_id: str,
@@ -60,11 +61,22 @@ async def append_user_event(
             CODE.INTERNAL_SERVER_ERROR,
             f"Invalid event data: {str(e)}",
         )
+
+    try:
+        event_data_str = event_str_repr(validated_event.model_dump())
+        embedding = await get_embedding([event_data_str])
+    except Exception as e:
+        return Promise.reject(
+            CODE.INTERNAL_SERVER_ERROR,
+            f"Failed to get embeddings: {str(e)}",
+        )
+
     with Session() as session:
         user_event = UserEvent(
             user_id=user_id,
             project_id=project_id,
             event_data=validated_event.model_dump(),
+            embedding=embedding,
         )
         session.add(user_event)
         session.commit()
@@ -118,3 +130,27 @@ async def update_user_event(
         user_event.event_data = new_events
         session.commit()
     return Promise.resolve(None)
+
+async def search_user_events(
+    user_id: str,
+    query: str,
+    topk: int = 10, 
+    similarity_threshold: float = 0.5,
+    time_range_in_days: int = 7,
+) -> Promise[UserEventsData]:
+    query_embedding = await get_embedding([query])
+    with Session() as session:
+        (user_events, similarities) = (
+            session.query(UserEvent, (1 - UserEvent.embedding.cosine_distance(query_embedding)).label("similarity"))
+            .filter(UserEvent.user_id == user_id)
+            .filter((1 - UserEvent.embedding.cosine_distance(query_embedding)) > similarity_threshold)
+            .filter(UserEvent.created_at > datetime.now() - timedelta(days=time_range_in_days))
+            .order_by("similarity", desc=True)
+            .limit(topk)
+            .all() 
+        )
+        # TODO: remove this debug print
+        for i, (user_event, similarity) in enumerate(zip(user_events, similarities)):
+            print(f"similarity: {similarity}, event: {user_event}")
+
+    return Promise.resolve(user_events)
