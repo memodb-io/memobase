@@ -411,7 +411,7 @@ class UserEvent(Base):
     )
 
     embedding: Mapped[Vector] = mapped_column(
-        Vector(dimensions=CONFIG.embedding_dim), nullable=True, default=None
+        Vector(dim=CONFIG.embedding_dim), nullable=True, default=None
     )
 
     __table_args__ = (

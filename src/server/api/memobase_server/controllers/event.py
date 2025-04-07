@@ -6,6 +6,7 @@ from ..connectors import Session
 from ..utils import get_encoded_tokens, event_str_repr
 from ..llms.embedding import get_embedding
 from datetime import datetime, timedelta
+from sqlalchemy import desc, select
 
 async def get_user_events(
     user_id: str,
@@ -63,8 +64,16 @@ async def append_user_event(
         )
 
     try:
-        event_data_str = event_str_repr(validated_event.model_dump())
+        user_event_data = UserEventData(
+            id=user_id,
+            event_data=validated_event.model_dump(),
+            created_at=datetime.now(),
+        )
+
+        event_data_str = event_str_repr(user_event_data)
+        print(f"event_data_str: {event_data_str}")
         embedding = await get_embedding([event_data_str])
+        print(f"embedding: {embedding[0]}")
     except Exception as e:
         return Promise.reject(
             CODE.INTERNAL_SERVER_ERROR,
@@ -76,7 +85,7 @@ async def append_user_event(
             user_id=user_id,
             project_id=project_id,
             event_data=validated_event.model_dump(),
-            embedding=embedding,
+            embedding=embedding[0],
         )
         session.add(user_event)
         session.commit()
@@ -138,19 +147,33 @@ async def search_user_events(
     similarity_threshold: float = 0.5,
     time_range_in_days: int = 7,
 ) -> Promise[UserEventsData]:
-    query_embedding = await get_embedding([query])
-    with Session() as session:
-        (user_events, similarities) = (
-            session.query(UserEvent, (1 - UserEvent.embedding.cosine_distance(query_embedding)).label("similarity"))
-            .filter(UserEvent.user_id == user_id)
-            .filter((1 - UserEvent.embedding.cosine_distance(query_embedding)) > similarity_threshold)
-            .filter(UserEvent.created_at > datetime.now() - timedelta(days=time_range_in_days))
-            .order_by("similarity", desc=True)
+    query_embeddings = await get_embedding([query])
+    query_embedding = query_embeddings[0]
+    stmt = (
+        select(UserEvent, (1 - UserEvent.embedding.cosine_distance(query_embedding)).label("similarity"))
+            .where(UserEvent.user_id == user_id)
+            .where((1 - UserEvent.embedding.cosine_distance(query_embedding)) > similarity_threshold)
+            .where(UserEvent.created_at > datetime.now() - timedelta(days=time_range_in_days))
+            .order_by(desc("similarity"))
             .limit(topk)
-            .all() 
-        )
-        # TODO: remove this debug print
-        for i, (user_event, similarity) in enumerate(zip(user_events, similarities)):
-            print(f"similarity: {similarity}, event: {user_event}")
+    )
+    
+    with Session() as session:
+        # Use .all() instead of .scalars().all() to get both columns
+        result = session.execute(stmt).all()
+        user_events = []
+        for row in result:
+            user_event = row[0]  # UserEvent object
+            similarity = row[1]  # similarity value
+            user_events.append({
+                "id": user_event.id,
+                "event_data": user_event.event_data,
+                "created_at": user_event.created_at,
+                "updated_at": user_event.updated_at,
+                "similarity": similarity,
+            })
+        
+        # Create UserEventsData with the events
+        user_events_data = UserEventsData(events=user_events)
 
-    return Promise.resolve(user_events)
+    return Promise.resolve(user_events_data)
