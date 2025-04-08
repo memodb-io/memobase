@@ -106,14 +106,6 @@ async def handle_profile_merge_or_valid(
     if not r.ok():
         LOG.warning(f"Failed to merge profiles: {r.msg()}")
         return r
-    print(
-        "UPDATE|ADD",
-        KEY[0],
-        KEY[1],
-        runtime_profile.content if runtime_profile else None,
-        profile_content,
-    )
-    print(r.data())
     update_response: UpdateResponse | None = parse_string_into_merge_action(r.data())
     if update_response is None:
         LOG.warning(f"Failed to parse merge action: {r.data()}")
