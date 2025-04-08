@@ -74,10 +74,12 @@ def mock_event_summary_llm_complete():
         yield mock_llm
 
 @pytest.fixture
-def mock_get_embedding():
-    with patch("memobase_server.llms.embedding.get_embedding") as mock_get_embedding:
-        mock_get_embedding.return_value = np.array([[i for i in range(CONFIG.embedding_dim)]])
-        yield mock_get_embedding
+def mock_event_get_embedding():
+    with patch("memobase_server.controllers.event.get_embedding") as mock_event_get_embedding:
+        async_mock = AsyncMock()
+        async_mock.return_value = np.array([[i for i in range(CONFIG.embedding_dim)]])
+        mock_event_get_embedding.return_value = async_mock()
+        yield mock_event_get_embedding
 
 def test_user_api_curd(client, db_env):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
@@ -285,7 +287,7 @@ async def test_api_user_flush_buffer(
     mock_llm_complete,
     mock_llm_validate_complete,
     mock_event_summary_llm_complete,
-    mock_get_embedding,
+    mock_event_get_embedding,
 ):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
     d = response.json()
@@ -401,7 +403,7 @@ async def test_api_user_event(
     mock_llm_complete,
     mock_llm_validate_complete,
     mock_event_summary_llm_complete,
-    mock_get_embedding,
+    mock_event_get_embedding,
 ):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
     d = response.json()

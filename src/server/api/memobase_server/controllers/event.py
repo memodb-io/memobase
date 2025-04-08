@@ -7,6 +7,7 @@ from ..utils import get_encoded_tokens, event_str_repr, event_embedding_str
 from ..llms.embedding import get_embedding
 from datetime import datetime, timedelta
 from sqlalchemy import desc, select
+from ..env import LOG
 
 async def get_user_events(
     user_id: str,
@@ -58,6 +59,7 @@ async def append_user_event(
     try:
         validated_event = EventData(**event_data)
     except ValidationError as e:
+        LOG.error(f"Invalid event data: {str(e)}")
         return Promise.reject(
             CODE.INTERNAL_SERVER_ERROR,
             f"Invalid event data: {str(e)}",
@@ -67,6 +69,7 @@ async def append_user_event(
         event_data_str = event_embedding_str(validated_event)
         embedding = await get_embedding([event_data_str])
     except Exception as e:
+        LOG.error(f"Failed to get embeddings: {str(e)}")
         return Promise.reject(
             CODE.INTERNAL_SERVER_ERROR,
             f"Failed to get embeddings: {str(e)}",
