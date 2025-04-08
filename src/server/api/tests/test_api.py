@@ -7,6 +7,7 @@ from memobase_server import controllers
 from memobase_server.models.database import DEFAULT_PROJECT_ID
 from memobase_server.models.blob import BlobType
 import numpy as np
+from memobase_server.env import CONFIG
 
 PREFIX = "/api/v1"
 TOKEN = os.getenv("ACCESS_TOKEN")
@@ -75,7 +76,7 @@ def mock_event_summary_llm_complete():
 @pytest.fixture
 def mock_get_embedding():
     with patch("memobase_server.llms.embedding.get_embedding") as mock_get_embedding:
-        mock_get_embedding.return_value = np.array([[0.1, 0.2, 0.3]])
+        mock_get_embedding.return_value = np.array([[i for i in range(CONFIG.embedding_dim)]])
         yield mock_get_embedding
 
 def test_user_api_curd(client, db_env):
