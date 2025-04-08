@@ -1004,5 +1004,24 @@ print(u.event(topk=1))
     ]
 }
 
-API_X_CODE_DOCS["GET /users/event/search/{user_id}"] = {}
+API_X_CODE_DOCS["GET /users/event/search/{user_id}"] = {
+    "x-code-samples": [
+        {
+            "lang": "Python",
+            "source": """# To use the Python SDK, install the package:
+# pip install memobase
+
+from memobase import Memobase
+
+client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+uid = client.add_user()
+u = client.get_user(uid)
+
+events = u.search_event('query')
+print(events)
+""",
+            "label": "Python",
+        },  
+    ]
+}
 

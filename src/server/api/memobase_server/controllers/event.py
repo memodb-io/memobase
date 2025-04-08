@@ -153,17 +153,17 @@ async def search_user_events(
     with Session() as session:
         # Use .all() instead of .scalars().all() to get both columns
         result = session.execute(stmt).all()
-        user_events = []
+        user_events: list[UserEventData] = []
         for row in result:
-            user_event = row[0]  # UserEvent object
-            similarity = row[1]  # similarity value
-            user_events.append({
-                "id": user_event.id,
-                "event_data": user_event.event_data,
-                "created_at": user_event.created_at,
-                "updated_at": user_event.updated_at,
-                "similarity": similarity,
-            })
+            user_event: UserEvent = row[0]  # UserEvent object
+            similarity: float = row[1]  # similarity value
+            user_events.append(UserEventData(
+                id=user_event.id,
+                event_data=user_event.event_data,
+                created_at=user_event.created_at,
+                updated_at=user_event.updated_at,
+                similarity=similarity,
+            ))
         
         # Create UserEventsData with the events
         user_events_data = UserEventsData(events=user_events)
