@@ -29,7 +29,8 @@
                 "group": "User Profile",
                 "pages": [
                   "features/profile/profile",
-                  "features/profile/profile_desc"
+                  "features/profile/profile_desc",
+                  "features/profile/profile_config"
                 ]
               },
               {

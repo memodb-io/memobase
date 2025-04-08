@@ -1,0 +1,44 @@
+---
+title: Profile Validation
+---
+
+## Auto-Validate
+By default, Memobase will validate the new profile value before saving it.
+By doing this, Memobase can:
+1. Make sure the extracted profile value is meaningful.
+LLM may generate memories with very few information. For example, "User didn't speak his name", "User has work".
+Validation in Memobase can remove those meaningless memories.
+2. Make sure the extracted profile is matched with your `description`([how to design profiles](/features/profile/profile_desc)).
+
+But if you encounter some issues of missing profiles or the user profile is not big enough, maybe you can disable the validation by:
+```yaml config.yaml
+profile_validate_mode: false
+```
+Memobase will save more possible profiles, but it may lead to some wrong/weird profiles.
+
+## Strict Mode
+We allow Memobase to extend the current designed profile schema to include more important profiles.
+For example, if you config is:
+```yaml config.yaml
+overwrite_user_profiles:
+    - topic: "work"
+      sub_topics:
+        - "company"
+```
+Memobase may have user profiles that look like:
+```json Maybe Profile
+"work": {
+    "company": "Google",
+    "position": "Software Engineer",
+    "department": "Engineering",
+    ...
+}
+```
+In many cases, the additional profiles extended by AI are really helpful because you couldn't plan all the useful profiles for your users in advance.
+
+But if you only want the profiles that you have designed in `config.yaml`, you can enable the strict mode by:
+```yaml config.yaml
+profile_strict_mode: true
+```
+
+
