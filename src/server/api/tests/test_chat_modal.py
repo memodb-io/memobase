@@ -121,6 +121,7 @@ async def test_chat_buffer_modal(
     mock_extract_llm_complete,
     mock_merge_llm_complete,
     mock_event_summary_llm_complete,
+    mock_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
@@ -218,6 +219,7 @@ async def test_chat_merge_modal(
     mock_extract_llm_complete,
     mock_merge_llm_complete,
     mock_event_summary_llm_complete,
+    mock_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
@@ -302,6 +304,7 @@ async def test_chat_organize_modal(
     mock_merge_llm_complete,
     mock_organize_llm_complete,
     mock_event_summary_llm_complete,
+    mock_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()

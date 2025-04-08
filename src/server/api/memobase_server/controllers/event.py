@@ -65,9 +65,7 @@ async def append_user_event(
 
     try:
         event_data_str = event_embedding_str(validated_event)
-        print(f"event_data_str: {event_data_str}")
         embedding = await get_embedding([event_data_str])
-        print(f"embedding: {embedding[0]}")
     except Exception as e:
         return Promise.reject(
             CODE.INTERNAL_SERVER_ERROR,
