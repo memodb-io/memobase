@@ -3,7 +3,7 @@ from ..models.database import UserEvent
 from ..models.response import UserEventData, UserEventsData, EventData
 from ..models.utils import Promise, CODE
 from ..connectors import Session
-from ..utils import get_encoded_tokens, event_str_repr
+from ..utils import get_encoded_tokens, event_str_repr, event_embedding_str
 from ..llms.embedding import get_embedding
 from datetime import datetime, timedelta
 from sqlalchemy import desc, select
@@ -64,13 +64,7 @@ async def append_user_event(
         )
 
     try:
-        user_event_data = UserEventData(
-            id=user_id,
-            event_data=validated_event.model_dump(),
-            created_at=datetime.now(),
-        )
-
-        event_data_str = event_str_repr(user_event_data)
+        event_data_str = event_embedding_str(validated_event)
         print(f"event_data_str: {event_data_str}")
         embedding = await get_embedding([event_data_str])
         print(f"embedding: {embedding[0]}")
