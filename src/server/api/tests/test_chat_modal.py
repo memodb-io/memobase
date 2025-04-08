@@ -5,6 +5,7 @@ from memobase_server.models import response as res
 from memobase_server.models.database import DEFAULT_PROJECT_ID
 from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
+import numpy as np
 
 
 GD_FACTS = """
@@ -113,6 +114,13 @@ def mock_event_summary_llm_complete():
 
         mock_llm.side_effect = [mock_client1, mock_client2]
         yield mock_llm
+
+
+@pytest.fixture
+def mock_get_embedding():
+    with patch("memobase_server.llms.embedding.get_embedding") as mock_get_embedding:
+        mock_get_embedding.return_value = np.array([0.1, 0.2, 0.3])
+        yield mock_get_embedding
 
 
 @pytest.mark.asyncio
