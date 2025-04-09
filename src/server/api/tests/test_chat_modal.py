@@ -120,7 +120,7 @@ def mock_event_summary_llm_complete():
 def mock_event_get_embedding():
     with patch("memobase_server.controllers.event.get_embedding") as mock_event_get_embedding:
         async_mock = AsyncMock()
-        async_mock.return_value = np.array([[i for i in range(CONFIG.embedding_dim)]])
+        async_mock.return_value = np.array([[0.1 for _ in range(CONFIG.embedding_dim)]])
         mock_event_get_embedding.return_value = async_mock()
         yield mock_event_get_embedding
 
