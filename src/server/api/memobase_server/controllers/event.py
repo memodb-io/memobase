@@ -5,8 +5,9 @@ from ..models.utils import Promise, CODE
 from ..connectors import Session
 from ..utils import get_encoded_tokens, event_str_repr, event_embedding_str
 from ..llms.embedding import get_embedding
-from datetime import datetime, timedelta
+from datetime import timedelta
 from sqlalchemy import desc, select
+from sqlalchemy.sql import func
 from ..env import LOG
 
 async def get_user_events(
@@ -144,11 +145,12 @@ async def search_user_events(
 ) -> Promise[UserEventsData]:
     query_embeddings = await get_embedding([query])
     query_embedding = query_embeddings[0]
+
     stmt = (
         select(UserEvent, (1 - UserEvent.embedding.cosine_distance(query_embedding)).label("similarity"))
             .where(UserEvent.user_id == user_id)
             .where((1 - UserEvent.embedding.cosine_distance(query_embedding)) > similarity_threshold)
-            .where(UserEvent.created_at > datetime.now() - timedelta(days=time_range_in_days))
+            .where(UserEvent.created_at > func.now() - timedelta(days=time_range_in_days))
             .order_by(desc("similarity"))
             .limit(topk)
     )

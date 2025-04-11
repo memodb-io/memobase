@@ -1017,6 +1017,19 @@ client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
 uid = client.add_user()
 u = client.get_user(uid)
 
+b = ChatBlob(messages=[
+    {
+        "role": "user",
+        "content": "Hi, I'm here again"
+    },
+    {
+        "role": "assistant",
+        "content": "Hi, Gus! How can I help you?"
+    }
+])
+u.insert(b)
+u.flush()
+
 events = u.search_event('query')
 print(events)
 """,
