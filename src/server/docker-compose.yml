@@ -11,7 +11,7 @@ services:
       - '${DATABASE_EXPORT_PORT}:5432'
     volumes:
       - ${DATABASE_LOCATION}:/var/lib/postgresql/data
-      # - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
       interval: 5s

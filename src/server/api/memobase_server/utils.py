@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from .env import ENCODER, LOG, CONFIG, ProfileConfig
 from .models.blob import Blob, BlobType, ChatBlob, DocBlob, OpenAICompatibleMessage
 from .models.database import GeneralBlob
-from .models.response import UserEventData
+from .models.response import UserEventData, EventData
 from .models.utils import Promise, CODE
 from .connectors import get_redis_client, PROJECT_ID
 
@@ -30,6 +30,27 @@ def event_str_repr(event: UserEventData) -> str:
             event_tags = ""
         return f"{happened_at}:\n{event_data.event_tip}\n{event_tags}"
 
+def event_embedding_str(event_data: EventData) -> str:
+    if event_data.profile_delta is None:
+        profile_delta_str = ""
+    else:
+        profile_deltas = [
+            f"- {ed.attributes['topic']}::{ed.attributes['sub_topic']}: {ed.content}"
+            for ed in event_data.profile_delta
+        ]
+        profile_delta_str = "\n".join(profile_deltas)
+
+    if event_data.event_tags is None:
+        event_tags = ""
+    else:
+        event_tags = "\n".join(
+            [f"- {tag.tag}: {tag.value}" for tag in event_data.event_tags]
+        )
+
+    if event_data.event_tip is None:
+        return f"{profile_delta_str}\n{event_tags}"
+    else:
+        return f"{event_data.event_tip}\n{profile_delta_str}\n{event_tags}"
 
 def get_encoded_tokens(content: str) -> list[int]:
     return ENCODER.encode(content)

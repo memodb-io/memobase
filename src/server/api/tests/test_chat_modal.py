@@ -5,6 +5,8 @@ from memobase_server.models import response as res
 from memobase_server.models.database import DEFAULT_PROJECT_ID
 from memobase_server.models.blob import BlobType
 from memobase_server.models.utils import Promise
+from memobase_server.env import CONFIG
+import numpy as np
 
 
 GD_FACTS = """
@@ -114,6 +116,13 @@ def mock_event_summary_llm_complete():
         mock_llm.side_effect = [mock_client1, mock_client2]
         yield mock_llm
 
+@pytest.fixture
+def mock_event_get_embedding():
+    with patch("memobase_server.controllers.event.get_embedding") as mock_event_get_embedding:
+        async_mock = AsyncMock()
+        async_mock.return_value = np.array([[0.1 for _ in range(CONFIG.embedding_dim)]])
+        mock_event_get_embedding.return_value = async_mock()
+        yield mock_event_get_embedding
 
 @pytest.mark.asyncio
 async def test_chat_buffer_modal(
@@ -121,6 +130,7 @@ async def test_chat_buffer_modal(
     mock_extract_llm_complete,
     mock_merge_llm_complete,
     mock_event_summary_llm_complete,
+    mock_event_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
@@ -218,6 +228,7 @@ async def test_chat_merge_modal(
     mock_extract_llm_complete,
     mock_merge_llm_complete,
     mock_event_summary_llm_complete,
+    mock_event_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
@@ -302,6 +313,7 @@ async def test_chat_organize_modal(
     mock_merge_llm_complete,
     mock_organize_llm_complete,
     mock_event_summary_llm_complete,
+    mock_event_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
     assert p.ok()
