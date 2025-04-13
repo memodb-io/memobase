@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Dict
-
+import os
+import socket
 from prometheus_client import start_http_server
 from opentelemetry import metrics
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
@@ -116,8 +117,17 @@ class TelemetryManager:
         self._meter = metrics.get_meter(self._service_name)
     
     def _construct_attributes(self, **kwargs) -> Dict[str, str]:
+        # if POD_IP is not set, use the hostname
+        if os.environ.get("POD_IP"):
+            pod_ip = os.environ.get("POD_IP")
+            LOG.info(f"Using POD_IP {pod_ip}")
+        else:
+            hostname = socket.gethostname()
+            pod_ip = socket.gethostbyname(hostname)
+            LOG.info(f"Using hostname {hostname} to get IP address {pod_ip}")
         return {
             DEPLOYMENT_ENVIRONMENT: self._deployment_environment,
+            "memobase_server_ip": pod_ip,
             **kwargs,
         }
 
