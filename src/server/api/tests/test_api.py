@@ -6,6 +6,8 @@ from fastapi.testclient import TestClient
 from memobase_server import controllers
 from memobase_server.models.database import DEFAULT_PROJECT_ID
 from memobase_server.models.blob import BlobType
+import numpy as np
+from memobase_server.env import CONFIG
 
 PREFIX = "/api/v1"
 TOKEN = os.getenv("ACCESS_TOKEN")
@@ -71,6 +73,13 @@ def mock_event_summary_llm_complete():
         mock_llm.side_effect = [mock_client1, mock_client2]
         yield mock_llm
 
+@pytest.fixture
+def mock_event_get_embedding():
+    with patch("memobase_server.controllers.event.get_embedding") as mock_event_get_embedding:
+        async_mock = AsyncMock()
+        async_mock.return_value = np.array([[0.1 for _ in range(CONFIG.embedding_dim)]])
+        mock_event_get_embedding.return_value = async_mock()
+        yield mock_event_get_embedding
 
 def test_user_api_curd(client, db_env):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
@@ -278,6 +287,7 @@ async def test_api_user_flush_buffer(
     mock_llm_complete,
     mock_llm_validate_complete,
     mock_event_summary_llm_complete,
+    mock_event_get_embedding,
 ):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
     d = response.json()
@@ -393,6 +403,7 @@ async def test_api_user_event(
     mock_llm_complete,
     mock_llm_validate_complete,
     mock_event_summary_llm_complete,
+    mock_event_get_embedding,
 ):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
     d = response.json()

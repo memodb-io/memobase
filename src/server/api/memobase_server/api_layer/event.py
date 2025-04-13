@@ -41,3 +41,15 @@ async def update_user_event(
         user_id, project_id, event_id, event_data.model_dump()
     )
     return p.to_response(res.BaseResponse)
+
+
+async def search_user_events(
+    request: Request,
+    user_id: str = Path(..., description="The ID of the user"),
+    query: str = Query(..., description="The query to search for"),
+    topk: int = Query(10, description="Number of events to retrieve, default is 10"),
+    similarity_threshold: float = Query(0.5, description="Similarity threshold, default is 0.5"),
+    time_range_in_days: int = Query(7, description="Time range in days, default is 7"),
+) -> res.UserEventsDataResponse:
+    p = await controllers.event.search_user_events(user_id, query, topk, similarity_threshold, time_range_in_days)
+    return p.to_response(res.UserEventsDataResponse)
