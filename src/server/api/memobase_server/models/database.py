@@ -3,6 +3,7 @@ import uuid
 from typing import Optional
 from datetime import datetime
 from sqlalchemy import (
+    text,
     VARCHAR,
     Integer,
     ForeignKey,
@@ -27,7 +28,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 from sqlalchemy import event
 from .blob import BlobType
-from ..env import ProjectStatus, BillingStatus, BILLING_REFILL_AMOUNT_MAP, CONFIG
+from ..env import ProjectStatus, BillingStatus, BILLING_REFILL_AMOUNT_MAP, CONFIG, LOG
 from sqlalchemy.orm.attributes import get_history
 from pgvector.sqlalchemy import Vector
 
@@ -425,6 +426,52 @@ class UserEvent(Base):
             onupdate="CASCADE",
         ),
     )
+
+    @classmethod
+    def check_legal_embedding_dim(cls, session):
+        try:
+            # Use table_name from the ORM class to avoid hardcoding
+            table_name = cls.__tablename__
+
+            # Use text() to properly declare SQL expression
+            sql = text(
+                """
+            SELECT atttypmod
+            FROM pg_attribute
+            JOIN pg_class ON pg_attribute.attrelid = pg_class.oid
+            JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
+            WHERE pg_class.relname = :table_name
+            AND pg_attribute.attname = 'embedding'
+            AND pg_namespace.nspname = current_schema();
+            """
+            )
+
+            result = session.execute(sql, {"table_name": table_name}).scalar()
+
+            # Table or column might not exist yet
+            if result is None:
+                raise ValueError(
+                    "`embedding` column does not exist in the table, please check the table schema"
+                )
+
+            # In pgvector, atttypmod - 8 is the dimension
+            actual_dim = result
+
+            if actual_dim != CONFIG.embedding_dim:
+                raise ValueError(
+                    f"Configuration embedding dimension ({CONFIG.embedding_dim}) "
+                    f"does not match database dimension ({actual_dim}). "
+                    f"This may cause errors when inserting embeddings."
+                )
+            LOG.info(
+                f"Configuration embedding dimension ({CONFIG.embedding_dim}) "
+                f"matches database dimension ({actual_dim}). "
+            )
+            return actual_dim
+
+        except Exception as e:
+            LOG.warning(f"Failed to check embedding dimension: {str(e)}")
+            raise e
 
 
 # Modify event listeners to allow root project initialization

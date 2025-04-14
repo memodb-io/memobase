@@ -10,6 +10,7 @@ from sqlalchemy import desc, select
 from sqlalchemy.sql import func
 from ..env import LOG
 
+
 async def get_user_events(
     user_id: str,
     project_id: str,
@@ -71,10 +72,11 @@ async def append_user_event(
         embedding = await get_embedding([event_data_str])
     except Exception as e:
         LOG.error(f"Failed to get embeddings: {str(e)}")
-        return Promise.reject(
-            CODE.INTERNAL_SERVER_ERROR,
-            f"Failed to get embeddings: {str(e)}",
-        )
+        embedding = [None]
+        # return Promise.reject(
+        #     CODE.INTERNAL_SERVER_ERROR,
+        #     f"Failed to get embeddings: {str(e)}",
+        # )
 
     with Session() as session:
         user_event = UserEvent(
@@ -137,10 +139,11 @@ async def update_user_event(
         session.commit()
     return Promise.resolve(None)
 
+
 async def search_user_events(
     user_id: str,
     query: str,
-    topk: int = 10, 
+    topk: int = 10,
     similarity_threshold: float = 0.5,
     time_range_in_days: int = 7,
 ) -> Promise[UserEventsData]:
@@ -148,14 +151,22 @@ async def search_user_events(
     query_embedding = query_embeddings[0]
 
     stmt = (
-        select(UserEvent, (1 - UserEvent.embedding.cosine_distance(query_embedding)).label("similarity"))
-            .where(UserEvent.user_id == user_id)
-            .where((1 - UserEvent.embedding.cosine_distance(query_embedding)) > similarity_threshold)
-            .where(UserEvent.created_at > func.now() - timedelta(days=time_range_in_days))
-            .order_by(desc("similarity"))
-            .limit(topk)
+        select(
+            UserEvent,
+            (1 - UserEvent.embedding.cosine_distance(query_embedding)).label(
+                "similarity"
+            ),
+        )
+        .where(UserEvent.user_id == user_id)
+        .where(
+            (1 - UserEvent.embedding.cosine_distance(query_embedding))
+            > similarity_threshold
+        )
+        .where(UserEvent.created_at > func.now() - timedelta(days=time_range_in_days))
+        .order_by(desc("similarity"))
+        .limit(topk)
     )
-    
+
     with Session() as session:
         # Use .all() instead of .scalars().all() to get both columns
         result = session.execute(stmt).all()
@@ -163,14 +174,16 @@ async def search_user_events(
         for row in result:
             user_event: UserEvent = row[0]  # UserEvent object
             similarity: float = row[1]  # similarity value
-            user_events.append(UserEventData(
-                id=user_event.id,
-                event_data=user_event.event_data,
-                created_at=user_event.created_at,
-                updated_at=user_event.updated_at,
-                similarity=similarity,
-            ))
-        
+            user_events.append(
+                UserEventData(
+                    id=user_event.id,
+                    event_data=user_event.event_data,
+                    created_at=user_event.created_at,
+                    updated_at=user_event.updated_at,
+                    similarity=similarity,
+                )
+            )
+
         # Create UserEventsData with the events
         user_events_data = UserEventsData(events=user_events)
 

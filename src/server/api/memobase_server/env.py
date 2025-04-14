@@ -88,6 +88,7 @@ class Config:
     best_llm_model: str = "gpt-4o-mini"
     summary_llm_model: str = None
 
+    embedding_provider: Literal["openai", "jina"] = "openai"
     embedding_model: str = "text-embedding-3-small"
     embedding_dim: int = 1536
     embedding_max_token_size: int = 8192
