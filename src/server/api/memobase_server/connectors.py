@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 from uuid import uuid4
 from .env import LOG
-from .models.database import REG, Project
+from .models.database import REG, Project, UserEvent
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL")
@@ -38,6 +38,7 @@ def create_tables():
     REG.metadata.create_all(DB_ENGINE)
     with Session() as session:
         Project.initialize_root_project(session)
+        UserEvent.check_legal_embedding_dim(session)
     LOG.info("Database tables created successfully")
 
 
