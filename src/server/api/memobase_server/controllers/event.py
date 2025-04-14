@@ -4,6 +4,7 @@ from ..models.response import UserEventData, UserEventsData, EventData
 from ..models.utils import Promise, CODE
 from ..connectors import Session
 from ..utils import get_encoded_tokens, event_str_repr, event_embedding_str
+
 from ..llms.embedding import get_embedding
 from datetime import timedelta
 from sqlalchemy import desc, select

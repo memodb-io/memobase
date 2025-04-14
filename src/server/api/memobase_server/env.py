@@ -90,8 +90,10 @@ class Config:
 
     embedding_provider: Literal["openai", "jina"] = "openai"
     embedding_model: str = "text-embedding-3-small"
-    embedding_dim: int = 1536
+    embedding_base_url: str = None
+    embedding_api_key: str = None
     embedding_max_token_size: int = 8192
+    embedding_dim: int = 1536
 
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
@@ -168,11 +170,24 @@ class Config:
         # Filter out any keys from overwrite_config that aren't in the dataclass
         fields = {field.name for field in dataclasses.fields(cls)}
         filtered_config = {k: v for k, v in overwrite_config.items() if k in fields}
-        overwrite_config = dataclasses.replace(cls(), **filtered_config)
+        overwrite_config = cls(**filtered_config)
         LOG.info(f"{overwrite_config}")
         return overwrite_config
 
     def __post_init__(self):
+        assert self.llm_api_key is not None, "llm_api_key is required"
+        if self.embedding_api_key is None:
+            self.embedding_api_key = self.llm_api_key
+        if self.embedding_provider == "jina":
+            assert (
+                self.embedding_api_key is not None
+            ), "embedding_api_key is required for Jina Embedding"
+            self.embedding_model = self.embedding_model or "jina-embeddings-v3"
+
+            assert self.embedding_model in {
+                "jina-embeddings-v3",
+            }, "embedding_model must be one of the following: jina-embeddings-v3"
+
         if self.additional_user_profiles:
             [UserProfileTopic(**up) for up in self.additional_user_profiles]
         if self.overwrite_user_profiles:
@@ -215,7 +230,7 @@ class ProfileConfig:
         fields = {field.name for field in dataclasses.fields(cls)}
         # Filter out any keys from overwrite_config that aren't in the dataclass
         filtered_config = {k: v for k, v in overwrite_config.items() if k in fields}
-        overwrite_config = dataclasses.replace(cls(), **filtered_config)
+        overwrite_config = cls(**filtered_config)
         return overwrite_config
 
 
