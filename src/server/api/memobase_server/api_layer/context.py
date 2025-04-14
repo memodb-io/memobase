@@ -1,6 +1,6 @@
 import json
 
-from .. import controllers
+from ..controllers import full as controllers
 
 from ..models.response import CODE
 from ..models.utils import Promise

@@ -1,4 +1,4 @@
-from .. import controllers
+from ..controllers import full as controllers
 from .. import utils
 
 from ..models.response import BaseResponse, CODE

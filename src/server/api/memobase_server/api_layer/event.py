@@ -1,4 +1,4 @@
-from .. import controllers
+from ..controllers import full as controllers
 from ..models import response as res
 from fastapi import Request
 from fastapi import Path, Query, Body
@@ -48,8 +48,12 @@ async def search_user_events(
     user_id: str = Path(..., description="The ID of the user"),
     query: str = Query(..., description="The query to search for"),
     topk: int = Query(10, description="Number of events to retrieve, default is 10"),
-    similarity_threshold: float = Query(0.5, description="Similarity threshold, default is 0.5"),
+    similarity_threshold: float = Query(
+        0.5, description="Similarity threshold, default is 0.5"
+    ),
     time_range_in_days: int = Query(7, description="Time range in days, default is 7"),
 ) -> res.UserEventsDataResponse:
-    p = await controllers.event.search_user_events(user_id, query, topk, similarity_threshold, time_range_in_days)
+    p = await controllers.event.search_user_events(
+        user_id, query, topk, similarity_threshold, time_range_in_days
+    )
     return p.to_response(res.UserEventsDataResponse)

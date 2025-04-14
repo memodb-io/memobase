@@ -2,7 +2,7 @@ import json
 from fastapi import Request
 from fastapi import Path, Query, Body
 from datetime import datetime
-from .. import controllers
+from ..controllers import full as controllers
 
 from ..models.response import CODE
 from ..models.utils import Promise
