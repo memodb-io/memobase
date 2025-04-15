@@ -5,11 +5,11 @@ from ..models.utils import Promise, CODE
 from ..connectors import Session
 from ..utils import get_encoded_tokens, event_str_repr, event_embedding_str
 
-from ..llms.embedding import get_embedding
+from ..llms.embeddings import get_embedding
 from datetime import timedelta
 from sqlalchemy import desc, select
 from sqlalchemy.sql import func
-from ..env import LOG
+from ..env import LOG, CONFIG
 
 
 async def get_user_events(
@@ -68,16 +68,27 @@ async def append_user_event(
             f"Invalid event data: {str(e)}",
         )
 
-    try:
+    if CONFIG.enable_event_embedding:
         event_data_str = event_embedding_str(validated_event)
-        embedding = await get_embedding([event_data_str])
-    except Exception as e:
-        LOG.error(f"Failed to get embeddings: {str(e)}")
+        embedding = await get_embedding(
+            project_id,
+            [event_data_str],
+            phase="document",
+            model=CONFIG.embedding_model,
+        )
+        if not embedding.ok():
+            LOG.error(f"Failed to get embeddings: {embedding.msg()}")
+            embedding = [None]
+        else:
+            embedding = embedding.data()
+            embedding_dim_current = embedding.shape[-1]
+            if embedding_dim_current != CONFIG.embedding_dim:
+                LOG.error(
+                    f"Embedding dimension mismatch! Expected {CONFIG.embedding_dim}, got {embedding_dim_current}."
+                )
+                embedding = [None]
+    else:
         embedding = [None]
-        # return Promise.reject(
-        #     CODE.INTERNAL_SERVER_ERROR,
-        #     f"Failed to get embeddings: {str(e)}",
-        # )
 
     with Session() as session:
         user_event = UserEvent(
@@ -143,13 +154,19 @@ async def update_user_event(
 
 async def search_user_events(
     user_id: str,
+    project_id: str,
     query: str,
     topk: int = 10,
     similarity_threshold: float = 0.5,
     time_range_in_days: int = 7,
 ) -> Promise[UserEventsData]:
-    query_embeddings = await get_embedding([query])
-    query_embedding = query_embeddings[0]
+    query_embeddings = await get_embedding(
+        project_id, [query], phase="query", model=CONFIG.embedding_model
+    )
+    if not query_embeddings.ok():
+        LOG.error(f"Failed to get embeddings: {query_embeddings.msg()}")
+        return query_embeddings
+    query_embedding = query_embeddings.data()[0]
 
     stmt = (
         select(
@@ -158,12 +175,12 @@ async def search_user_events(
                 "similarity"
             ),
         )
-        .where(UserEvent.user_id == user_id)
+        .where(UserEvent.user_id == user_id, UserEvent.project_id == project_id)
+        .where(UserEvent.created_at > func.now() - timedelta(days=time_range_in_days))
         .where(
             (1 - UserEvent.embedding.cosine_distance(query_embedding))
             > similarity_threshold
         )
-        .where(UserEvent.created_at > func.now() - timedelta(days=time_range_in_days))
         .order_by(desc("similarity"))
         .limit(topk)
     )

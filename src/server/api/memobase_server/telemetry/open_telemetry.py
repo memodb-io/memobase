@@ -14,6 +14,7 @@ from opentelemetry.sdk.metrics._internal.instrument import (
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource, DEPLOYMENT_ENVIRONMENT
 from ..env import LOG, CONFIG
 
+
 class CounterMetricName(Enum):
     """Enum for all available metrics."""
 
@@ -43,12 +44,14 @@ class HistogramMetricName(Enum):
     """Enum for histogram metrics."""
 
     LLM_LATENCY_MS = "llm_latency"
+    EMBEDDING_LATENCY_MS = "embedding_latency"
     REQUEST_LATENCY_MS = "request_latency"
 
     def get_description(self) -> str:
         """Get the description for this metric."""
         descriptions = {
             HistogramMetricName.LLM_LATENCY_MS: "Latency of the LLM in milliseconds",
+            HistogramMetricName.EMBEDDING_LATENCY_MS: "Latency of the embedding in milliseconds",
             HistogramMetricName.REQUEST_LATENCY_MS: "Latency of the request in milliseconds",
         }
         return descriptions[self]
@@ -81,7 +84,10 @@ class TelemetryManager:
     """Manages telemetry setup and metrics for the memobase server."""
 
     def __init__(
-        self, service_name: str = "memobase-server", prometheus_port: int = 9464, deployment_environment: str = "default"
+        self,
+        service_name: str = "memobase-server",
+        prometheus_port: int = 9464,
+        deployment_environment: str = "default",
     ):
         self._service_name = service_name
         self._prometheus_port = prometheus_port
@@ -94,10 +100,12 @@ class TelemetryManager:
 
     def setup_telemetry(self) -> None:
         """Initialize OpenTelemetry with Prometheus exporter."""
-        resource = Resource(attributes={
-            SERVICE_NAME: self._service_name,
-            DEPLOYMENT_ENVIRONMENT: self._deployment_environment,
-            })
+        resource = Resource(
+            attributes={
+                SERVICE_NAME: self._service_name,
+                DEPLOYMENT_ENVIRONMENT: self._deployment_environment,
+            }
+        )
         reader = PrometheusMetricReader()
         provider = MeterProvider(resource=resource, metric_readers=[reader])
         metrics.set_meter_provider(provider)
@@ -115,7 +123,7 @@ class TelemetryManager:
 
         # Initialize meter
         self._meter = metrics.get_meter(self._service_name)
-    
+
     def _construct_attributes(self, **kwargs) -> Dict[str, str]:
 
         if os.environ.get("POD_IP"):
@@ -204,6 +212,8 @@ class TelemetryManager:
 
 
 # Create a global instance
-telemetry_manager = TelemetryManager(deployment_environment=CONFIG.telemetry_deployment_environment)
+telemetry_manager = TelemetryManager(
+    deployment_environment=CONFIG.telemetry_deployment_environment
+)
 telemetry_manager.setup_telemetry()
 telemetry_manager.setup_metrics()

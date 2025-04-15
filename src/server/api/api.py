@@ -13,6 +13,7 @@ from memobase_server.connectors import (
 )
 from memobase_server import api_layer
 from memobase_server.env import LOG
+from memobase_server.llms.embeddings import check_embedding_sanity
 from uvicorn.config import LOGGING_CONFIG
 from api_docs import API_X_CODE_DOCS
 
@@ -20,6 +21,7 @@ from api_docs import API_X_CODE_DOCS
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_redis_pool()
+    await check_embedding_sanity()
     LOG.info(f"Start Memobase Server {memobase_server.__version__} 🖼️")
     yield
     await close_connection()
@@ -76,17 +78,17 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 router = APIRouter(prefix="/api/v1")
-LOGGING_CONFIG["formatters"]["default"]["fmt"] = (
-    "%(levelprefix)s %(asctime)s %(message)s"
-)
+LOGGING_CONFIG["formatters"]["default"][
+    "fmt"
+] = "%(levelprefix)s %(asctime)s %(message)s"
 LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 
-LOGGING_CONFIG["formatters"]["default"]["fmt"] = (
-    "%(levelprefix)s %(asctime)s %(message)s"
-)
-LOGGING_CONFIG["formatters"]["access"]["fmt"] = (
-    "%(levelprefix)s %(asctime)s %(client_addr)s - %(request_line)s %(status_code)s"
-)
+LOGGING_CONFIG["formatters"]["default"][
+    "fmt"
+] = "%(levelprefix)s %(asctime)s %(message)s"
+LOGGING_CONFIG["formatters"]["access"][
+    "fmt"
+] = "%(levelprefix)s %(asctime)s %(client_addr)s - %(request_line)s %(status_code)s"
 LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 LOGGING_CONFIG["formatters"]["access"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 

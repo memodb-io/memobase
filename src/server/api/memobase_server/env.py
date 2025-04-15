@@ -88,12 +88,13 @@ class Config:
     best_llm_model: str = "gpt-4o-mini"
     summary_llm_model: str = None
 
+    enable_event_embedding: bool = True
     embedding_provider: Literal["openai", "jina"] = "openai"
-    embedding_model: str = "text-embedding-3-small"
-    embedding_base_url: str = None
     embedding_api_key: str = None
-    embedding_max_token_size: int = 8192
+    embedding_base_url: str = None
     embedding_dim: int = 1536
+    embedding_model: str = "text-embedding-3-small"
+    embedding_max_token_size: int = 8192
 
     additional_user_profiles: list[dict] = field(default_factory=list)
     overwrite_user_profiles: Optional[list[dict]] = None
@@ -176,17 +177,24 @@ class Config:
 
     def __post_init__(self):
         assert self.llm_api_key is not None, "llm_api_key is required"
-        if self.embedding_api_key is None:
-            self.embedding_api_key = self.llm_api_key
-        if self.embedding_provider == "jina":
+        if self.enable_event_embedding:
+            if self.embedding_api_key is None and (
+                self.llm_style == self.embedding_provider == "openai"
+            ):
+                # default to llm config if embedding_api_key is not set
+                self.embedding_api_key = self.llm_api_key
+                self.embedding_base_url = self.llm_base_url
             assert (
                 self.embedding_api_key is not None
-            ), "embedding_api_key is required for Jina Embedding"
-            self.embedding_model = self.embedding_model or "jina-embeddings-v3"
+            ), "embedding_api_key is required for event embedding"
 
-            assert self.embedding_model in {
-                "jina-embeddings-v3",
-            }, "embedding_model must be one of the following: jina-embeddings-v3"
+            if self.embedding_provider == "jina":
+                self.embedding_base_url = (
+                    self.embedding_base_url or "https://api.jina.ai/v1"
+                )
+                assert self.embedding_model in {
+                    "jina-embeddings-v3",
+                }, "embedding_model must be one of the following: jina-embeddings-v3"
 
         if self.additional_user_profiles:
             [UserProfileTopic(**up) for up in self.additional_user_profiles]
