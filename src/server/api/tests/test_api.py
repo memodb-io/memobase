@@ -1,5 +1,6 @@
 import os
 import pytest
+import numpy as np
 from unittest.mock import patch, Mock, AsyncMock
 from api import app
 from fastapi.testclient import TestClient
@@ -73,13 +74,20 @@ def mock_event_summary_llm_complete():
         mock_llm.side_effect = [mock_client1, mock_client2]
         yield mock_llm
 
+
 @pytest.fixture
 def mock_event_get_embedding():
-    with patch("memobase_server.controllers.event.get_embedding") as mock_event_get_embedding:
+    with patch(
+        "memobase_server.controllers.event.get_embedding"
+    ) as mock_event_get_embedding:
         async_mock = AsyncMock()
-        async_mock.return_value = np.array([[0.1 for _ in range(CONFIG.embedding_dim)]])
-        mock_event_get_embedding.return_value = async_mock()
+        async_mock.ok = Mock(return_value=True)
+        async_mock.data = Mock(
+            return_value=np.array([[0.1 for _ in range(CONFIG.embedding_dim)]])
+        )
+        mock_event_get_embedding.return_value = async_mock
         yield mock_event_get_embedding
+
 
 def test_user_api_curd(client, db_env):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
@@ -512,7 +520,56 @@ overwrite_user_profiles:
 
     response = client.post(
         f"{PREFIX}/project/profile_config",
-        json={"profile_config": None},
+        json={"profile_config": ""},
     )
     d = response.json()
+    assert d["errno"] == 0
+
+
+@pytest.mark.asyncio
+async def test_api_event_search(
+    client,
+    db_env,
+    mock_llm_complete,
+    mock_llm_validate_complete,
+    mock_event_summary_llm_complete,
+    mock_event_get_embedding,
+):
+    response = client.post(f"{PREFIX}/users", json={})
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    u_id = d["data"]["id"]
+
+    response = client.post(
+        f"{PREFIX}/blobs/insert/{u_id}",
+        json={
+            "blob_type": "chat",
+            "blob_data": {
+                "messages": [
+                    {"role": "user", "content": "hello, I'm Gus"},
+                    {"role": "assistant", "content": "hi"},
+                ]
+            },
+        },
+    )
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+    response = client.post(f"{PREFIX}/users/buffer/{u_id}/chat")
+    assert response.status_code == 200
+    assert response.json()["errno"] == 0
+
+    response = client.get(f"{PREFIX}/users/event/search/{u_id}?query=hello")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 1
+    assert np.allclose(d["data"]["events"][0]["similarity"], 1)
+    print(d["data"])
+
+    response = client.delete(f"{PREFIX}/users/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
     assert d["errno"] == 0

@@ -1,25 +1,9 @@
-from openai import APIConnectionError, RateLimitError, AsyncOpenAI
+from openai import AsyncOpenAI
 from volcenginesdkarkruntime import AsyncArk
-from ..env import CONFIG
-
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
 from ..env import CONFIG
 
 _global_openai_async_client = None
 _global_doubao_async_client = None
-
-
-def get_openai_retry_decorator():
-    return retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
-    )
 
 
 def get_openai_async_client_instance() -> AsyncOpenAI:

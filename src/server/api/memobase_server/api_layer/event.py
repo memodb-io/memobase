@@ -53,7 +53,8 @@ async def search_user_events(
     ),
     time_range_in_days: int = Query(7, description="Time range in days, default is 7"),
 ) -> res.UserEventsDataResponse:
+    project_id = request.state.memobase_project_id
     p = await controllers.event.search_user_events(
-        user_id, query, topk, similarity_threshold, time_range_in_days
+        user_id, project_id, query, topk, similarity_threshold, time_range_in_days
     )
     return p.to_response(res.UserEventsDataResponse)
