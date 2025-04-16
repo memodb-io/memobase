@@ -12,7 +12,19 @@ from opentelemetry.sdk.metrics._internal.instrument import (
     Gauge,
 )
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource, DEPLOYMENT_ENVIRONMENT
+from functools import wraps
 from ..env import LOG, CONFIG
+
+
+def no_raise_exception(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            LOG.error(f"Error in {func.__name__}: {e}")
+
+    return wrapper
 
 
 class CounterMetricName(Enum):
@@ -133,7 +145,7 @@ class TelemetryManager:
             # use the hostname to get the ip address
             hostname = socket.gethostname()
             pod_ip = socket.gethostbyname(hostname)
-            
+
         return {
             DEPLOYMENT_ENVIRONMENT: self._deployment_environment,
             "memobase_server_ip": pod_ip,
@@ -172,6 +184,7 @@ class TelemetryManager:
                 description=metric.get_description(),
             )
 
+    @no_raise_exception
     def increment_counter_metric(
         self,
         metric: CounterMetricName,
@@ -183,6 +196,7 @@ class TelemetryManager:
         complete_attributes = self._construct_attributes(**(attributes or {}))
         self._metrics[metric].add(value, complete_attributes)
 
+    @no_raise_exception
     def record_histogram_metric(
         self,
         metric: HistogramMetricName,
@@ -194,6 +208,7 @@ class TelemetryManager:
         complete_attributes = self._construct_attributes(**(attributes or {}))
         self._metrics[metric].record(value, complete_attributes)
 
+    @no_raise_exception
     def set_gauge_metric(
         self,
         metric: GaugeMetricName,
