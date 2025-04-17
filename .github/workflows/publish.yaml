@@ -50,6 +50,7 @@ jobs:
         working-directory: ./src/server
         run: |
           cp .env.example .env
+          cp api/config.yaml.example api/config.yaml
           sh script/up-dev.sh &
       - name: Wait for containers to start
         working-directory: ./src/server
