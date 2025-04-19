@@ -3,7 +3,13 @@ from ..models.database import UserEvent
 from ..models.response import UserEventData, UserEventsData, EventData
 from ..models.utils import Promise, CODE
 from ..connectors import Session
-from ..utils import get_encoded_tokens, event_str_repr
+from ..utils import get_encoded_tokens, event_str_repr, event_embedding_str
+
+from ..llms.embeddings import get_embedding
+from datetime import timedelta
+from sqlalchemy import desc, select
+from sqlalchemy.sql import func
+from ..env import LOG, CONFIG
 
 
 async def get_user_events(
@@ -56,15 +62,40 @@ async def append_user_event(
     try:
         validated_event = EventData(**event_data)
     except ValidationError as e:
+        LOG.error(f"Invalid event data: {str(e)}")
         return Promise.reject(
             CODE.INTERNAL_SERVER_ERROR,
             f"Invalid event data: {str(e)}",
         )
+
+    if CONFIG.enable_event_embedding:
+        event_data_str = event_embedding_str(validated_event)
+        embedding = await get_embedding(
+            project_id,
+            [event_data_str],
+            phase="document",
+            model=CONFIG.embedding_model,
+        )
+        if not embedding.ok():
+            LOG.error(f"Failed to get embeddings: {embedding.msg()}")
+            embedding = [None]
+        else:
+            embedding = embedding.data()
+            embedding_dim_current = embedding.shape[-1]
+            if embedding_dim_current != CONFIG.embedding_dim:
+                LOG.error(
+                    f"Embedding dimension mismatch! Expected {CONFIG.embedding_dim}, got {embedding_dim_current}."
+                )
+                embedding = [None]
+    else:
+        embedding = [None]
+
     with Session() as session:
         user_event = UserEvent(
             user_id=user_id,
             project_id=project_id,
             event_data=validated_event.model_dump(),
+            embedding=embedding[0],
         )
         session.add(user_event)
         session.commit()
@@ -119,3 +150,65 @@ async def update_user_event(
         user_event.event_data = new_events
         session.commit()
     return Promise.resolve(None)
+
+
+async def search_user_events(
+    user_id: str,
+    project_id: str,
+    query: str,
+    topk: int = 10,
+    similarity_threshold: float = 0.5,
+    time_range_in_days: int = 7,
+) -> Promise[UserEventsData]:
+    if not CONFIG.enable_event_embedding:
+        return Promise.reject(
+            CODE.NOT_IMPLEMENTED,
+            "Event embedding is not enabled",
+        )
+
+    query_embeddings = await get_embedding(
+        project_id, [query], phase="query", model=CONFIG.embedding_model
+    )
+    if not query_embeddings.ok():
+        LOG.error(f"Failed to get embeddings: {query_embeddings.msg()}")
+        return query_embeddings
+    query_embedding = query_embeddings.data()[0]
+
+    stmt = (
+        select(
+            UserEvent,
+            (1 - UserEvent.embedding.cosine_distance(query_embedding)).label(
+                "similarity"
+            ),
+        )
+        .where(UserEvent.user_id == user_id, UserEvent.project_id == project_id)
+        .where(UserEvent.created_at > func.now() - timedelta(days=time_range_in_days))
+        .where(
+            (1 - UserEvent.embedding.cosine_distance(query_embedding))
+            > similarity_threshold
+        )
+        .order_by(desc("similarity"))
+        .limit(topk)
+    )
+
+    with Session() as session:
+        # Use .all() instead of .scalars().all() to get both columns
+        result = session.execute(stmt).all()
+        user_events: list[UserEventData] = []
+        for row in result:
+            user_event: UserEvent = row[0]  # UserEvent object
+            similarity: float = row[1]  # similarity value
+            user_events.append(
+                UserEventData(
+                    id=user_event.id,
+                    event_data=user_event.event_data,
+                    created_at=user_event.created_at,
+                    updated_at=user_event.updated_at,
+                    similarity=similarity,
+                )
+            )
+
+        # Create UserEventsData with the events
+        user_events_data = UserEventsData(events=user_events)
+
+    return Promise.resolve(user_events_data)

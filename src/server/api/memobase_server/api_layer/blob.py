@@ -2,7 +2,7 @@ from fastapi import BackgroundTasks, Request
 from fastapi import Path, Body
 import traceback
 
-from .. import controllers
+from ..controllers import full as controllers
 
 from ..env import LOG, TelemetryKeyName
 from ..models.response import CODE

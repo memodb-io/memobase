@@ -229,6 +229,13 @@ class User:
             )
         )
         return True
+    
+    def search_event(self, query: str, topk: int = 10, similarity_threshold: float = 0.5, time_range_in_days: int = 7) -> list[UserEventData]:
+        params = f"?query={query}&topk={topk}&similarity_threshold={similarity_threshold}&time_range_in_days={time_range_in_days}"
+        r = unpack_response(
+            self.project_client.client.get(f"/users/event/{self.user_id}/search{params}")
+        )
+        return [UserEventData.model_validate(e) for e in r.data["events"]]
 
     def context(
         self,

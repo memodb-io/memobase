@@ -50,6 +50,7 @@ jobs:
         working-directory: ./src/server
         run: |
           cp .env.example .env
+          cp api/config.yaml.example api/config.yaml
           sh script/up-dev.sh &
       - name: Wait for containers to start
         working-directory: ./src/server
@@ -62,7 +63,7 @@ jobs:
         working-directory: ./src/server/api
         run: |
           cp .env.example .env
-          pytest --junit-xml=junit/test-results-${{ matrix.python-version }}.xml --cov=. --cov-report=xml:coverage-${{ matrix.python-version }}.xml tests/
+          pytest --junit-xml=junit/test-results-${{ matrix.python-version }}.xml --cov=. --cov-report=xml:coverage-${{ matrix.python-version }}.xml tests/ -s -v
       - name: Upload pytest test results and coverage
         uses: actions/upload-artifact@v4
         with:

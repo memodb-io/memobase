@@ -1,4 +1,4 @@
-from .. import controllers
+from ..controllers import full as controllers
 
 from ..models.response import BaseResponse
 from ..models.blob import BlobType

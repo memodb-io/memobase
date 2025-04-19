@@ -88,8 +88,12 @@ class Config:
     best_llm_model: str = "gpt-4o-mini"
     summary_llm_model: str = None
 
-    embedding_model: str = "text-embedding-3-small"
+    enable_event_embedding: bool = True
+    embedding_provider: Literal["openai", "jina"] = "openai"
+    embedding_api_key: str = None
+    embedding_base_url: str = None
     embedding_dim: int = 1536
+    embedding_model: str = "text-embedding-3-small"
     embedding_max_token_size: int = 8192
 
     additional_user_profiles: list[dict] = field(default_factory=list)
@@ -167,11 +171,31 @@ class Config:
         # Filter out any keys from overwrite_config that aren't in the dataclass
         fields = {field.name for field in dataclasses.fields(cls)}
         filtered_config = {k: v for k, v in overwrite_config.items() if k in fields}
-        overwrite_config = dataclasses.replace(cls(), **filtered_config)
+        overwrite_config = cls(**filtered_config)
         LOG.info(f"{overwrite_config}")
         return overwrite_config
 
     def __post_init__(self):
+        assert self.llm_api_key is not None, "llm_api_key is required"
+        if self.enable_event_embedding:
+            if self.embedding_api_key is None and (
+                self.llm_style == self.embedding_provider == "openai"
+            ):
+                # default to llm config if embedding_api_key is not set
+                self.embedding_api_key = self.llm_api_key
+                self.embedding_base_url = self.llm_base_url
+            assert (
+                self.embedding_api_key is not None
+            ), "embedding_api_key is required for event embedding"
+
+            if self.embedding_provider == "jina":
+                self.embedding_base_url = (
+                    self.embedding_base_url or "https://api.jina.ai/v1"
+                )
+                assert self.embedding_model in {
+                    "jina-embeddings-v3",
+                }, "embedding_model must be one of the following: jina-embeddings-v3"
+
         if self.additional_user_profiles:
             [UserProfileTopic(**up) for up in self.additional_user_profiles]
         if self.overwrite_user_profiles:
@@ -214,7 +238,7 @@ class ProfileConfig:
         fields = {field.name for field in dataclasses.fields(cls)}
         # Filter out any keys from overwrite_config that aren't in the dataclass
         filtered_config = {k: v for k, v in overwrite_config.items() if k in fields}
-        overwrite_config = dataclasses.replace(cls(), **filtered_config)
+        overwrite_config = cls(**filtered_config)
         return overwrite_config
 
 
