@@ -160,6 +160,12 @@ async def search_user_events(
     similarity_threshold: float = 0.5,
     time_range_in_days: int = 7,
 ) -> Promise[UserEventsData]:
+    if not CONFIG.enable_event_embedding:
+        return Promise.reject(
+            CODE.NOT_IMPLEMENTED,
+            "Event embedding is not enabled",
+        )
+
     query_embeddings = await get_embedding(
         project_id, [query], phase="query", model=CONFIG.embedding_model
     )
