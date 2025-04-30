@@ -30,10 +30,8 @@ def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
 
 
 async def extract_topics(
-    user_id: str, project_id: str, blob_ids: list[str], blobs: list[Blob]
+    user_id: str, project_id: str, user_memo: str
 ) -> Promise[dict]:
-    assert len(blob_ids) == len(blobs), "Length of blob_ids and blobs must be equal"
-    assert all(b.type == BlobType.chat for b in blobs), "All blobs must be chat blobs"
     p = await get_user_profiles(user_id, project_id)
     if not p.ok():
         return p
@@ -87,12 +85,11 @@ async def extract_topics(
     else:
         already_topics_prompt = ""
 
-    blob_strs = tag_chat_blobs_in_order_xml(blobs)
     p = await llm_complete(
         project_id,
         PROMPTS[USE_LANGUAGE]["extract"].pack_input(
             already_topics_prompt,
-            blob_strs,
+            user_memo,
             strict_mode=STRICT_MODE,
         ),
         system_prompt=PROMPTS[USE_LANGUAGE]["extract"].get_prompt(
@@ -104,6 +101,8 @@ async def extract_topics(
     if not p.ok():
         return p
     results = p.data()
+    print(user_memo)
+    print(results)
     parsed_facts: AIUserProfiles = parse_string_into_profiles(results)
     new_facts: list[FactResponse] = parsed_facts.model_dump()["facts"]
     if not len(new_facts):

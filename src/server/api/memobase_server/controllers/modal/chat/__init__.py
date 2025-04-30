@@ -12,13 +12,19 @@ from .summary import re_summary
 from .organize import organize_profiles
 from .types import MergeAddResult
 from .event_summary import summary_event, tag_event
+from .entry_summary import entry_summary
 
 
 async def process_blobs(
     user_id: str, project_id: str, blob_ids: list[str], blobs: list[Blob]
 ) -> Promise[ChatModalResponse]:
     # 1. Extract patch profiles
-    p = await extract_topics(user_id, project_id, blob_ids, blobs)
+    p = await entry_summary(user_id, project_id, blobs)
+    if not p.ok():
+        return p
+    user_memo_str = p.data()
+
+    p = await extract_topics(user_id, project_id, user_memo_str)
     if not p.ok():
         return p
     extracted_data = p.data()
@@ -42,7 +48,7 @@ async def process_blobs(
     p = await handle_session_event(
         user_id,
         project_id,
-        blobs,
+        user_memo_str,
         delta_profile_data,
         extracted_data["config"],
     )
@@ -94,29 +100,17 @@ async def process_blobs(
 async def handle_session_event(
     user_id: str,
     project_id: str,
-    blobs: list[Blob],
+    memo_str: str,
     delta_profile_data: list[dict],
     config: ProfileConfig,
 ) -> Promise[str]:
     if not len(delta_profile_data):
         return Promise.resolve(None)
-    p = await summary_event(project_id, blobs, config)
+    event_tip = memo_str
+    p = await tag_event(project_id, config, event_tip)
     if not p.ok():
-        LOG.error(f"Failed to summary event: {p.msg()}")
-    event_tip = p.data() if p.ok() else None
-    if event_tip is not None:
-        profile_delta_str = "\n".join(
-            [
-                f"- {dp['attributes']['topic']}:{dp['attributes']['sub_topic']}: {dp['content']}"
-                for dp in delta_profile_data
-            ]
-        )
-        p = await tag_event(project_id, config, profile_delta_str, event_tip)
-        if not p.ok():
-            LOG.error(f"Failed to tag event: {p.msg()}")
-        event_tags = p.data() if p.ok() else None
-    else:
-        event_tags = None
+        LOG.error(f"Failed to tag event: {p.msg()}")
+    event_tags = p.data() if p.ok() else None
 
     eid = await append_user_event(
         user_id,

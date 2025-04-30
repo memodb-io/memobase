@@ -8,15 +8,13 @@ ADD_KWARGS = {
 }
 EXAMPLES = [
     (
-        """
-[2025/01/14] user: Hi, how is your day?
+        """- User say Hi to assistant.
 """,
         AIUserProfiles(**{"facts": []}),
     ),
     (
         """
-[2025/01/01] user: I still can't believe we're married today!
-[2025/01/01] SiLei: I know, it will be the most amazing journey of my life.
+- User is married to SiLei [mention 2025/01/15, happen at 2025/01/01]
 """,
         AIUserProfiles(
             **{
@@ -24,12 +22,12 @@ EXAMPLES = [
                     {
                         "topic": "demographics",
                         "sub_topic": "marital_status",
-                        "memo": "user is married to SiLei",
+                        "memo": "married",
                     },
                     {
                         "topic": "life_event",
                         "sub_topic": "Marriage",
-                        "memo": "Married to SiLei at 2025/01/01",
+                        "memo": "married to SiLei [happen at 2025/01/01]",
                     },
                 ]
             }
@@ -37,7 +35,8 @@ EXAMPLES = [
     ),
     (
         """
-[2025/01/01] user: Hi, I am looking for a daily restaurant in San Francisco cause I live there.
+- User lives in San Francisco [mention 2025/01/01]
+- User is looking for a daily restaurant in San Francisco [mention 2025/01/01]
 """,
         AIUserProfiles(
             **{
@@ -45,7 +44,7 @@ EXAMPLES = [
                     {
                         "topic": "contact_info",
                         "sub_topic": "city",
-                        "memo": "San Francisco",
+                        "memo": "San Francisco [mention 2025/01/01]",
                     }
                 ]
             }
@@ -53,22 +52,21 @@ EXAMPLES = [
     ),
     (
         """
-[2025/01/01] user: Can you give me a letter of references for my PhD applications?
-[2025/01/01] assistant: Got it, Melinda!...
-[2025/01/01] user: Thanks for remembering my name!
+- User is referred as Melinda [mention 2025/01/01]
+- User is applying PhD [mention 2025/01/01]
 """,
         AIUserProfiles(
             **{
                 "facts": [
                     {
                         "topic": "basic_info",
-                        "sub_topic": "Name",
+                        "sub_topic": "name",
                         "memo": "Referred as Melinda",
                     },
                     {
                         "topic": "education",
-                        "sub_topic": "Degree",
-                        "memo": "user is applying PhD at the time: 2025/01/01",
+                        "sub_topic": "degree",
+                        "memo": "user is applying PhD [mention 2025/01/01]",
                     },
                 ]
             }
@@ -77,14 +75,16 @@ EXAMPLES = [
     (
         """
 [2024/10/11] user: Yesterday, I had a meeting with John at 3pm. We discussed the new project.
+- User had a meeting with John at 3pm [mention 2024/10/11, happen at 2024/10/10]
+- User is starting a project with John [mention 2024/10/11]
 """,
         AIUserProfiles(
             **{
                 "facts": [
                     {
                         "topic": "work",
-                        "sub_topic": "Collaboration",
-                        "memo": "user is starting a project with John and already met once at 2024/10/10",
+                        "sub_topic": "collaboration",
+                        "memo": "user is starting a project with John [mention 2024/10/11] and already met once [mention 2024/10/10]",
                     }
                 ]
             }
@@ -92,7 +92,8 @@ EXAMPLES = [
     ),
     (
         """
-[2025/01/01] user: Hi, my name is John. I am a software engineer at Memobase.
+- User is a software engineer at Memobase [mention 2025/01/01]
+- User's name is John [mention 2025/01/01]
 """,
         AIUserProfiles(
             **{
@@ -105,12 +106,12 @@ EXAMPLES = [
                     {
                         "topic": "work",
                         "sub_topic": "Title",
-                        "memo": "user is a Software engineer",
+                        "memo": "user is a Software engineer [mention 2025/01/01]",
                     },
                     {
                         "topic": "work",
                         "sub_topic": "Company",
-                        "memo": "user works at Memobase",
+                        "memo": "user works at Memobase [mention 2025/01/01]",
                     },
                 ]
             }
@@ -118,9 +119,8 @@ EXAMPLES = [
     ),
     (
         """
-[2025/01/01] user: Me favorite movies are Inception and Interstellar.
-[2025/01/01] assistant: Those are great movies, how about the movie: Tenet?
-[2025/01/02] user: I have watched Tenet, I think that's my favorite in fact.
+- User's favorite movies are Inception and Interstellar [mention 2025/01/01]
+- User's favorite movie is Tenet [mention 2025/01/02]
 """,
         AIUserProfiles(
             **{
@@ -128,12 +128,12 @@ EXAMPLES = [
                     {
                         "topic": "interest",
                         "sub_topic": "Movie",
-                        "memo": "Inception, Interstellar and Tenet; favorite movie is Tenet",
+                        "memo": "Inception, Interstellar and Tenet; favorite movie is Tenet [mention 2025/01/02]",
                     },
                     {
                         "topic": "interest",
                         "sub_topic": "movie_director",
-                        "memo": "user seems to be a Big fan of director Christopher Nolan",
+                        "memo": "user seems to be a Big fan of director Christopher Nolan [mention 2025/01/02]",
                     },
                 ]
             }
@@ -142,7 +142,7 @@ EXAMPLES = [
 ]
 
 DEFAULT_JOB = """You are a professional psychologist.
-Your responsibility is to carefully read out the conversation between the user and the other party.
+Your responsibility is to carefully read out the memo of user and extract the important profiles of user in structured format.
 Then extract relevant and important facts, preferences about the user that will help evaluate the user's state.
 You will not only extract the information that's explicitly stated, but also infer what's implied from the conversation.
 You will use the same language as the user's input to record the facts.
@@ -157,14 +157,12 @@ You can create your own topics/sub_topics if you find it necessary, unless the u
 #### User Before Topics
 You will be given the topics and subtopics that the user has already shared with the assistant.
 Consider use the same topic/subtopic if it's mentioned in the conversation again.
-#### Chats
-You will receive a conversation between the user and the assistant. The format of the conversation is:
-- [TIME] NAME: MESSAGE
-where NAME is sometimes "user", sometimes "assistant" or other names.
-MESSAGE is the content of the conversation. Understand the conversation and remember the time when the conversation happened.
+#### Memos
+You will receive a memo of user in Markdown format, which states user infos, events, preferences, etc.
+The memo is summarized from the chats between user and a assistant.
 
 ### Output
-You need to extract the facts and preferences from the conversation and place them in order list:
+You need to extract the facts and preferences from the memo and place them in order list:
 - TOPIC{tab}SUB_TOPIC{tab}MEMO
 For example:
 - basic_info{tab}name{tab}melinda
@@ -181,8 +179,6 @@ those elements should be separated by `{tab}` and each line should be separated 
 Here are some few shot examples:
 {examples}
 Return the facts and preferences in a markdown list format as shown above.
-If the user mentions time-sensitive information, try to infer the specific date instead of relative dates:
-- When use mentioned `Today`, try to infer the current date(YYYY/MM/DD) instead of using `Today`. Same for `Yesterday`, `Tomorrow`, `Last week`, `Next week`, `Next month`, `Next year` etc.
 
 Remember the following:
 - If the user mentions time-sensitive information, try to infer the specific date from the data.
@@ -201,10 +197,12 @@ Only extract the attributes with actual values, if the user does not provide any
 #### Topics Guidelines
 Below is the list of topics and subtopics that you should focus on collecting and extracting:
 {topic_examples}
+
+Now perform your task.
 """
 
 
-def pack_input(already_input, chat_strs, strict_mode: bool = False):
+def pack_input(already_input, memo_str, strict_mode: bool = False):
     header = ""
     if strict_mode:
         header = "Don't extract topics/subtopics that are not mentioned in #### Topics Guidelines, otherwise your answer is invalid!"
@@ -212,8 +210,8 @@ def pack_input(already_input, chat_strs, strict_mode: bool = False):
 #### User Before topics
 {already_input}
 Don't output the topics and subtopics that are not mentioned in the following conversation.
-#### Chats
-{chat_strs}
+#### Memo
+{memo_str}
 """
 
 

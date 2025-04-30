@@ -46,7 +46,7 @@ async def summary_event(
 
 
 async def tag_event(
-    project_id: str, config: ProfileConfig, profile_delta: str, event_summary: str
+    project_id: str, config: ProfileConfig, event_summary: str
 ) -> Promise[Optional[list]]:
     event_tags = read_out_event_tags(config)
     available_event_tags = set([et.name for et in event_tags])
@@ -55,7 +55,7 @@ async def tag_event(
     event_tags_str = "\n".join([f"- {et.name}({et.description})" for et in event_tags])
     r = await llm_complete(
         project_id,
-        f"{profile_delta}\n\n{event_summary}",
+        event_summary,
         system_prompt=event_tagging_prompt.get_prompt(event_tags_str),
         temperature=0.2,
         model=CONFIG.best_llm_model,

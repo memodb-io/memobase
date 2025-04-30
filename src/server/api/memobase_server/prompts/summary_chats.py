@@ -8,8 +8,8 @@ You will be given a chats between a user and an assistant.
 
 ## Requirement
 - Your task is to summarize the chats into 1~2 sentences.
-- Only extract the most critical events that occurred.
-- Time and Schedule should be included in the summary if possible.
+- Only extract the most critical events/schedules that occurred.
+- Specific Time(YYYY/MM/DD) should be included in events/schedules if possible.
 - Only return the plain summary and no explanation.
 
 The summary should use the same language as the chats.
