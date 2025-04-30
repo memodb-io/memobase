@@ -12,10 +12,14 @@ async def get_user_events(
         None,
         description="Max token size of returned events",
     ),
+    need_summary: bool = Query(
+        False,
+        description="Whether to return events with summaries",
+    ),
 ) -> res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.event.get_user_events(
-        user_id, project_id, topk=topk, max_token_size=max_token_size
+        user_id, project_id, topk=topk, max_token_size=max_token_size, need_summary=need_summary
     )
     return p.to_response(res.UserEventsDataResponse)
 
