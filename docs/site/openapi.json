@@ -1246,6 +1246,18 @@
 							"title": "Max Token Size"
 						},
 						"description": "Max token size of returned events"
+					},
+					{
+						"name": "need_summary",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"description": "Whether to require event summary in returned events",
+							"default": false,
+							"title": "Need Summary"
+						},
+						"description": "Whether to require event summary in returned events"
 					}
 				],
 				"responses": {

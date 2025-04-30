@@ -860,8 +860,9 @@ API_X_CODE_DOCS["GET /users/event/{user_id}"] = {
 from memobase import Memobase
 
 client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+u = client.get_user(uid)
 
-events = u.event(topk=10, max_token_size=1000)
+events = u.event(topk=10, max_token_size=1000, need_summary=True)
 """,
             "label": "Python",
         },

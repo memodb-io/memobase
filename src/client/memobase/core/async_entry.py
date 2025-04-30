@@ -238,10 +238,15 @@ class AsyncUser:
         )
         return True
 
-    async def event(self, topk=10) -> list[UserEventData]:
+    async def event(self, topk=10, max_token_size=None, need_summary=False) -> list[UserEventData]:
+        params = f"?topk={topk}"  
+        if max_token_size is not None:  
+            params += f"&max_token_size={max_token_size}"  
+        if need_summary:  
+            params += f"&need_summary=true"
         r = unpack_response(
             await self.project_client.client.get(
-                f"/users/event/{self.user_id}?topk={topk}"
+                f"/users/event/{self.user_id}{params}"
             )
         )
         return [UserEventData.model_validate(e) for e in r.data["events"]]
