@@ -319,3 +319,6 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 
+# act
+.actrc
+event.json
