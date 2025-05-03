@@ -63,15 +63,26 @@ def mock_event_summary_llm_complete():
     with patch(
         "memobase_server.controllers.modal.chat.event_summary.llm_complete"
     ) as mock_llm:
-        mock_client1 = AsyncMock()
-        mock_client1.ok = Mock(return_value=True)
-        mock_client1.data = Mock(return_value="Melinda is a software engineer")
 
         mock_client2 = AsyncMock()
         mock_client2.ok = Mock(return_value=True)
         mock_client2.data = Mock(return_value="- emotion::happy")
 
-        mock_llm.side_effect = [mock_client1, mock_client2]
+        mock_llm.side_effect = [mock_client2]
+        yield mock_llm
+
+
+@pytest.fixture
+def mock_entry_summary_llm_complete():
+    with patch(
+        "memobase_server.controllers.modal.chat.entry_summary.llm_complete"
+    ) as mock_llm:
+
+        mock_client2 = AsyncMock()
+        mock_client2.ok = Mock(return_value=True)
+        mock_client2.data = Mock(return_value="Melina is a happy girl")
+
+        mock_llm.side_effect = [mock_client2]
         yield mock_llm
 
 
@@ -296,6 +307,7 @@ async def test_api_user_flush_buffer(
     mock_llm_complete,
     mock_llm_validate_complete,
     mock_event_summary_llm_complete,
+    mock_entry_summary_llm_complete,
     mock_event_get_embedding,
 ):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
@@ -412,6 +424,7 @@ async def test_api_user_event(
     mock_llm_complete,
     mock_llm_validate_complete,
     mock_event_summary_llm_complete,
+    mock_entry_summary_llm_complete,
     mock_event_get_embedding,
 ):
     response = client.post(f"{PREFIX}/users", json={"data": {"test": 1}})
@@ -447,10 +460,7 @@ async def test_api_user_event(
     assert len(d["data"]["events"]) == 1
 
     print(d["data"]["events"])
-    assert (
-        d["data"]["events"][0]["event_data"]["event_tip"]
-        == "Melinda is a software engineer"
-    )
+    assert d["data"]["events"][0]["event_data"]["event_tip"] == "Melina is a happy girl"
     assert d["data"]["events"][0]["event_data"]["event_tags"] == [
         {"tag": "emotion", "value": "happy"}
     ]
@@ -464,6 +474,11 @@ async def test_api_user_event(
 
 @pytest.mark.asyncio
 async def test_api_project_invalid_profile_config(client, db_env):
+    response = client.post(
+        f"{PREFIX}/project/profile_config",
+        json={"profile_config": ""},
+    )
+
     response = client.get(f"{PREFIX}/project/profile_config")
     d = response.json()
     print(d)
@@ -534,6 +549,7 @@ async def test_api_event_search(
     mock_llm_complete,
     mock_llm_validate_complete,
     mock_event_summary_llm_complete,
+    mock_entry_summary_llm_complete,
     mock_event_get_embedding,
 ):
     response = client.post(f"{PREFIX}/users", json={})

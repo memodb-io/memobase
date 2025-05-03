@@ -19,8 +19,11 @@ async def get_user_events(
 ) -> res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.event.get_user_events(
-        user_id, project_id, topk=topk, max_token_size=max_token_size, need_summary=need_summary
+        user_id, project_id, topk=topk, need_summary=need_summary
     )
+    if not p.ok():
+        return p.to_response(res.UserEventsDataResponse)
+    p = await controllers.event.truncate_events(p.data(), max_token_size)
     return p.to_response(res.UserEventsDataResponse)
 
 

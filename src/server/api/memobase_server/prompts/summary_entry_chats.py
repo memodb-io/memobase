@@ -43,9 +43,10 @@ For example:
 ## Events
 - Jack paint a picture about his kids today.[mention 2023/1/23]
 ## User Info
-- User mentioned his work is software engineer in Memobase. [mention 2023/1/23]
+- User's alias is Jack, assistant is Melinda.
+- Jack mentioned his work is software engineer in Memobase. [mention 2023/1/23]
 ## Schedules
-- User plans to go the gym tomorrow. [mention 2023/1/23, happen at 2023/1/24]
+- Jack plans to go the gym tomorrow. [mention 2023/1/23, happen at 2023/1/24]
 ...
 ```
 Always add specific mention time of your log, and the event happen time if possible.

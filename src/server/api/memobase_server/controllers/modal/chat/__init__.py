@@ -11,7 +11,7 @@ from .merge import merge_or_valid_new_memos
 from .summary import re_summary
 from .organize import organize_profiles
 from .types import MergeAddResult
-from .event_summary import summary_event, tag_event
+from .event_summary import tag_event
 from .entry_summary import entry_summary
 
 

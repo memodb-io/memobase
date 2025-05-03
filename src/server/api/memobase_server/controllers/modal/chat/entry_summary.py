@@ -6,7 +6,6 @@ from ....llms import llm_complete
 from ....prompts.profile_init_utils import read_out_profile_config
 from ...project import get_project_profile_config
 from ....prompts.profile_init_utils import read_out_event_tags
-from ....prompts import summary_entry_chats as prompt
 from ....prompts.utils import tag_chat_blobs_in_order_xml
 from .types import FactResponse, PROMPTS
 
@@ -23,6 +22,7 @@ async def entry_summary(
     project_profiles_slots = read_out_profile_config(
         project_profiles, PROMPTS[USE_LANGUAGE]["profile"].CANDIDATE_PROFILE_TOPICS
     )
+    prompt = PROMPTS[USE_LANGUAGE]["entry_summary"]
     event_tags = read_out_event_tags(project_profiles)
     event_attriubtes_str = "\n".join(
         [f"- {et.name}({et.description})" for et in event_tags]

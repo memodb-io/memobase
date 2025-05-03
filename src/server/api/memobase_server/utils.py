@@ -16,7 +16,6 @@ LIST_INT_REGEX = re.compile(r"\[\s*(?:\d+(?:\s*,\s*\d+)*\s*)?\]")
 
 
 def event_str_repr(event: UserEventData) -> str:
-    happened_at = event.created_at.astimezone(CONFIG.timezone).strftime("%Y/%m/%d")
     event_data = event.event_data
     if event_data.event_tip is None:
         profile_deltas = [
@@ -24,7 +23,7 @@ def event_str_repr(event: UserEventData) -> str:
             for ed in event_data.profile_delta
         ]
         profile_delta_str = "\n".join(profile_deltas)
-        return f"{happened_at}:\n{profile_delta_str}"
+        return profile_delta_str
     else:
         if event_data.event_tags:
             event_tags = "\n".join(
@@ -32,7 +31,7 @@ def event_str_repr(event: UserEventData) -> str:
             )
         else:
             event_tags = ""
-        return f"{happened_at}:\n{event_data.event_tip}\n{event_tags}"
+        return f"{event_data.event_tip}\n{event_tags}"
 
 
 def event_embedding_str(event_data: EventData) -> str:

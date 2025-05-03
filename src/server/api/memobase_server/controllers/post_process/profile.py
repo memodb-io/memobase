@@ -51,6 +51,7 @@ async def filter_profiles_with_chats(
     if not r.ok():
         LOG.error(f"Failed to pick related profiles: {r.msg()}")
         return r
+    print(chats, r.data())
     found_ids = find_list_int_or_none(r.data())
     if found_ids is None:
         LOG.error(f"Failed to pick related profiles: {r.data()}")

@@ -46,11 +46,3 @@ class UserProfileTopic:
             SubTopic(**{"name": st}) if isinstance(st, str) else SubTopic(**st)
             for st in self.sub_topics
         ]
-
-
-if __name__ == "__main__":
-    sp = SubTopic(name="test Test")
-    print(sp["name"])
-    print(sp.get("description", "NO"))
-    print(sp["update_description"])
-    print(sp["validate_value"])

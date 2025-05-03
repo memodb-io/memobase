@@ -105,15 +105,26 @@ def mock_event_summary_llm_complete():
     with patch(
         "memobase_server.controllers.modal.chat.event_summary.llm_complete"
     ) as mock_llm:
-        mock_client1 = AsyncMock()
-        mock_client1.ok = Mock(return_value=True)
-        mock_client1.data = Mock(return_value="Melinda is a software engineer")
 
         mock_client2 = AsyncMock()
         mock_client2.ok = Mock(return_value=True)
         mock_client2.data = Mock(return_value="- emotion::happy")
 
-        mock_llm.side_effect = [mock_client1, mock_client2]
+        mock_llm.side_effect = [mock_client2]
+        yield mock_llm
+
+
+@pytest.fixture
+def mock_entry_summary_llm_complete():
+    with patch(
+        "memobase_server.controllers.modal.chat.entry_summary.llm_complete"
+    ) as mock_llm:
+
+        mock_client2 = AsyncMock()
+        mock_client2.ok = Mock(return_value=True)
+        mock_client2.data = Mock(return_value="Melinda is a software engineer")
+
+        mock_llm.side_effect = [mock_client2]
         yield mock_llm
 
 
@@ -137,6 +148,7 @@ async def test_chat_buffer_modal(
     mock_extract_llm_complete,
     mock_merge_llm_complete,
     mock_event_summary_llm_complete,
+    mock_entry_summary_llm_complete,
     mock_event_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
@@ -235,6 +247,7 @@ async def test_chat_merge_modal(
     mock_extract_llm_complete,
     mock_merge_llm_complete,
     mock_event_summary_llm_complete,
+    mock_entry_summary_llm_complete,
     mock_event_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
@@ -320,6 +333,7 @@ async def test_chat_organize_modal(
     mock_merge_llm_complete,
     mock_organize_llm_complete,
     mock_event_summary_llm_complete,
+    mock_entry_summary_llm_complete,
     mock_event_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)

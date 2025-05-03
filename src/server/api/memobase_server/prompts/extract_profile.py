@@ -74,7 +74,6 @@ EXAMPLES = [
     ),
     (
         """
-[2024/10/11] user: Yesterday, I had a meeting with John at 3pm. We discussed the new project.
 - User had a meeting with John at 3pm [mention 2024/10/11, happen at 2024/10/10]
 - User is starting a project with John [mention 2024/10/11]
 """,

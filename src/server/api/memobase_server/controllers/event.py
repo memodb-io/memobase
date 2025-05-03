@@ -16,7 +16,6 @@ async def get_user_events(
     user_id: str,
     project_id: str,
     topk: int = 10,
-    max_token_size: int = None,
     need_summary: bool = False,
 ) -> Promise[UserEventsData]:
     with Session() as session:
@@ -43,16 +42,23 @@ async def get_user_events(
             for ue in user_events
         ]
     events = UserEventsData(events=results)
-    if max_token_size is not None:
-        c_tokens = 0
-        truncated_results = []
-        for r in events.events:
-            c_tokens += len(get_encoded_tokens(event_str_repr(r)))
-            if c_tokens > max_token_size:
-                break
-            truncated_results.append(r)
-        results = truncated_results
-        events.events = results
+    return Promise.resolve(events)
+
+
+async def truncate_events(
+    events: UserEventsData,
+    max_token_size: int | None,
+) -> Promise[UserEventsData]:
+    if max_token_size is None:
+        return Promise.resolve(events)
+    c_tokens = 0
+    truncated_results = []
+    for r in events.events:
+        c_tokens += len(get_encoded_tokens(event_str_repr(r)))
+        if c_tokens > max_token_size:
+            break
+        truncated_results.append(r)
+    events.events = truncated_results
     return Promise.resolve(events)
 
 
