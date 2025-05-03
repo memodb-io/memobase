@@ -1,9 +1,3 @@
-|      |      |      |
-| ---- | ---- | ---- |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-
 # Locomo benchmark for various memory backend
 
 >  This project is originally forked from [mem0-evaluation](https://github.com/mem0ai/mem0/tree/main/evaluation) in commit `393a4fd5a6cfeb754857a2229726f567a9fadf36` 
@@ -55,9 +49,9 @@ Create a `.env` file with your API keys and configurations. You must have beflow
 OPENAI_API_KEY="your-openai-api-key"
 ```
 
-Beblow is the detailed requirements
+Below is the detailed requirements
 
-#### Memobase
+### Memobase
 
 **Deps**
 
@@ -89,7 +83,7 @@ py generate_scores.py --input_path="evals.json"
 
 
 
-#### Run Mem0
+### Run Mem0
 
 **Deps**
 
@@ -112,7 +106,7 @@ MEM0_ORGANIZATION_ID="your-mem0-organization-id"
 
 
 
-#### Run Zep
+### Run Zep
 
 **Deps**
 
@@ -132,7 +126,7 @@ ZEP_API_KEY="api-key-from-zep"
 
 
 
-#### Run langmem
+### Run langmem
 
 **Deps**
 
@@ -140,16 +134,17 @@ ZEP_API_KEY="api-key-from-zep"
 pip install langgraph langmem
 ```
 
-**Command**
-
-> Just like the commands of Memobase, but replace `memobase` with `zep`. See [all commands](#Memory Techniques)
-
+**Env**
 
 ```bash
 EMBEDDING_MODEL="text-embedding-3-small"  # or your preferred embedding model
 ```
 
-#### Other methods
+**Command**
+> Just like the commands of Memobase, but replace `memobase` with `zep`. See [all commands](#Memory Techniques)
+
+
+### Other methods
 
 The rest methods don't require extra deps/envs.
 
