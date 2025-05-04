@@ -90,10 +90,11 @@ Memobase can provide you structured profiles of users, check out the [result](./
 ## Core Features
 
 - **🎯 Memory for User, not Agent**: Define and control exactly what user information your AI captures. 
-- ➡️ **Time-aware Memory**: Memobase saves specific dates in profiles to prevent outdated information from affecting your AI. Also, check [Memobase event](https://docs.memobase.io/features/event/event) for sequential events (episodic memory).
+- 📈 **SOTA**: check out performance on [public benchmark](./docs/experiments/locomo-benchmark) against mem0, langmem, zep...
+- 📅 **Time-aware Memory**: Memobase has more than user profiles, it also records [user event](https://docs.memobase.io/features/event/event). User event is essiential to answer time-related question, see how we can [improve temporal memory up to 60%](./docs/experiments/locomo-benchmark/readme.md#📉 Result) than other memory solutions.
 - **🖼️ Contorllable Memory**: Among all types of memory, only some may enhance your product experience. Memobase offers a flexible configuration for you to [design the profile](https://docs.memobase.io/features/profile/profile).
 - **🔌 Easy Integration**: Minimal code changes to integrate with your existing LLM stack with [API](https://docs.memobase.io/api-reference/overview), [Python](https://pypi.org/project/memobase/)/[Node](./src/client/memobase-ts/README.md)/[Go](./src/client/memobase-go/README.md) SDK.
-- **⚡️ Insert with Buffer**: Memory system will cost you extra money, Memobase offers every user a buffer to batch processing the chats after the conversation. Fast & Cheap.
+- **⚡️ Batch-Process**: Memobase offers every user a buffer to batch processing the chats after the conversation. Fast & Cheap.
 - **🚀 Production Ready**: Memobase is building with FastAPI, Postgres and Redis, supporting request caching, authing, telemetry... [Fully dockerized](./src/server/readme.md).
 
 
