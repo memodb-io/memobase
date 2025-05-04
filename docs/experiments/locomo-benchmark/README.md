@@ -13,7 +13,7 @@ This project contains the code of running benchmark results on [Locomo dataset](
 
 ## Result
 
-We ran Memobase results and pasted the other methods' result from [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/pdf/2504.19413). (we attached the artifacts of Memobase under `fixture/memobase/`)
+We ran Memobase results and pasted the other methods' result from [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/pdf/2504.19413). 
 
 We mainly report the LLM Judge Sorce (higher is better).
 
@@ -29,6 +29,36 @@ We mainly report the LLM Judge Sorce (higher is better).
 > **What is LLM Judge Score?**
 >
 > Basically, Locomo benchmark offers some long conversations and prepare some questions. LLM Judge Score is to use LLM(*e.g.* OpenAI `gpt-4o`) to judge if the answer generated from memory method is the same as the ground truth, score is 1 if it is, else 0.
+
+We attached the artifacts of Memobase under `fixture/memobase/`:
+
+- `fixture/memobase/results_0503_3000.json`: predicted answers from Memobase Memory
+- `fixture/memobase/memobase_eval_0503_3000.json`: LLM Judge results of predicted answers
+
+To generate the scorings, run:
+
+```bash
+python generate_scores.py --input_path="fixture/memobase/memobase_eval_0503_3000.json"
+```
+
+Output:
+
+```
+          bleu_score  f1_score  llm_score  count         type
+category
+1             0.3045    0.4283     0.6383    282   single_hop
+2             0.4582    0.6438     0.8037    321     temporal
+3             0.2078    0.3085     0.5208     96    multi_hop
+4             0.3429    0.4698     0.7182    841  open_domain
+
+Overall Mean Scores:
+bleu_score    0.3515
+f1_score      0.4884
+llm_score     0.7091
+dtype: float64
+```
+
+
 
 
 
