@@ -7,7 +7,7 @@
   </a>
   <p><strong>The server-side of Memobase</strong></p>
   <p>
-    <img src="https://img.shields.io/badge/docker-0.0.5-blue">
+    <img src="https://img.shields.io/github/v/tag/memodb-io/memobase">
   </p>
 </div>
 

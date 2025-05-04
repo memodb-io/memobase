@@ -6,7 +6,6 @@
   </a>
   <h1>Memobase</h1>
   <p>
-    <img src="https://img.shields.io/badge/python->=3.11-blue">
     <a href="https://pypi.org/project/memobase/">
       <img src="https://img.shields.io/pypi/v/memobase.svg">
     </a>
@@ -19,7 +18,10 @@
     <a href="https://pkg.go.dev/github.com/memodb-io/memobase/src/client/memobase-go">
       <img src="https://img.shields.io/badge/go-reference-blue?logo=go&logoColor=fff&style=flat&labelColor=2C2C2C&color=28CF8D" />
     </a>
-    <a href="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml">
+    <a href="https://github.com/orgs/memodb-io/packages?repo_name=memobase">
+    <img src="https://img.shields.io/github/v/tag/memodb-io/memobase">
+    </a>
+  <a href="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml">
       <img src="https://github.com/memodb-io/memobase/actions/workflows/publish.yaml/badge.svg">
     </a>
   </p>
