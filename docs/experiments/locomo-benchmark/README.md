@@ -1,4 +1,4 @@
-# Locomo benchmark for various memory backend
+# Locomo Benchmark for Various Memory Backends
 
 >  This project is originally forked from [mem0-evaluation](https://github.com/mem0ai/mem0/tree/main/evaluation) in commit `393a4fd5a6cfeb754857a2229726f567a9fadf36` 
 
@@ -11,7 +11,7 @@ This project contains the code of running benchmark results on [Locomo dataset](
 - naive LLM
 - Memobase
 
-## 📉 Result
+## Result
 
 We ran Memobase results and pasted the other methods' result from [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/pdf/2504.19413). (we attached the artifacts of Memobase under `fixture/memobase/`)
 
