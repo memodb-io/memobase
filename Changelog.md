@@ -1,3 +1,18 @@
+### [0.0.32] - unreleased
+
+**Added**
+
+- `docs`: Locomo benchmark of Memobase,mem0, zep, langmem
+- `feat`: Update algorithms for temporal memory
+
+**Changed**
+
+- 
+
+**Fixed**
+
+- OpenAI LLM and Embedding usage logging bugs
+
 ### [0.0.31] - 2025/4/28
 
 **Added**
