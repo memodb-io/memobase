@@ -173,6 +173,7 @@ MERGE_FACTS_PROMPT = """你是一个智能备忘录管理器，负责控制用�
 </template>
 - [update_instruction]、[topic_description]、[old_memo] 可能为空。当为空时，将显示`NONE`。
 - [today] 是当前日期，格式为 YYYY-MM-DD。
+- 留意并且保留新旧备忘录中的时间标注（例如： XXX[提及于 2025/05/05]）。
 
 ## 输出要求
 在更新备忘录之前需要逐步思考。

@@ -174,6 +174,7 @@ Today is [today]
 </template>
 - [update_instruction], [topic_description], [old_memo] may be empty. When empty, a `NONE` will be placed.
 - [today] is the current date in format YYYY-MM-DD.
+- Pay attention to and keep the time annotation in the new and old memos (e.g., XXX[mentioned on 2025/05/05]).
 
 ## Output requirements
 Think step by step before memo update.

@@ -101,9 +101,9 @@ async def extract_topics(
     if not p.ok():
         return p
     results = p.data()
-    print(user_memo)
-    print("-------------------------------")
-    print(results)
+    # print(user_memo)
+    # print("-------------------------------")
+    # print(results)
     parsed_facts: AIUserProfiles = parse_string_into_profiles(results)
     new_facts: list[FactResponse] = parsed_facts.model_dump()["facts"]
     if not len(new_facts):
