@@ -71,7 +71,8 @@
             "pages": [
               "templates/livekit",
               "templates/ollama",
-              "templates/openai"
+              "templates/openai",
+              "templates/dify"
             ]
           }
         ]

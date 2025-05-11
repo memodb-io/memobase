@@ -1,0 +1,47 @@
+---
+title: Integrating Memobase with Dify via Plugin
+---
+
+Leverage the power of long-term memory in your Dify applications by connecting them to Memobase Cloud. This guide explains how to use the Memobase plugin for Dify.
+
+## Prerequisites
+Please search for memobase in the Dify plugin marketplace, [the plugin](https://github.com/ACAne0320/dify-plugin-memobase) is open-source!
+![Dify Marketplace](/images/dify_marketplace.png)
+
+Before you can use the plugin, you need access to Memobase Dashboard:
+
+*   **Memobase Dashboard:** Sign up for a managed Memobase instance through the [Memobase dashboard](https://www.memobase.io/en/dashboard). This is the quickest way to get started without needing to manage your own infrastructure.
+*   **Self-Hosted Instance:** You can deploy your own instance of Memobase. Visit the [Memobase GitHub repository](https://github.com/memodb-io/memobase) for installation instructions and more information.
+
+## Plugin Setup in Dify
+
+To integrate Memobase with Dify using the plugin, you'll need to add it as a tool in your Dify application and provide the necessary credentials for your Memobase Cloud instance:
+
+1.  **Memobase URL:** The API endpoint URL of your Memobase Cloud instance. This will be provided in your Memobase Cloud dashboard (e.g., `https://api.memobase.dev`).
+2.  **Memobase API Key:** Your unique API key for authenticating with your Memobase Cloud instance. You can obtain this from your [Memobase dashboard](https://www.memobase.io/en/dashboard).
+
+You can find these details in your Memobase Cloud dashboard.
+
+![Memobase Dashboard](/images/memobase_dashboard.png)
+*Example: Finding API Key and URL in Memobase Dashboard*
+
+
+## Using the Plugin in Dify Workflows
+
+After setting up the plugin, you can incorporate its tools into your Dify workflows to:
+
+*   **Store Conversation History:** Persist dialogue turns for long-term recall and context.
+*   **Personalize Responses:** Retrieve user profiles or contextual data from Memobase to tailor AI agent interactions.
+*   **Access Past Interactions:** Search and utilize past user events or stored data.
+*   **Manage Memobase Data:** Directly manipulate user information and other data within your Memobase instance from Dify.
+
+For detailed instructions on each tool's parameters and capabilities, refer to the [Memobase API Reference](https://docs.memobase.io/api-reference/overview).
+
+### Example Workflow
+
+Here's a conceptual example of how the Memobase plugin can be used in a Dify workflow to implement memory functionality:
+
+![Example Dify Workflow with Memobase Plugin](/images/dify_workflow.png)
+*Minimal workflow demonstrating memory retrieval and storage using the Memobase plugin.*
+
+By integrating Memobase with Dify, you can build more intelligent, context-aware AI applications that remember and learn from past interactions.
