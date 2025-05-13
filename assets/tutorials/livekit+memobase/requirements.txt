@@ -1,3 +1,4 @@
 livekit-plugins-noise-cancellation
 livekit-agents[openai,silero,turn-detector,deepgram,noise_cancellation]
 memobase
+python-dotenv
