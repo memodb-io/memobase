@@ -1,6 +1,6 @@
 import os
 import asyncio
-import redis.exceptions
+import redis.exceptions as redis_exceptions
 import redis.asyncio as redis
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -72,7 +72,7 @@ async def redis_health_check() -> bool:
     try:
         async with get_redis_client() as redis_client:
             await redis_client.ping()
-    except redis.exceptions.ConnectionError as e:
+    except redis_exceptions.ConnectionError as e:
         LOG.error(f"Redis connection failed: {e}")
         return False
     else:
