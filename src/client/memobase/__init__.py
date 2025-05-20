@@ -6,3 +6,4 @@ __author__ = "memobase.io"
 __version__ = "0.0.17"
 __url__ = "https://github.com/memodb-io/memobase"
 __license__ = "Apache-2.0"
+__all__ = ["MemoBaseClient", "User", "ChatBlob", "Memobase", "AsyncMemoBaseClient", "AsyncUser"]
