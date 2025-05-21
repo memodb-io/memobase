@@ -100,12 +100,12 @@ work, curent_plans
 ## Old Memo
 User need to prepare for the interview in 2025-03-21[mentioned on 2025-03-11]
 ## New Memo
-User need to develop a Memobase Playgeound App before 2025-05-01[mentioned on 2025-04-05]
+User need to develop a Memobase Playground App before 2025-05-01[mentioned on 2025-04-05]
 """,
             "response": """User can have multiple current working plans, I can merge the two plans.
 But based on the requirements, the old memo is outdated(today is 04-05, but the interview is in 03-21), so I need to discard the old memo.
 ---
-- UPDATE{tab}User need to develop a Memobase Playgeound App before 2025-05-01[mentioned on 2025-04-05]
+- UPDATE{tab}User need to develop a Memobase Playground App before 2025-05-01[mentioned on 2025-04-05]
 """,
         },
     ],
