@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import IntEnum
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, UUID4, UUID5, Field
 from .blob import BlobData, OpenAICompatibleMessage
 from .claim import ClaimData
@@ -165,6 +165,39 @@ class BillingData(BaseModel):
     )
 
 
+class UserStatusData(BaseModel):
+    id: UUID = Field(..., description="User status id")
+
+    type: str = Field(..., description="User status type")
+    attributes: dict = Field(..., description="User status attributes")
+
+    created_at: Optional[datetime] = Field(
+        None, description="Timestamp when the user was created"
+    )
+    updated_at: Optional[datetime] = Field(
+        None, description="Timestamp when the user was last updated"
+    )
+
+
+class UserStatusesData(BaseModel):
+    statuses: list[UserStatusData] = Field(..., description="List of user statuses")
+
+
+class ProactiveTopicData(BaseModel):
+    action: Literal["new_topic", "continue"] = Field(
+        ..., description="The action to take"
+    )
+    topic_prompt: Optional[str] = Field(
+        None,
+        description="The topic prompt, insert it to your latest user message or system prompt",
+    )
+
+
+class ProactiveTopicRequest(BaseModel):
+    messages: list[OpenAICompatibleMessage] = Field(..., description="The messages")
+    agent_context: Optional[str] = Field(None, description="The agent context")
+
+
 class UserContextImport(BaseModel):
     context: str = Field(
         ..., description="The user context you want to import to Memobase"
@@ -247,4 +280,10 @@ class BlobInsertData(IdData):
 class BlobInsertResponse(BaseResponse):
     data: Optional[BlobInsertData] = Field(
         None, description="Response containing blob insert data"
+    )
+
+
+class ProactiveTopicResponse(BaseResponse):
+    data: Optional[ProactiveTopicData] = Field(
+        None, description="Response containing proactive topic data"
     )

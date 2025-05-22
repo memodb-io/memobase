@@ -198,6 +198,9 @@ class User(Base):
     related_user_events: Mapped[list["UserEvent"]] = relationship(
         "UserEvent", back_populates="user", cascade="all, delete-orphan", init=False
     )
+    related_user_statuses: Mapped[list["UserStatus"]] = relationship(
+        "UserStatus", back_populates="user", cascade="all, delete-orphan", init=False
+    )
 
     # Default columns
     additional_fields: Mapped[Optional[dict]] = mapped_column(
@@ -472,6 +475,48 @@ class UserEvent(Base):
         except Exception as e:
             LOG.warning(f"Failed to check embedding dimension: {str(e)}")
             raise e
+
+
+@REG.mapped_as_dataclass
+class UserStatus(Base):
+    __tablename__ = "user_statuses"
+
+    # Specific columns
+    type: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    attributes: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
+    # Relationships
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=False,
+    )
+
+    project_id: Mapped[str] = mapped_column(
+        VARCHAR(64),
+        default=DEFAULT_PROJECT_ID,
+    )
+
+    user: Mapped[User] = relationship(
+        "User",
+        back_populates="related_user_statuses",
+        init=False,
+        foreign_keys=[user_id, project_id],
+    )
+
+    __table_args__ = (
+        PrimaryKeyConstraint("id", "project_id"),
+        Index("idx_user_statuses_user_id_project_id", "user_id", "project_id"),
+        Index(
+            "idx_user_statuses_user_id_project_id_type", "user_id", "project_id", "type"
+        ),
+        Index("idx_user_statuses_user_id_id_project_id", "user_id", "project_id", "id"),
+        ForeignKeyConstraint(
+            ["user_id", "project_id"],
+            ["users.id", "users.project_id"],
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+    )
 
 
 # Modify event listeners to allow root project initialization
