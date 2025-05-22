@@ -28,10 +28,7 @@ async def get_user_events(
             ).filter(UserEvent.event_data.has_key("event_tip"))
         user_events = query.order_by(UserEvent.created_at.desc()).limit(topk).all()
         if user_events is None:
-            return Promise.reject(
-                CODE.NOT_FOUND,
-                f"No user events found for user {user_id}",
-            )
+            return Promise.resolve(UserEventsData(events=[]))
         results = [
             {
                 "id": ue.id,

@@ -7,3 +7,4 @@ from . import buffer
 from . import event
 from . import context
 from . import middleware
+from . import roleplay
