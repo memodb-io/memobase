@@ -28,4 +28,5 @@ def get_doubao_async_client_instance() -> AsyncArk:
 
 def exclude_special_kwargs(kwargs: dict):
     prompt_id = kwargs.pop("prompt_id", None)
-    return {"prompt_id": prompt_id}, kwargs
+    no_cache = kwargs.pop("no_cache", None)
+    return {"prompt_id": prompt_id, "no_cache": no_cache}, kwargs

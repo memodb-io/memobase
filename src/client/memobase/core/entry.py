@@ -119,6 +119,7 @@ class User:
                 json=blob_data.to_request(),
             )
         )
+        print(r)
         return r.data["id"]
 
     def get(self, blob_id: str) -> Blob:

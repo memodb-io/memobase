@@ -55,19 +55,27 @@ async def doubao_cache_complete(
     sp_args, kwargs = exclude_special_kwargs(kwargs)
     prompt_id = sp_args.get("prompt_id", None)
     assert prompt_id is not None, "prompt_id is required"
+    doubao_async_client = get_doubao_async_client_instance()
 
+    messages = []
+    messages.extend(history_messages)
+    messages.append({"role": "user", "content": prompt})
+    if sp_args.get("no_cache", None):
+
+        messages.insert(0, {"role": "system", "content": system_prompt})
+
+        response = await doubao_async_client.chat.completions.create(
+            model=model, messages=messages, timeout=120, **kwargs
+        )
+        LOG.info(f"No Cached {prompt_id} {model} {response.usage.prompt_tokens}")
+        return response.choices[0].message.content
     context_id = await doubao_cache_create_context_and_save(
         model, system_prompt, prompt_id
     )
 
-    doubao_async_client = get_doubao_async_client_instance()
-    messages = []
-
     if system_prompt and context_id is None:
         # when context_id is None, we use system prompt to create context
-        messages.append({"role": "system", "content": system_prompt})
-    messages.extend(history_messages)
-    messages.append({"role": "user", "content": prompt})
+        messages.insert(0, {"role": "system", "content": system_prompt})
 
     if context_id is None:
         response = await doubao_async_client.chat.completions.create(
