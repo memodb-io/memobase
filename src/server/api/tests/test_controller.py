@@ -1,5 +1,5 @@
 import pytest
-from memobase_server import controllers
+from memobase_server.controllers import full as controllers
 from memobase_server.models import response as res
 from memobase_server.models.blob import BlobType
 from memobase_server.models.database import DEFAULT_PROJECT_ID
@@ -28,6 +28,38 @@ async def test_user_curd(db_env):
     assert p.ok()
     p = await controllers.user.get_user(u_id, DEFAULT_PROJECT_ID)
     assert not p.ok()
+
+
+@pytest.mark.asyncio
+async def test_user_state_clean(db_env):
+    p = await controllers.user.create_user(
+        res.UserData(data={"test": 1}), DEFAULT_PROJECT_ID
+    )
+    assert p.ok()
+    d = p.data()
+    u_id = d.id
+
+    p = await controllers.user.get_user(u_id, DEFAULT_PROJECT_ID)
+    assert p.ok()
+    d = p.data().data
+    assert d["test"] == 1
+
+    p = await controllers.profile.add_user_profiles(
+        u_id, DEFAULT_PROJECT_ID, ["test"], [{"topic": "test", "sub_topic": "test"}]
+    )
+    assert p.ok()
+    p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
+    assert p.ok()
+    d = p.data()
+    assert len(d.profiles) == 1
+    assert d.profiles[0].attributes == {"topic": "test", "sub_topic": "test"}
+
+    p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
+    assert p.ok()
+    p = await controllers.user.get_user(u_id, DEFAULT_PROJECT_ID)
+    assert not p.ok()
+    p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
+    assert p.ok() and len(p.data().profiles) == 0
 
 
 @pytest.mark.asyncio
