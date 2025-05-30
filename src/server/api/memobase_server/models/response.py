@@ -63,6 +63,11 @@ class ChatModalResponse(BaseModel):
     )
 
 
+class ProfileAttributes(BaseModel):
+    topic: str = Field(..., description="The topic of the profile")
+    sub_topic: str = Field(..., description="The sub-topic of the profile")
+
+
 class ProfileData(BaseModel):
     id: UUID = Field(..., description="The profile's unique identifier")
     content: str = Field(..., description="User profile content value")

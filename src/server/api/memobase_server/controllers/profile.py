@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from ..models.utils import Promise
 from ..models.database import GeneralBlob, UserProfile
-from ..models.response import CODE, IdData, IdsData, UserProfilesData
+from ..models.response import CODE, IdData, IdsData, UserProfilesData, ProfileAttributes
 from ..connectors import Session, get_redis_client
 from ..utils import get_encoded_tokens
 from ..env import LOG, CONFIG
@@ -122,6 +122,13 @@ async def add_user_profiles(
     assert len(profiles) == len(
         attributes
     ), "Length of profiles, attributes must be equal"
+    for attr in attributes:
+        try:
+            ProfileAttributes.model_validate(attr)
+        except ValidationError as e:
+            return Promise.reject(
+                CODE.SERVER_PARSE_ERROR, f"Invalid profile attributes: {e}"
+            )
     with Session() as session:
         db_profiles = [
             UserProfile(
@@ -132,8 +139,7 @@ async def add_user_profiles(
         session.add_all(db_profiles)
         session.commit()
         profile_ids = [profile.id for profile in db_profiles]
-    async with get_redis_client() as redis_client:
-        await redis_client.delete(f"user_profiles::{project_id}::{user_id}")
+    await refresh_user_profile_cache(user_id, project_id)
     return Promise.resolve(IdsData(ids=profile_ids))
 
 
@@ -166,8 +172,7 @@ async def update_user_profiles(
                 db_profile.attributes = attribute
             db_profiles.append(profile_id)
         session.commit()
-    async with get_redis_client() as redis_client:
-        await redis_client.delete(f"user_profiles::{project_id}::{user_id}")
+    await refresh_user_profile_cache(user_id, project_id)
     return Promise.resolve(IdsData(ids=db_profiles))
 
 
@@ -186,8 +191,7 @@ async def delete_user_profile(
             )
         session.delete(db_profile)
         session.commit()
-    async with get_redis_client() as redis_client:
-        await redis_client.delete(f"user_profiles::{project_id}::{user_id}")
+    await refresh_user_profile_cache(user_id, project_id)
     return Promise.resolve(None)
 
 
@@ -201,6 +205,11 @@ async def delete_user_profiles(
             UserProfile.project_id == project_id,
         ).delete(synchronize_session=False)
         session.commit()
+    await refresh_user_profile_cache(user_id, project_id)
+    return Promise.resolve(IdsData(ids=profile_ids))
+
+
+async def refresh_user_profile_cache(user_id: str, project_id: str) -> Promise[None]:
     async with get_redis_client() as redis_client:
         await redis_client.delete(f"user_profiles::{project_id}::{user_id}")
-    return Promise.resolve(IdsData(ids=profile_ids))
+    return Promise.resolve(None)
