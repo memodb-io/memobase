@@ -2,6 +2,7 @@ from ..models.utils import Promise
 from ..models.database import User, GeneralBlob, UserProfile
 from ..models.response import CODE, UserData, IdData, IdsData, UserProfilesData
 from ..connectors import Session
+from .profile import refresh_user_profile_cache
 from ..models.blob import BlobType
 
 
@@ -58,7 +59,8 @@ async def delete_user(user_id: str, project_id: str) -> Promise[None]:
             return Promise.reject(CODE.NOT_FOUND, f"User {user_id} not found")
         session.delete(db_user)
         session.commit()
-        return Promise.resolve(None)
+    await refresh_user_profile_cache(user_id, project_id)
+    return Promise.resolve(None)
 
 
 async def get_user_all_blobs(
