@@ -46,16 +46,16 @@ async def process_messages(
     if not interest.ok():
         return interest
     interest_data = interest.data()
-    # if interest_data["action"] != "new_topic":
-    #     await append_user_status(
-    #         user_id,
-    #         project_id,
-    #         ContanstTable.roleplay_plot_status,
-    #         {
-    #             "interest": interest_data,
-    #         },
-    #     )
-    #     return Promise.resolve(ProactiveTopicData(action="continue"))
+    if interest_data["action"] != "new_topic":
+        await append_user_status(
+            user_id,
+            project_id,
+            ContanstTable.roleplay_plot_status,
+            {
+                "interest": interest_data,
+            },
+        )
+        return Promise.resolve(ProactiveTopicData(action="continue"))
     latests_statuses = await get_user_statuses(
         user_id, project_id, type=ContanstTable.roleplay_plot_status
     )
