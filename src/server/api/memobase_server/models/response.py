@@ -194,8 +194,12 @@ class ProactiveTopicData(BaseModel):
 
 
 class ProactiveTopicRequest(BaseModel):
-    messages: list[OpenAICompatibleMessage] = Field(..., description="The messages")
-    agent_context: Optional[str] = Field(None, description="The agent context")
+    messages: list[OpenAICompatibleMessage] = Field(
+        ..., description="The latest messages between user/assistant"
+    )
+    agent_context: Optional[str] = Field(
+        None, description="The agent's roleplay prompt"
+    )
 
 
 class UserContextImport(BaseModel):
