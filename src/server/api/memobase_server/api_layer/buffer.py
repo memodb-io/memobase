@@ -12,7 +12,7 @@ async def flush_buffer(
     user_id: str = Path(..., description="The ID of the user"),
     buffer_type: BlobType = Path(..., description="The type of buffer to flush"),
 ) -> res.ChatModalAPIResponse:
-    """Get the real-time user profiles for long term memory"""
+    """Flush unprocessed blobs into Memory"""
     project_id = request.state.memobase_project_id
     p = await controllers.buffer.wait_insert_done_then_flush(
         user_id, project_id, buffer_type

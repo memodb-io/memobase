@@ -36,7 +36,7 @@ async def infer_proactive_topics(
     ),
     body: res.ProactiveTopicRequest = Body(..., description="The body of the request"),
 ) -> res.ProactiveTopicResponse:
-    """Get the real-time user profiles for long term memory"""
+    """Provide interest detection and personalized topics"""
     project_id = request.state.memobase_project_id
     topic_limits_json = topic_limits_json or "{}"
     try:

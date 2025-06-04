@@ -84,7 +84,7 @@ async def delete_user_profile(
     user_id: str = Path(..., description="The ID of the user"),
     profile_id: str = Path(..., description="The ID of the profile to delete"),
 ) -> res.BaseResponse:
-    """Get the real-time user profiles for long term memory"""
+    """Delete a profile"""
     project_id = request.state.memobase_project_id
     p = await controllers.profile.delete_user_profile(user_id, project_id, profile_id)
     return p.to_response(res.IdResponse)
