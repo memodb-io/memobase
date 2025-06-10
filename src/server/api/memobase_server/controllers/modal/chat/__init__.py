@@ -1,10 +1,11 @@
+from ...project import get_project_profile_config
 from ....connectors import Session
 from ....env import LOG, ProfileConfig, CONFIG
 from ....utils import get_blob_str, get_encoded_tokens
 from ....models.blob import Blob
 from ....models.utils import Promise, CODE
 from ....models.response import IdsData, ChatModalResponse
-from ...profile import add_user_profiles, update_user_profiles, delete_user_profiles
+from ...profile import add_update_delete_user_profiles
 from ...event import append_user_event
 from .extract import extract_topics
 from .merge import merge_or_valid_new_memos
@@ -12,7 +13,7 @@ from .summary import re_summary
 from .organize import organize_profiles
 from .types import MergeAddResult
 from .event_summary import tag_event
-from .entry_summary import entry_summary
+from .entry_summary import entry_chat_summary
 
 
 def truncate_chat_blobs(
@@ -43,12 +44,18 @@ async def process_blobs(
         return Promise.reject(
             CODE.SERVER_PARSE_ERROR, "No blobs to process after truncating"
         )
-    p = await entry_summary(user_id, project_id, blobs)
+
+    p = await get_project_profile_config(project_id)
+    if not p.ok():
+        return p
+    project_profiles = p.data()
+
+    p = await entry_chat_summary(user_id, project_id, blobs, project_profiles)
     if not p.ok():
         return p
     user_memo_str = p.data()
 
-    p = await extract_topics(user_id, project_id, user_memo_str)
+    p = await extract_topics(user_id, project_id, user_memo_str, project_profiles)
     if not p.ok():
         return p
     extracted_data = p.data()
@@ -59,7 +66,7 @@ async def process_blobs(
         fact_contents=extracted_data["fact_contents"],
         fact_attributes=extracted_data["fact_attributes"],
         profiles=extracted_data["profiles"],
-        config=extracted_data["config"],
+        config=project_profiles,
         total_profiles=extracted_data["total_profiles"],
     )
     if not p.ok():
@@ -74,7 +81,7 @@ async def process_blobs(
     p = await organize_profiles(
         project_id,
         profile_options,
-        config=extracted_data["config"],
+        config=project_profiles,
     )
     if not p.ok():
         LOG.error(f"Failed to organize profiles: {p.msg()}")
@@ -94,29 +101,21 @@ async def process_blobs(
         project_id,
         user_memo_str,
         delta_profile_data,
-        extracted_data["config"],
+        project_profiles,
     )
     if not p.ok():
         return p
     eid = p.data()
-    p = await exe_user_profile_add(user_id, project_id, profile_options)
+
+    p = await handle_user_profile_db(user_id, project_id, profile_options)
     if not p.ok():
         return p
-    add_profile_ids = p.data().ids
-    p = await exe_user_profile_update(user_id, project_id, profile_options)
-    if not p.ok():
-        return p
-    update_profile_ids = p.data().ids
-    p = await exe_user_profile_delete(user_id, project_id, profile_options)
-    if not p.ok():
-        return p
-    delete_profile_ids = p.data().ids
     return Promise.resolve(
         ChatModalResponse(
             event_id=eid,
-            add_profiles=add_profile_ids,
-            update_profiles=update_profile_ids,
-            delete_profiles=delete_profile_ids,
+            add_profiles=p.data().ids,
+            update_profiles=[up["profile_id"] for up in profile_options["update"]],
+            delete_profiles=profile_options["delete"],
         )
     )
 
@@ -149,44 +148,21 @@ async def handle_session_event(
     return eid
 
 
-async def exe_user_profile_add(
+async def handle_user_profile_db(
     user_id: str, project_id: str, profile_options: MergeAddResult
 ) -> Promise[IdsData]:
-    if not len(profile_options["add"]):
-        return Promise.resolve(IdsData(ids=[]))
     LOG.info(f"Adding {len(profile_options['add'])} profiles for user {user_id}")
-    task_add = await add_user_profiles(
+    LOG.info(f"Updating {len(profile_options['update'])} profiles for user {user_id}")
+    LOG.info(f"Deleting {len(profile_options['delete'])} profiles for user {user_id}")
+
+    p = await add_update_delete_user_profiles(
         user_id,
         project_id,
         [ap["content"] for ap in profile_options["add"]],
         [ap["attributes"] for ap in profile_options["add"]],
-    )
-    return task_add
-
-
-async def exe_user_profile_update(
-    user_id: str, project_id: str, profile_options: MergeAddResult
-) -> Promise[IdsData]:
-    if not len(profile_options["update"]):
-        return Promise.resolve(IdsData(ids=[]))
-    LOG.info(f"Updating {len(profile_options['update'])} profiles for user {user_id}")
-    task_update = await update_user_profiles(
-        user_id,
-        project_id,
         [up["profile_id"] for up in profile_options["update"]],
         [up["content"] for up in profile_options["update"]],
         [up["attributes"] for up in profile_options["update"]],
+        profile_options["delete"],
     )
-    return task_update
-
-
-async def exe_user_profile_delete(
-    user_id: str, project_id: str, profile_options: MergeAddResult
-) -> Promise[IdsData]:
-    if not len(profile_options["delete"]):
-        return Promise.resolve(IdsData(ids=[]))
-    LOG.info(f"Deleting {len(profile_options['delete'])} profiles for user {user_id}")
-    task_delete = await delete_user_profiles(
-        user_id, project_id, profile_options["delete"]
-    )
-    return task_delete
+    return p

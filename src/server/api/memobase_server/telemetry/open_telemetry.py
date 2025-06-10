@@ -140,14 +140,14 @@ class TelemetryManager:
 
     def _construct_attributes(self, **kwargs) -> Dict[str, str]:
 
-        if os.environ.get("POD_IP"):
-            # use k8s downward API to get the pod ip
-            pod_ip = os.environ.get("POD_IP")
-        else:
-            # use the hostname to get the ip address
-            hostname = socket.gethostname()
-            pod_ip = socket.gethostbyname(hostname)
-
+        # if os.environ.get("POD_IP"):
+        #     # use k8s downward API to get the pod ip
+        #     pod_ip = os.environ.get("POD_IP", None)
+        # else:
+        #     # use the hostname to get the ip address
+        #     hostname = socket.gethostname()
+        #     pod_ip = socket.gethostbyname(hostname)
+        pod_ip = os.environ.get("POD_IP", None)
         return {
             DEPLOYMENT_ENVIRONMENT: self._deployment_environment,
             "memobase_server_ip": pod_ip,

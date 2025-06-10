@@ -213,3 +213,88 @@ async def refresh_user_profile_cache(user_id: str, project_id: str) -> Promise[N
     async with get_redis_client() as redis_client:
         await redis_client.delete(f"user_profiles::{project_id}::{user_id}")
     return Promise.resolve(None)
+
+
+async def add_update_delete_user_profiles(
+    user_id: str,
+    project_id: str,
+    add_profiles: list[str],
+    add_attributes: list[dict],
+    update_profile_ids: list[str],
+    update_contents: list[str],
+    update_attributes: list[dict | None],
+    delete_profile_ids: list[str],
+) -> Promise[IdsData]:
+    assert len(add_profiles) == len(
+        add_attributes
+    ), "Length of add_profiles, add_attributes must be equal"
+    assert len(update_profile_ids) == len(
+        update_contents
+    ), "Length of update_profile_ids, update_contents must be equal"
+    assert len(update_profile_ids) == len(
+        update_attributes
+    ), "Length of update_profile_ids, update_attributes must be equal"
+
+    for attr in add_attributes + update_attributes:
+        if attr is None:
+            continue
+        try:
+            ProfileAttributes.model_validate(attr)
+        except ValidationError as e:
+            return Promise.reject(
+                CODE.SERVER_PARSE_ERROR, f"Invalid profile attributes: {e}"
+            )
+    # Sanity Check done
+
+    with Session() as session:
+        try:
+            # 1. add new profiles
+            if len(add_profiles):
+                add_db_profiles = [
+                    UserProfile(
+                        user_id=user_id,
+                        project_id=project_id,
+                        content=content,
+                        attributes=attr,
+                    )
+                    for content, attr in zip(add_profiles, add_attributes)
+                ]
+                session.add_all(add_db_profiles)
+                add_profile_ids = [p.id for p in add_db_profiles]
+            else:
+                add_profile_ids = []
+            # 2. update existing profiles
+            update_db_profiles = []
+            for profile_id, content, attribute in zip(
+                update_profile_ids, update_contents, update_attributes
+            ):
+                db_profile = (
+                    session.query(UserProfile)
+                    .filter_by(id=profile_id, user_id=user_id, project_id=project_id)
+                    .one_or_none()
+                )
+                if db_profile is None:
+                    LOG.error(f"Profile {profile_id} not found for user {user_id}")
+                    continue
+                db_profile.content = content
+                if attribute is not None:
+                    db_profile.attributes = attribute
+                update_db_profiles.append(profile_id)
+
+            # 3. delete profiles
+            session.query(UserProfile).filter(
+                UserProfile.id.in_(delete_profile_ids),
+                UserProfile.user_id == user_id,
+                UserProfile.project_id == project_id,
+            ).delete(synchronize_session=False)
+
+            session.commit()
+        except Exception as e:
+            LOG.error(f"Error merging user profiles: {e}")
+            session.rollback()
+            return Promise.reject(
+                CODE.SERVER_PARSE_ERROR, f"Error merging user profiles: {e}"
+            )
+
+    await refresh_user_profile_cache(user_id, project_id)
+    return Promise.resolve(IdsData(ids=add_profile_ids))

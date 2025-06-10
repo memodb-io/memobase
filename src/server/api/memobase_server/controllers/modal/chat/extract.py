@@ -12,7 +12,7 @@ from ....prompts.utils import (
 )
 from ....prompts.profile_init_utils import read_out_profile_config, UserProfileTopic
 from ...profile import get_user_profiles
-from ...project import get_project_profile_config
+from ...project import ProfileConfig
 
 # from ...project impor
 from .types import FactResponse, PROMPTS
@@ -30,16 +30,12 @@ def merge_by_topic_sub_topics(new_facts: list[FactResponse]):
 
 
 async def extract_topics(
-    user_id: str, project_id: str, user_memo: str
+    user_id: str, project_id: str, user_memo: str, project_profiles: ProfileConfig
 ) -> Promise[dict]:
     p = await get_user_profiles(user_id, project_id)
     if not p.ok():
         return p
     profiles = p.data().profiles
-    p = await get_project_profile_config(project_id)
-    if not p.ok():
-        return p
-    project_profiles = p.data()
     USE_LANGUAGE = project_profiles.language or CONFIG.language
     STRICT_MODE = (
         project_profiles.profile_strict_mode
@@ -113,7 +109,6 @@ async def extract_topics(
                 "fact_contents": [],
                 "fact_attributes": [],
                 "profiles": profiles,
-                "config": project_profiles,
                 "total_profiles": project_profiles_slots,
             }
         )
@@ -145,7 +140,6 @@ async def extract_topics(
             "fact_contents": fact_contents,
             "fact_attributes": fact_attributes,
             "profiles": profiles,
-            "config": project_profiles,
             "total_profiles": project_profiles_slots,
         }
     )
