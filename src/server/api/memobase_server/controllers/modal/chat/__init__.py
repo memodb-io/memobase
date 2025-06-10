@@ -17,29 +17,25 @@ from .entry_summary import entry_chat_summary
 
 
 def truncate_chat_blobs(
-    blob_ids: list[str], blobs: list[Blob], max_token_size: int
+    blobs: list[Blob], max_token_size: int
 ) -> tuple[list[str], list[Blob]]:
-    results_ids = []
     results = []
     total_token_size = 0
-    for b, bid in zip(blobs[::-1], blob_ids[::-1]):
+    for b in blobs[::-1]:
         ts = len(get_encoded_tokens(get_blob_str(b)))
         total_token_size += ts
         if total_token_size <= max_token_size:
             results.append(b)
-            results_ids.append(bid)
         else:
             break
-    return results_ids[::-1], results[::-1]
+    return results[::-1]
 
 
 async def process_blobs(
-    user_id: str, project_id: str, blob_ids: list[str], blobs: list[Blob]
+    user_id: str, project_id: str, blobs: list[Blob]
 ) -> Promise[ChatModalResponse]:
     # 1. Extract patch profiles
-    blob_ids, blobs = truncate_chat_blobs(
-        blob_ids, blobs, CONFIG.max_chat_blob_buffer_process_token_size
-    )
+    blobs = truncate_chat_blobs(blobs, CONFIG.max_chat_blob_buffer_process_token_size)
     if len(blobs) == 0:
         return Promise.reject(
             CODE.SERVER_PARSE_ERROR, "No blobs to process after truncating"

@@ -28,7 +28,14 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 from sqlalchemy import event
 from .blob import BlobType
-from ..env import ProjectStatus, BillingStatus, BILLING_REFILL_AMOUNT_MAP, CONFIG, LOG
+from ..env import (
+    ProjectStatus,
+    BillingStatus,
+    BILLING_REFILL_AMOUNT_MAP,
+    CONFIG,
+    LOG,
+    BufferStatus,
+)
 from sqlalchemy.orm.attributes import get_history
 from pgvector.sqlalchemy import Vector
 
@@ -302,6 +309,10 @@ class BufferZone(Base):
         nullable=False,
     )
 
+    status: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, default=BufferStatus.idle
+    )
+
     project_id: Mapped[str] = mapped_column(
         VARCHAR(64),
         default=DEFAULT_PROJECT_ID,
@@ -324,7 +335,11 @@ class BufferZone(Base):
     __table_args__ = (
         PrimaryKeyConstraint("id", "project_id"),
         Index(
-            "idx_buffer_zones_user_id_blob_type", "user_id", "project_id", "blob_type"
+            "idx_buffer_zones_user_id_blob_type",
+            "user_id",
+            "project_id",
+            "blob_type",
+            "status",
         ),
         ForeignKeyConstraint(
             ["user_id", "project_id"],

@@ -54,6 +54,13 @@ class ContanstTable:
     roleplay_plot_status = "roleplay_plot_status"
 
 
+class BufferStatus:
+    idle = "idle"
+    processing = "processing"
+    done = "done"
+    failed = "failed"
+
+
 class TelemetryKeyName:
     insert_blob_request = "insert_blob_request"
     insert_blob_success_request = "insert_blob_success_request"

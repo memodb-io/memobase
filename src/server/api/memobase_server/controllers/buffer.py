@@ -1,11 +1,10 @@
 from sqlalchemy import func
 from pydantic import BaseModel
-from ..env import CONFIG, LOG
+from ..env import CONFIG, LOG, BufferStatus
 from ..utils import (
     get_blob_token_size,
     pack_blob_from_db,
     seconds_from_now,
-    user_id_lock,
 )
 from ..models.utils import Promise
 from ..models.response import CODE, ChatModalResponse
@@ -15,7 +14,6 @@ from ..connectors import Session
 from .modal import BLOBS_PROCESS
 
 
-@user_id_lock("insert_blob_to_buffer")
 async def insert_blob_to_buffer(
     user_id: str, project_id: str, blob_id: str, blob_data: Blob
 ) -> Promise[list[ChatModalResponse]]:
@@ -44,8 +42,6 @@ async def insert_blob_to_buffer(
     return Promise.resolve(results)
 
 
-# If there're ongoing insert, wait for them to finish then flush
-@user_id_lock("insert_blob_to_buffer")
 async def wait_insert_done_then_flush(
     user_id: str, project_id: str, blob_type: BlobType
 ) -> Promise[list[ChatModalResponse]]:
@@ -62,8 +58,13 @@ async def get_buffer_capacity(
 ) -> Promise[int]:
     with Session() as session:
         buffer_count = (
-            session.query(BufferZone)
-            .filter_by(user_id=user_id, blob_type=str(blob_type), project_id=project_id)
+            session.query(BufferZone.id)
+            .filter_by(
+                user_id=user_id,
+                blob_type=str(blob_type),
+                project_id=project_id,
+                status=BufferStatus.idle,
+            )
             .count()
         )
     return Promise.resolve(buffer_count)
@@ -116,46 +117,67 @@ async def flush_buffer(
     # FIXME: parallel calling will cause duplicated flush
     if blob_type not in BLOBS_PROCESS:
         return Promise.reject(CODE.BAD_REQUEST, f"Blob type {blob_type} not supported")
+
     with Session() as session:
-        blob_buffers_trans = session.query(BufferZone).filter_by(
-            user_id=user_id, blob_type=str(blob_type), project_id=project_id
+        # Join BufferZone with GeneralBlob to get all data in one query
+        buffer_blob_data = (
+            session.query(
+                BufferZone.id.label("buffer_id"),
+                BufferZone.blob_id,
+                BufferZone.token_size,
+                BufferZone.created_at.label("buffer_created_at"),
+                GeneralBlob.created_at,
+                GeneralBlob.blob_data,
+            )
+            .join(GeneralBlob, BufferZone.blob_id == GeneralBlob.id)
+            .filter(
+                BufferZone.user_id == user_id,
+                BufferZone.blob_type == str(blob_type),
+                BufferZone.project_id == project_id,
+                GeneralBlob.user_id == user_id,
+                GeneralBlob.project_id == project_id,
+                BufferZone.status == BufferStatus.idle,
+            )
+            .order_by(BufferZone.created_at)
+            .all()
+        )
+        # Update buffer status to processing
+        session.query(BufferZone).filter(
+            BufferZone.id.in_([row.buffer_id for row in buffer_blob_data]),
+        ).update(
+            {BufferZone.status: BufferStatus.processing},
+            synchronize_session=False,
         )
 
-        # Move this outside try-finally to ensure we have the data before proceeding
-        blob_buffers = blob_buffers_trans.order_by(BufferZone.created_at).all()
-        if not blob_buffers:
+        if not buffer_blob_data:
             LOG.info(f"No {blob_type} buffer to flush for user {user_id}")
             return Promise.resolve(None)
 
-        blob_ids = [b.blob_id for b in blob_buffers]
-        total_token_size = sum(b.token_size for b in blob_buffers)
+        blob_ids = [row.blob_id for row in buffer_blob_data]
+        blobs = [pack_blob_from_db(row, blob_type) for row in buffer_blob_data]
+        total_token_size = sum(row.token_size for row in buffer_blob_data)
         LOG.info(
-            f"Flush {blob_type} buffer for user {user_id} with {len(blob_buffers)} blobs and total token size({total_token_size})"
+            f"Flush {blob_type} buffer for user {user_id} with {len(buffer_blob_data)} blobs and total token size({total_token_size})"
         )
 
+        session.commit()
+
     try:
-        with Session() as session:
-            # Get and process blob data
-            blob_data = (
-                session.query(GeneralBlob.created_at, GeneralBlob.blob_data)
-                .filter(
-                    GeneralBlob.id.in_(blob_ids), GeneralBlob.project_id == project_id
-                )
-                .all()
-            )
-            blobs = [pack_blob_from_db(bd, blob_type) for bd in blob_data]
+        # Pack blobs from the joined data
 
         # Process blobs first (moved outside the session)
-        p = await BLOBS_PROCESS[blob_type](user_id, project_id, blob_ids, blobs)
+        p = await BLOBS_PROCESS[blob_type](user_id, project_id, blobs)
         if not p.ok():
             return p
         with Session() as session:
             try:
-                # Delete buffers and blobs when processing is done
-
-                session.query(BufferZone).filter_by(
-                    user_id=user_id, blob_type=str(blob_type), project_id=project_id
-                ).delete(synchronize_session=False)
+                # Update buffer status to done
+                session.query(BufferZone).filter(
+                    BufferZone.id.in_([row.buffer_id for row in buffer_blob_data]),
+                ).update(
+                    {BufferZone.status: BufferStatus.done},
+                    synchronize_session=False,
+                )
                 if blob_type == BlobType.chat and not CONFIG.persistent_chat_blobs:
                     session.query(GeneralBlob).filter(
                         GeneralBlob.id.in_(blob_ids),
@@ -163,15 +185,23 @@ async def flush_buffer(
                     ).delete(synchronize_session=False)
                 session.commit()
                 LOG.info(
-                    f"Flushed {blob_type} buffer(size: {len(blob_buffers)}) for user {user_id}"
+                    f"Flushed {blob_type} buffer(size: {len(buffer_blob_data)}) for user {user_id}"
                 )
             except Exception as e:
                 session.rollback()
-                LOG.error(f"Error while deleting buffers/blobs: {e}")
+                LOG.error(f"DB Error while deleting buffers/blobs: {e}")
                 raise e
 
         return p
 
     except Exception as e:
-        LOG.error(f"Error in flush_buffer: {e}")
+        with Session() as session:
+            session.query(BufferZone).filter(
+                BufferZone.id.in_([row.buffer_id for row in buffer_blob_data]),
+            ).update(
+                {BufferZone.status: BufferStatus.failed},
+                synchronize_session=False,
+            )
+            session.commit()
+        LOG.error(f"Error in flush_buffer: {e}. Buffer status updated to failed.")
         raise e
