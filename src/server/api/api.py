@@ -17,7 +17,6 @@ from memobase_server.llms.embeddings import check_embedding_sanity
 from uvicorn.config import LOGGING_CONFIG
 from api_docs import API_X_CODE_DOCS
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_redis_pool()
