@@ -34,7 +34,6 @@ services:
       retries: 5
       
   memobase-server-api:
-    platform: linux/amd64
     container_name: memobase-server-api
     environment:
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@memobase-server-db:5432/${DATABASE_NAME}
@@ -54,6 +53,7 @@ services:
       - '${API_EXPORT_PORT}:8000'
     build:
       context: ./api
+    command: ["api"]
     volumes:
       - ./api/config.yaml:/app/config.yaml
 
