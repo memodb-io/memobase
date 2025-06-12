@@ -121,9 +121,15 @@
                 ]
               },
               {
+                "group": "User Buffer",
+                "pages": [
+                  "api-reference/buffer/flush",
+                  "api-reference/buffer/size"
+                ]
+              },
+              {
                 "group": "User Profiles",
                 "pages": [
-                  "api-reference/profiles/flush",
                   "api-reference/profiles/profile",
                   "api-reference/profiles/add_profile",
                   "api-reference/profiles/update_profile",

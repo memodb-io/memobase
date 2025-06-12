@@ -532,6 +532,18 @@
 							"title": "User Id"
 						},
 						"description": "The ID of the user to insert the blob for"
+					},
+					{
+						"name": "wait_process",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"description": "Whether to wait for the blob to be processed",
+							"default": false,
+							"title": "Wait Process"
+						},
+						"description": "Whether to wait for the blob to be processed"
 					}
 				],
 				"requestBody": {
@@ -1163,6 +1175,18 @@
 							"description": "The type of buffer to flush"
 						},
 						"description": "The type of buffer to flush"
+					},
+					{
+						"name": "wait_process",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"description": "Whether to wait for the buffer to be processed",
+							"default": false,
+							"title": "Wait Process"
+						},
+						"description": "Whether to wait for the buffer to be processed"
 					}
 				],
 				"responses": {
@@ -1190,7 +1214,7 @@
 				"x-code-samples": [
 					{
 						"lang": "Python",
-						"source": "# To use the Python SDK, install the package:\n# pip install memobase\n\nfrom memobase import Memobase\n\nclient = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\nu.flush()\n",
+						"source": "# To use the Python SDK, install the package:\n# pip install memobase\n\nfrom memobase import Memobase\n\nclient = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\n\nu = client.get_user(uid)\nu.flush()\n",
 						"label": "Python"
 					},
 					{
@@ -1202,6 +1226,86 @@
 						"lang": "Go",
 						"source": "// To use the Go SDK, install the package:\n// go get github.com/memodb-io/memobase/src/client/memobase-go@latest\n\nimport (\n    \"github.com/memodb-io/memobase/src/client/memobase-go/core\"\n    \"github.com/memodb-io/memobase/src/client/memobase-go/blob\"\n)\n\nprojectURL := \"YOUR_PROJECT_URL\"\napiKey := \"YOUR_API_KEY\"\nclient, err := core.NewMemoBaseClient(projectURL, apiKey)\nif err != nil {\n    panic(err)\n}\n\n// Get user\nuser, err := client.GetUser(userID)\nif err != nil {\n    panic(err)\n}\n\n// Flush buffer\nerr = user.Flush(blob.ChatType)\nif err != nil {\n    panic(err)\n}\n",
 						"label": "Go"
+					}
+				]
+			}
+		},
+		"/api/v1/users/buffer/capacity/{user_id}/{buffer_type}": {
+			"get": {
+				"tags": [
+					"buffer"
+				],
+				"summary": "Get Processing Buffer Ids",
+				"description": "Get processing buffer ids",
+				"operationId": "get_processing_buffer_ids_api_v1_users_buffer_capacity__user_id___buffer_type__get",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The ID of the user",
+							"title": "User Id"
+						},
+						"description": "The ID of the user"
+					},
+					{
+						"name": "buffer_type",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/BlobType",
+							"description": "The type of buffer to flush"
+						},
+						"description": "The type of buffer to flush"
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": [
+								"idle",
+								"processing",
+								"failed",
+								"done"
+							],
+							"type": "string",
+							"description": "The status of the buffer to get",
+							"default": "processing",
+							"title": "Status"
+						},
+						"description": "The status of the buffer to get"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IdsResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				},
+				"x-code-samples": [
+					{
+						"lang": "Python",
+						"source": "# To use the Python SDK, install the package:\n# pip install memobase\n\nfrom memobase import Memobase\n\nclient = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\nu = client.get_user(uid)\nu.buffer(\"chat\", status=\"processing\")\n",
+						"label": "Python"
 					}
 				]
 			}
