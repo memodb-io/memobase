@@ -229,11 +229,11 @@ async def test_chat_buffer_modal(
     )
     assert p.ok() and p.data() == 0
 
-    # persistent_chat_blobs default to False
+    # persistent_chat_blobs default to True
     p = await controllers.user.get_user_all_blobs(
         u_id, DEFAULT_PROJECT_ID, BlobType.chat
     )
-    assert p.ok() and len(p.data().ids) == 0
+    assert p.ok() and len(p.data().ids) == 2
 
     p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()

@@ -145,37 +145,6 @@ def seconds_from_now(dt: datetime):
     return (datetime.now().astimezone() - dt.astimezone()).seconds
 
 
-def user_id_lock(scope, lock_timeout=128, blocking_timeout=32):
-    def __user_id_lock(func):
-        @wraps(func)
-        async def wrapper(user_id, *args, **kwargs):
-            lock_key = f"user_lock:{PROJECT_ID}:{scope}:{user_id}"
-            async with get_redis_client() as redis_client:
-                lock = redis_client.lock(
-                    lock_key, timeout=lock_timeout, blocking_timeout=blocking_timeout
-                )
-                try:
-                    if not await lock.acquire(blocking=True):
-                        raise TimeoutError(
-                            f"Could not acquire lock for user {user_id} in scope {scope}"
-                        )
-                    return await func(user_id, *args, **kwargs)
-                finally:
-                    try:
-                        if await lock.locked():
-                            await lock.release()
-                    except Exception as e:
-                        LOG.error(
-                            f"Error releasing lock for user {user_id} in scope {scope}: {e}"
-                        )
-                        # Consider forcing lock release or implementing a recovery mechanism
-                        # raise RuntimeError(f"Lock release failed: {e}") from e
-
-        return wrapper
-
-    return __user_id_lock
-
-
 def is_valid_profile_config(profile_config: str | None) -> Promise[None]:
     if profile_config is None:
         return Promise.resolve(None)

@@ -12,6 +12,7 @@ CONFIG.event_tags = [
     {"name": "goal", "description": "Record the current goal of user"},
 ]
 CONFIG.enable_event_embedding = True
+CONFIG.persistent_chat_blobs = True
 # @pytest.fixture(scope="session")
 # def event_loop():
 #     try:

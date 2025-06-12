@@ -215,6 +215,12 @@ router.post(
 )(api_layer.buffer.flush_buffer)
 
 router.get(
+    "/users/buffer/capacity/{user_id}/{buffer_type}",
+    tags=["buffer"],
+    # openapi_extra=API_X_CODE_DOCS["GET /users/buffer/capacity/{user_id}/{buffer_type}"],
+)(api_layer.buffer.get_processing_buffer_ids)
+
+router.get(
     "/users/event/{user_id}",
     tags=["event"],
     openapi_extra=API_X_CODE_DOCS["GET /users/event/{user_id}"],

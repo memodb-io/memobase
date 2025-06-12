@@ -1,5 +1,5 @@
 from fastapi import BackgroundTasks, Request
-from fastapi import Path, Body
+from fastapi import Path, Body, Query
 import traceback
 
 from ..controllers import full as controllers
@@ -14,6 +14,9 @@ from ..telemetry.capture_key import capture_int_key
 async def insert_blob(
     request: Request,
     user_id: str = Path(..., description="The ID of the user to insert the blob for"),
+    wait_process: bool = Query(
+        False, description="Whether to wait for the blob to be processed"
+    ),
     blob_data: res.BlobData = Body(..., description="The blob data to insert"),
     background_tasks: BackgroundTasks = BackgroundTasks(),
 ) -> res.BlobInsertResponse:
@@ -37,17 +40,46 @@ async def insert_blob(
         ).to_response(res.IdResponse)
 
     try:
-        p = await controllers.blob.insert_blob(user_id, project_id, blob_data)
-        if not p.ok():
-            return p.to_response(res.BaseResponse)
-        bid = p.data().id
-        # TODO if single user insert too fast will cause random order insert to buffer
-        # So no background task for insert buffer yet
+        insert_result = await controllers.blob.insert_blob(
+            user_id, project_id, blob_data
+        )
+        if not insert_result.ok():
+            return insert_result.to_response(res.BaseResponse)
+        bid = insert_result.data().id
+
         pb = await controllers.buffer.insert_blob_to_buffer(
             user_id, project_id, bid, blob_data.to_blob()
         )
         if not pb.ok():
             return pb.to_response(res.BaseResponse)
+
+        process_ids = await controllers.buffer.detect_buffer_full_or_not(
+            user_id, project_id, blob_data.blob_type
+        )
+        if not process_ids.ok():
+            return process_ids.to_response(res.BaseResponse)
+
+        final_results = []
+        # need to process buffer
+        if process_ids.data() is not None and len(process_ids.data().ids):
+            if wait_process:
+                # sync
+                p = await controllers.buffer.flush_buffer_by_ids(
+                    user_id, project_id, blob_data.blob_type, process_ids.data().ids
+                )
+                if not p.ok():
+                    return p.to_response(res.BaseResponse)
+                if p.data() is not None:
+                    final_results.append(p.data())
+            else:
+                # async
+                background_tasks.add_task(
+                    controllers.buffer_background.flush_buffer_by_ids_in_background,
+                    user_id,
+                    project_id,
+                    blob_data.blob_type,
+                    process_ids.data().ids,
+                )
     except Exception as e:
         LOG.error(f"Error inserting blob: {e}, {traceback.format_exc()}")
         return Promise.reject(
@@ -60,10 +92,7 @@ async def insert_blob(
         project_id=project_id,
     )
     return res.BlobInsertResponse(
-        data={
-            **p.data().model_dump(),
-            "chat_results": pb.data(),
-        }
+        data={**insert_result.data().model_dump(), "chat_results": final_results}
     )
 
 

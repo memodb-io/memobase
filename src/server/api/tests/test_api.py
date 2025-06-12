@@ -341,11 +341,23 @@ async def test_api_user_flush_buffer(
     )
     assert p.ok() and p.data() == 1
 
+    p = client.get(f"{PREFIX}/users/buffer/capacity/{u_id}/chat?status=idle")
+    d = p.json()
+    assert p.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["ids"]) == 1
+
     p = client.post(f"{PREFIX}/users/buffer/{u_id}/chat")
     p = await controllers.buffer.get_buffer_capacity(
         u_id, DEFAULT_PROJECT_ID, BlobType.chat
     )
     assert p.ok() and p.data() == 0
+
+    p = client.get(f"{PREFIX}/users/buffer/capacity/{u_id}/chat?status=done")
+    d = p.json()
+    assert p.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["ids"]) == 1
 
     response = client.get(f"{PREFIX}/users/profile/{u_id}")
     d = response.json()

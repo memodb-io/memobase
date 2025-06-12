@@ -14,4 +14,4 @@ opentelemetry-api
 opentelemetry-sdk
 opentelemetry-exporter-prometheus
 typeguard
-celery
+taskiq
