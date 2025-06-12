@@ -737,6 +737,7 @@ from memobase import Memobase
 
 client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
 
+u = client.get_user(uid)
 u.flush()
 """,
             "label": "Python",
@@ -788,6 +789,25 @@ if err != nil {
         },
     ]
 }
+
+API_X_CODE_DOCS["GET /users/buffer/capacity/{user_id}/{buffer_type}"] = {
+    "x-code-samples": [
+        {
+            "lang": "Python",
+            "source": """# To use the Python SDK, install the package:
+# pip install memobase
+
+from memobase import Memobase
+
+client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+u = client.get_user(uid)
+u.buffer("chat", status="processing")
+""",
+            "label": "Python",
+        },
+    ]
+}
+
 
 API_X_CODE_DOCS["DELETE /users/profile/{user_id}/{profile_id}"] = {
     "x-code-samples": [

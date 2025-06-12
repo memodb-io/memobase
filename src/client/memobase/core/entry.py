@@ -2,7 +2,7 @@ import os
 import json
 import httpx
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import HttpUrl, ValidationError
 from dataclasses import dataclass
 from .blob import BlobData, Blob, BlobType, ChatBlob, OpenAICompatibleMessage
@@ -159,6 +159,18 @@ class User:
             )
         )
         return r.data["id"]
+
+    def buffer(
+        self,
+        blob_type: BlobType,
+        status: Literal["idle", "processing", "done", "failed"] = "idle",
+    ) -> list[str]:
+        r = unpack_response(
+            self.project_client.client.get(
+                f"/users/buffer/capacity/{self.user_id}/{blob_type}?status={status}"
+            )
+        )
+        return r.data["ids"]
 
     def profile(
         self,

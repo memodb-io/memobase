@@ -2,7 +2,7 @@ import os
 import json
 import httpx
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import HttpUrl, ValidationError
 from dataclasses import dataclass
 from .blob import BlobData, Blob, BlobType, ChatBlob, OpenAICompatibleMessage
@@ -176,6 +176,18 @@ class AsyncUser:
         )
         return r.data["id"]
 
+    async def buffer(
+        self,
+        blob_type: BlobType,
+        status: Literal["idle", "processing", "done", "failed"] = "idle",
+    ) -> list[str]:
+        r = unpack_response(
+            await self.project_client.client.get(
+                f"/users/buffer/capacity/{self.user_id}/{blob_type}?status={status}"
+            )
+        )
+        return r.data["ids"]
+
     async def profile(
         self,
         max_token_size: int = 1000,
@@ -238,16 +250,16 @@ class AsyncUser:
         )
         return True
 
-    async def event(self, topk=10, max_token_size=None, need_summary=False) -> list[UserEventData]:
-        params = f"?topk={topk}"  
-        if max_token_size is not None:  
-            params += f"&max_token_size={max_token_size}"  
-        if need_summary:  
+    async def event(
+        self, topk=10, max_token_size=None, need_summary=False
+    ) -> list[UserEventData]:
+        params = f"?topk={topk}"
+        if max_token_size is not None:
+            params += f"&max_token_size={max_token_size}"
+        if need_summary:
             params += f"&need_summary=true"
         r = unpack_response(
-            await self.project_client.client.get(
-                f"/users/event/{self.user_id}{params}"
-            )
+            await self.project_client.client.get(f"/users/event/{self.user_id}{params}")
         )
         return [UserEventData.model_validate(e) for e in r.data["events"]]
 

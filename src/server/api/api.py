@@ -217,7 +217,7 @@ router.post(
 router.get(
     "/users/buffer/capacity/{user_id}/{buffer_type}",
     tags=["buffer"],
-    # openapi_extra=API_X_CODE_DOCS["GET /users/buffer/capacity/{user_id}/{buffer_type}"],
+    openapi_extra=API_X_CODE_DOCS["GET /users/buffer/capacity/{user_id}/{buffer_type}"],
 )(api_layer.buffer.get_processing_buffer_ids)
 
 router.get(
