@@ -52,22 +52,22 @@ const client = new MemoBaseClient(process.env['MEMOBASE_PROJECT_URL'], process.e
 
 const main = async () => {
     const ping = await client.ping()
-    console.log(ping)
+    console.log('Ping: ', ping)
 
     const config = await client.getConfig()
-    console.log(config)
+    console.log('Config: ', config)
 
     const updateConfig = await client.updateConfig('a: 1')
-    console.log(updateConfig)
+    console.log('Update config: ', updateConfig)
 
     let userId = await client.addUser()
-    console.log(userId)
+    console.log('Add user: ', userId)
 
     userId = await client.updateUser(userId, { name: 'John Doe' })
     console.log('Updated user id: ', userId)
 
     let user = await client.getUser(userId)
-    console.log(user)
+    console.log('User: ', user)
 
     const blobId = await user.insert(Blob.parse({
         type: BlobType.Enum.chat,
@@ -76,37 +76,61 @@ const main = async () => {
             content: 'Hello, how are you? my name is John Doe'
         }]
     }))
-    console.log(blobId)
+    console.log('Insert blob: ', blobId)
 
     const blob = await user.get(blobId)
-    console.log(blob)
+    console.log('Blob: ', blob)
 
     const flushSuc = await user.flush(BlobType.Enum.chat)
     console.log('Flush success: ', flushSuc)
-    
+
     const blobs = await user.getAll(BlobType.Enum.chat)
-    console.log(blobs)
+    console.log('Blobs: ', blobs)
 
     user = await client.getOrCreateUser(userId)
-    console.log(user)
+    console.log('Get or create user: ', user)
 
-    const profiles = await user.profile(2000, ['Topic1'], ['SubTopic1'], 200, { Topic1: 200 })
-    console.log(profiles)
+    const addProfileSuc = await user.addProfile("Content", "Topic1", "SubTopic1")
+    console.log('Add profile success: ', addProfileSuc)
+
+    const profiles = await user.profile(2000)
+    console.log('Profiles: ', profiles)
+
+    const updateProfileSuc = await user.updateProfile(profiles[0].id, "New Content", "New Topic", "New SubTopic")
+    console.log('Update profile success: ', updateProfileSuc)
+
+    const deleteProfileSuc = await user.deleteProfile(profiles[0].id)
+    console.log('Delete profile success: ', deleteProfileSuc)
 
     const event = await user.event(10, 1000)
-    console.log(event)
+    console.log('Event: ', event)
+
+    const updateEventSuc = await user.updateEvent(event[0].id, {
+        "id": event[0].id,
+        "event_data": {
+            "profile_delta": [
+                {
+                    "content": "New Event Content",
+                    "attributes": {
+                        "topic": "interest",
+                        "sub_topic": "foods"
+                    }
+                }
+            ]
+        },
+        created_at: new Date(),
+        updated_at: new Date()
+    })
+    console.log('Update event success: ', updateEventSuc)
+
+    const deleteEventSuc = await user.deleteEvent(event[0].id)
+    console.log('Delete event success: ', deleteEventSuc)
 
     const context = await user.context(2000, 1000)
-    console.log(context)
-
-    profiles.map((profile) => {
-        user.deleteProfile(profile.id).then((isDel) => {
-            console.log('Delete profile success: ', isDel)
-        })
-    })
+    console.log('Context: ', context)
 
     const isDel = await client.deleteUser(userId)
-    console.log(isDel)
+    console.log('Delete user success: ', isDel)
 }
 
 main()

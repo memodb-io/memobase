@@ -15,7 +15,7 @@ export class User {
     private readonly userId: string,
     private readonly projectClient: MemoBaseClient,
     public readonly fields?: Record<string, any>,
-  ) {}
+  ) { }
 
   async insert(blobData: Blob): Promise<string> {
     const response = await this.projectClient.fetch<IdResponse>(`/blobs/insert/${this.userId}`, {
@@ -49,6 +49,14 @@ export class User {
   async flush(blobType: BlobType = 'chat'): Promise<boolean> {
     await this.projectClient.fetch(`/users/buffer/${this.userId}/${blobType}`, { method: 'POST' });
     return true;
+  }
+
+  async addProfile(content: string, topic: string, subTopic: string): Promise<string> {
+    const response = await this.projectClient.fetch<IdResponse>(`/users/profile/${this.userId}`, {
+      method: 'POST',
+      body: JSON.stringify({ content, attributes: { topic, sub_topic: subTopic } }),
+    });
+    return response.data!.id;
   }
 
   async profile(
@@ -94,6 +102,14 @@ export class User {
     }, [] as UserProfile[]);
   }
 
+  async updateProfile(profileId: string, content: string, topic: string, subTopic: string): Promise<boolean> {
+    await this.projectClient.fetch(`/users/profile/${this.userId}/${profileId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content, attributes: { topic, sub_topic: subTopic } }),
+    });
+    return true;
+  }
+
   async deleteProfile(profileId: string): Promise<boolean> {
     await this.projectClient.fetch(`/users/profile/${this.userId}/${profileId}`, { method: 'DELETE' });
     return true;
@@ -111,6 +127,32 @@ export class User {
       `/users/event/${this.userId}?${params.toString()}`,
     );
 
+    return response.data!.events.map((e) => UserEvent.parse(e));
+  }
+
+  async updateEvent(eventId: string, eventData: UserEvent): Promise<boolean> {
+    await this.projectClient.fetch(`/users/event/${this.userId}/${eventId}`, {
+      method: 'PUT',
+      body: JSON.stringify(eventData),
+    });
+    return true;
+  }
+
+  async deleteEvent(eventId: string): Promise<boolean> {
+    await this.projectClient.fetch(`/users/event/${this.userId}/${eventId}`, { method: 'DELETE' });
+    return true;
+  }
+
+  async searchEvent(query: string, topk = 10, similarityThreshold = 0.2, timeRangeInDays = 7): Promise<UserEvent[]> {
+    const params = new URLSearchParams();
+    params.append('query', query);
+    params.append('topk', topk.toString());
+    params.append('similarity_threshold', similarityThreshold.toString());
+    params.append('time_range_in_days', timeRangeInDays.toString());
+
+    const response = await this.projectClient.fetch<EventResponse>(
+      `/users/event/search/${this.userId}?${params.toString()}`,
+    );
     return response.data!.events.map((e) => UserEvent.parse(e));
   }
 
