@@ -131,6 +131,15 @@ export const UserEvent = z.object({
           }),
         )
         .optional(),
+      event_tip: z.string().optional(),
+      event_tags: z
+        .array(
+          z.object({
+            tag: z.string(),
+            value: z.string(),
+          }),
+        )
+        .optional(),
     })
     .optional(),
   created_at: z.coerce.date(),
