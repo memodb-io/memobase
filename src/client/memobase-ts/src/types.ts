@@ -139,7 +139,7 @@ export const UserEvent = z.object({
             value: z.string(),
           }),
         )
-        .optional(),
+        .optional().nullable(),
     })
     .optional(),
   created_at: z.coerce.date(),
