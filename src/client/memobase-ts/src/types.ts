@@ -131,7 +131,7 @@ export const UserEvent = z.object({
           }),
         )
         .optional(),
-      event_tip: z.string().optional(),
+      event_tip: z.string().optional().nullable(),
       event_tags: z
         .array(
           z.object({
