@@ -16,6 +16,8 @@ from memobase_server.env import LOG
 from memobase_server.llms.embeddings import check_embedding_sanity
 from uvicorn.config import LOGGING_CONFIG
 from api_docs import API_X_CODE_DOCS
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 
 
 @asynccontextmanager
@@ -259,3 +261,5 @@ router.post(
 
 app.include_router(router)
 app.add_middleware(api_layer.middleware.AuthMiddleware)
+
+FastAPIInstrumentor.instrument_app(app)

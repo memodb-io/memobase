@@ -13,5 +13,6 @@ volcengine-python-sdk[ark]
 opentelemetry-api
 opentelemetry-sdk
 opentelemetry-exporter-prometheus
+opentelemetry-instrumentation-fastapi
 typeguard
 taskiq
