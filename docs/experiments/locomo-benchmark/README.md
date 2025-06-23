@@ -118,7 +118,7 @@ py generate_scores.py --input_path="evals.json"
 **Deps**
 
 ```bash
-pip install mem0
+pip install mem0ai
 ```
 
 **Env**
