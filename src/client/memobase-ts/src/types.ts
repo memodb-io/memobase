@@ -164,3 +164,25 @@ export const GetConfigResponse = z.object({
   profile_config: z.string(),
 });
 export type GetConfigResponse = z.infer<typeof GetConfigResponse>;
+
+// ProjectUser 类型
+export const ProjectUser = z.object({
+  id: z.string(),
+  project_id: z.string(),
+  profile_count: z.number(),
+  event_count: z.number(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+});
+export type ProjectUser = z.infer<typeof ProjectUser>;
+
+// GetProjectUsersResponse 类型
+export const GetProjectUsersResponse = z.object({
+  users: z.array(ProjectUser),
+  count: z.number(),
+});
+export type GetProjectUsersResponse = z.infer<typeof GetProjectUsersResponse>;
+
+// GetProjectUsageItemResponse 类型
+export const GetProjectUsageItemResponse = z.object({ date: z.coerce.date(), total_insert: z.number(), total_success_insert: z.number(), total_input_token: z.number(), total_output_token: z.number() });
+export type GetProjectUsageItemResponse = z.infer<typeof GetProjectUsageItemResponse>;

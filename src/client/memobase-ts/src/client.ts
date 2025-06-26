@@ -1,6 +1,6 @@
 import { User } from './user';
 import { unpackResponse } from './network';
-import type { BaseResponse, HttpUrl, GetConfigResponse } from './types';
+import type { BaseResponse, HttpUrl, GetConfigResponse, GetProjectUsersResponse, GetProjectUsageItemResponse } from './types';
 
 export class MemoBaseClient {
   private readonly baseUrl: HttpUrl;
@@ -77,6 +77,21 @@ export class MemoBaseClient {
     return response.data!.id;
   }
 
+  async getUsers(search: string = "", order_by: "updated_at" | "profile_count" | "event_count" = "updated_at", order_desc: boolean = true, limit: number = 10, offset: number = 0): Promise<GetProjectUsersResponse> {
+    const params = new URLSearchParams();
+    params.append('search', search);
+    params.append('order_by', order_by);
+    params.append('order_desc', order_desc ? 'true' : 'false');
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+
+    const response = await this.fetch<GetProjectUsersResponse>(`/project/users?${params.toString()}`);
+    if (response.data) {
+      return response.data;
+    }
+    return { users: [], count: 0 };
+  }
+
   async getUser(userId: string, noGet = false): Promise<User> {
     if (!noGet) {
       const response = await this.fetch<Record<string, any>>(`/users/${userId}`);
@@ -97,5 +112,16 @@ export class MemoBaseClient {
   async deleteUser(userId: string): Promise<boolean> {
     await this.fetch(`/users/${userId}`, { method: 'DELETE' });
     return true;
+  }
+
+  async getUsage(last_days: number = 7): Promise<GetProjectUsageItemResponse[]> {
+    const params = new URLSearchParams();
+    params.append('last_days', last_days.toString());
+
+    const response = await this.fetch<GetProjectUsageItemResponse[]>(`/project/usage`);
+    if (response.data) {
+      return response.data;
+    }
+    return [];
   }
 }
