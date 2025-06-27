@@ -67,7 +67,7 @@ Check out the [docs](https://docs.memobase.io/quickstart) of how to use Memobase
 
 ## Use Memobase core only
 
-1. If you have existing postgres and reids, you can only launch the Memobase core
+1. If you have existing postgres and redis, you can only launch the Memobase core
 
 2. Find and download the docker image of Memobase:
 
