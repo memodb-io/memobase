@@ -137,7 +137,13 @@ Memobase is building with FastAPI, Postgres and Redis, supporting request cachin
 
 > [!NOTE]
 >
-> Try [Memobase-Playground](https://github.com/memodb-io/memobase-playground), an open-source, full-stack AI Chatbot with long-term memory. [live-demo](https://app.memobase.io/playground)
+> Try [Memobase Playground](https://app.memobase.io/playground) to see how profile-based memory works — no setup needed.
+
+* **Visualize** how user profiles and memory events evolve over time.
+* **Interact** with the memory mechanism directly.
+* **Explore** key features and concepts in a live environment.
+
+Watch the demo below — see how memory evolves around user profiles.
 
 https://github.com/user-attachments/assets/eb2eea30-48bc-4714-9706-e417ae1931df
 
