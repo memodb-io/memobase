@@ -1978,6 +1978,17 @@
 							"title": "Event Similarity Threshold"
 						},
 						"description": "Event similarity threshold of returned Context"
+					},
+					{
+						"name": "customize_context_prompt",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"description": "Customize context prompt template.\n- use `{profile_section}` to refer to the profile section\n- use `{event_section}` to refer to the event section\n\nFor example:\n```\n# Memory\nUnless the user has relevant queries, do not actively mention those memories in the conversation.\n## User Background:\n{profile_section}\n\n## Latest Events:\n{event_section}\n```\n",
+							"title": "Customize Context Prompt"
+						},
+						"description": "Customize context prompt template.\n- use `{profile_section}` to refer to the profile section\n- use `{event_section}` to refer to the event section\n\nFor example:\n```\n# Memory\nUnless the user has relevant queries, do not actively mention those memories in the conversation.\n## User Background:\n{profile_section}\n\n## Latest Events:\n{event_section}\n```\n"
 					}
 				],
 				"responses": {

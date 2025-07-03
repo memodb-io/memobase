@@ -1,3 +1,9 @@
+### [0.0.36] - unreleased
+
+**Added**
+
+- `feat`: Add customize prompt template
+
 ### [0.0.35] - 2025/6/27
 
 **Changed**

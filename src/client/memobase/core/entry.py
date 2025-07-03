@@ -6,6 +6,7 @@ from collections import defaultdict
 from typing import Optional, Literal
 from pydantic import HttpUrl, ValidationError
 from dataclasses import dataclass
+from urllib.parse import quote_plus
 from .blob import BlobData, Blob, BlobType, ChatBlob, OpenAICompatibleMessage
 from .user import UserProfile, UserProfileData, UserEventData
 from ..network import unpack_response
@@ -307,6 +308,7 @@ class User:
         require_event_summary: bool = None,
         chats: list[OpenAICompatibleMessage] = None,
         event_similarity_threshold: float = None,
+        customize_context_prompt: str = None,
     ) -> str:
         params = f"?max_token_size={max_token_size}"
         if prefer_topics:
@@ -335,6 +337,10 @@ class User:
             params += chats_query
         if event_similarity_threshold:
             params += f"&event_similarity_threshold={event_similarity_threshold}"
+        if customize_context_prompt:
+            params += (
+                f"&customize_context_prompt={quote_plus(customize_context_prompt)}"
+            )
         r = unpack_response(
             self.project_client.client.get(f"/users/context/{self.user_id}{params}")
         )

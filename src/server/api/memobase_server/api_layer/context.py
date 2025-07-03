@@ -48,6 +48,24 @@ async def get_user_context(
         0.2,
         description="Event similarity threshold of returned Context",
     ),
+    customize_context_prompt: str = Query(
+        None,
+        description="""Customize context prompt template.
+- use `{profile_section}` to refer to the profile section
+- use `{event_section}` to refer to the event section
+
+For example:
+```
+# Memory
+Unless the user has relevant queries, do not actively mention those memories in the conversation.
+## User Background:
+{profile_section}
+
+## Latest Events:
+{event_section}
+```
+""",
+    ),
 ) -> res.UserContextDataResponse:
     project_id = request.state.memobase_project_id
     topic_limits_json = topic_limits_json or "{}"
@@ -71,5 +89,6 @@ async def get_user_context(
         require_event_summary,
         chats,
         event_similarity_threshold,
+        customize_context_prompt=customize_context_prompt,
     )
     return p.to_response(res.UserContextDataResponse)

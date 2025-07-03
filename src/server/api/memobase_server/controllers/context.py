@@ -1,3 +1,4 @@
+from functools import partial
 from ..models.utils import Promise
 from ..models.response import ContextData, OpenAICompatibleMessage
 from ..prompts.chat_context_pack import CONTEXT_PROMPT_PACK
@@ -7,6 +8,14 @@ from .project import get_project_profile_config
 from .profile import get_user_profiles, truncate_profiles
 from .post_process.profile import filter_profiles_with_chats
 from .event import get_user_events, search_user_events, truncate_events
+
+
+def customize_context_prompt_func(
+    context_prompt: str, profile_section: str, event_section: str
+) -> str:
+    return context_prompt.format(
+        profile_section=profile_section, event_section=event_section
+    )
 
 
 async def get_user_context(
@@ -21,6 +30,7 @@ async def get_user_context(
     require_event_summary: bool,
     chats: list[OpenAICompatibleMessage],
     event_similarity_threshold: float,
+    customize_context_prompt: str = None,
 ) -> Promise[ContextData]:
     assert 0 < profile_event_ratio <= 1, "profile_event_ratio must be between 0 and 1"
     max_profile_token_size = int(max_token_size * profile_event_ratio)
@@ -33,6 +43,10 @@ async def get_user_context(
     profile_config = p.data()
     use_language = profile_config.language or CONFIG.language
     context_prompt_func = CONTEXT_PROMPT_PACK[use_language]
+    if customize_context_prompt is not None:
+        context_prompt_func = partial(
+            customize_context_prompt_func, customize_context_prompt
+        )
 
     p = await get_user_profiles(user_id, project_id)
     if not p.ok():
