@@ -31,7 +31,7 @@ def event_str_repr(event: UserEventData) -> str:
             )
         else:
             event_tags = ""
-        return f"{event_data.event_tip}\n{event_tags}"
+        return f"{event_tags}\n{event_data.event_tip}"
 
 
 def event_embedding_str(event_data: EventData) -> str:

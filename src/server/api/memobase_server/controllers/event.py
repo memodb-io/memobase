@@ -234,3 +234,73 @@ async def search_user_events(
         )
 
     return Promise.resolve(user_events_data)
+
+
+async def filter_user_events(
+    user_id: str,
+    project_id: str,
+    has_event_tag: list[str] = None,
+    event_tag_equal: dict[str, str] = None,
+    topk: int = 10,
+) -> Promise[UserEventsData]:
+    """
+    Filter user events based on event tags.
+
+    Args:
+        user_id: User ID
+        project_id: Project ID
+        has_event_tag: List of tag names that must exist in the event (regardless of value)
+        event_tag_equal: Dict of tag_name: tag_value pairs that must match exactly
+        topk: Maximum number of events to return
+
+    Returns:
+        Promise containing filtered UserEventsData
+    """
+    with Session() as session:
+        query = session.query(UserEvent).filter_by(
+            user_id=user_id, project_id=project_id
+        )
+
+        # Apply tag filters if provided
+        if has_event_tag or event_tag_equal:
+            # Build filter conditions for events that have event_tags
+            query = query.filter(UserEvent.event_data.has_key("event_tags"))
+            query = query.filter(UserEvent.event_data["event_tags"].isnot(None))
+
+            # Filter by tag existence (has_event_tag)
+            if has_event_tag:
+                for tag_name in has_event_tag:
+                    # Check if any event_tag in the array has the specified tag name
+                    query = query.filter(
+                        UserEvent.event_data["event_tags"].op("@>")(
+                            f'[{{"tag": "{tag_name}"}}]'
+                        )
+                    )
+
+            # Filter by exact tag-value pairs (event_tag_equal)
+            if event_tag_equal:
+                for tag_name, tag_value in event_tag_equal.items():
+                    # Check if any event_tag in the array has both the tag name and value
+                    query = query.filter(
+                        UserEvent.event_data["event_tags"].op("@>")(
+                            f'[{{"tag": "{tag_name}", "value": "{tag_value}"}}]'
+                        )
+                    )
+
+        user_events = query.order_by(UserEvent.created_at.desc()).limit(topk).all()
+
+        if user_events is None:
+            return Promise.resolve(UserEventsData(events=[]))
+
+        results = [
+            {
+                "id": ue.id,
+                "event_data": ue.event_data,
+                "created_at": ue.created_at,
+                "updated_at": ue.updated_at,
+            }
+            for ue in user_events
+        ]
+
+    events = UserEventsData(events=results)
+    return Promise.resolve(events)
