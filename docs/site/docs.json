@@ -44,7 +44,8 @@
               },
               "features/message",
               "features/context",
-              "features/search"
+              "features/search",
+              "features/async_insert"
             ]
           },
           {
