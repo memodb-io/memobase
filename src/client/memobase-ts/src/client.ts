@@ -110,7 +110,11 @@ export class MemoBaseClient {
   }
 
   async deleteUser(userId: string): Promise<boolean> {
-    await this.fetch(`/users/${userId}`, { method: 'DELETE' });
+    try {
+      await this.fetch(`/users/${userId}`, { method: 'DELETE' });
+    } catch (error) {
+      return false;
+    }
     return true;
   }
 
