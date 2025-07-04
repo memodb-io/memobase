@@ -13,9 +13,9 @@ This project contains the code of running benchmark results on [Locomo dataset](
 
 ## Result
 
-We ran Memobase results and pasted the other methods' result from [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/pdf/2504.19413). 
+- We ran Memobase results and pasted the other methods' result from [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/pdf/2504.19413). 
 
-We mainly report the LLM Judge Sorce (higher is better).
+- We mainly report the LLM Judge Sorce (higher is better).
 
 | Method     | Single-Hop(%) | Multi-Hop(%) | Open Domain(%) | Temporal(%) | Overall(%) |
 | ---------- | ------------- | ------------ | -------------- | ----------- | ---------- |
@@ -23,6 +23,7 @@ We mainly report the LLM Judge Sorce (higher is better).
 | Mem0-Graph | 65.71         | 47.19        | 75.71          | 58.13       | 68.44      |
 | LangMem    | 62.23         | 47.92        | 71.12          | 23.43       | 58.10      |
 | Zep        | 61.70         | 41.35        | **76.60**      | 49.31       | 65.99      |
+| Zep*       | 74.11         | 66.04        | 67.71          | 79.79       | 75.14      |
 | OpenAI     | 63.79         | 42.92        | 62.29          | 21.71       | 52.90      |
 | Memobase   | 63.83         | **52.08**    | 71.82          | **80.37**   | **70.91**  |
 
@@ -59,6 +60,10 @@ dtype: float64
 ```
 
 
+> ❕ We update the results from Zep team (Zep*). See this [issue](https://github.com/memodb-io/memobase/issues/101) for detail reports and artifacts.
+> | Method     | Single-Hop(%) | Multi-Hop(%) | Open Domain(%) | Temporal(%) | Overall(%) |
+> | ---------- | ------------- | ------------ | -------------- | ----------- | ---------- |
+> | Zep*       | 74.11         | 66.04        | 67.71          | 79.79       | 75.14      |
 
 
 
