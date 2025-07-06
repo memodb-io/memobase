@@ -9,6 +9,7 @@ Thank you for your interest in contributing to Memobase! This document provides 
 - [Development Workflow](#development-workflow)
 - [Pull Request Process](#pull-request-process)
 - [Coding Standards](#coding-standards)
+- [PR or Issue?](#pr-or-issue?)
 - [Communication](#communication)
 
 ## Development Setup
@@ -83,6 +84,12 @@ For more detailed information, refer to the [server documentation](./src/server/
    - A clear title following the commit message format
    - A comprehensive description of your changes
    - References to any related issues
+
+
+
+## PR or Issue?
+
+- We will not accept document typo fix PR, just make an issue if you find any typo.
 
 ## Communication
 
