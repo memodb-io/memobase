@@ -25,6 +25,7 @@
           {
             "group": "Features",
             "pages": [
+              "features/context",
               {
                 "group": "User Profile",
                 "pages": [
@@ -44,7 +45,6 @@
                 ]
               },
               "features/message",
-              "features/context",
               "features/async_insert"
             ]
           },

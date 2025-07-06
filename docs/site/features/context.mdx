@@ -1,42 +1,123 @@
 ---
-title: Personalized Context
+title: Get Memory Prompt
 ---
 
-Memobase may extract many kinds of memories from user, for example:
-- User profile
-- User events
-- ...
+Memobase automatically extracts and structures various types of memories from user interactions, such as:
+- **User Profile**: Key-value pairs describing the user (e.g., name, preferences).
+- **User Events**: Significant occurrences or interactions (e.g., past conversations, actions taken).
 
-And all of them are a part of the user's personalized context.
+All of these memories constitute a user's personalized context. 
+Memobase provides a powerful `context()` API to retrieve this information in a structured prompt, ready to be injected into your prompts.
 
-Memobase offers an API to get the personalized context of a user without packing those memories yourself:
-```python
+### Basic Usage
+
+The most straightforward way to get a user's context is to call the `context()` method on a user object.
+
+<CodeGroup>
+```python Python
 from memobase import MemobaseClient, ChatBlob
 
+# Initialize client and get/create a user
 client = MemobaseClient(api_key="your_api_key")
-uid = client.add_user()
+uid = client.add_user(profile={"name": "Gus"})
 u = client.get_user(uid)
 
+# Insert some data to create memories
 u.insert(
     ChatBlob(
-        messages=[{
-                "role": "user",
-                "content": "I'm Gus"
-        }]
+        messages=[
+            {"role": "user", "content": "I live in California."},
+            {"role": "assistant", "content": "Nice, I've heard it's sunny there!"}
+        ]
     )
 )
 
-print(u.context())
+# Retrieve the default context
+user_context = u.context()
+print(user_context)
 ```
-Detailed params is in [here](/api-reference/prompt/get_context).
 
+```txt Output
+# Memory
+Unless the user has relevant queries, do not actively mention those memories in the conversation.
+## User Background:
+- basic_info:name: Gus
+- basic_info:location: California
 
-## Search related events in Context
-You can pass recent user chats to the context API to search related events, so the returned events in context will be more accurate, instead of latest events.
+## Latest Events:
+- User said he live in California
+...
+```
+</CodeGroup>
 
-```python
-u.context(chats=[
+### Searching with Recent Chats
+
+To make the retrieved context more relevant to the current conversation, you can provide recent chat messages. Memobase will perform a semantic search to find the most relevant historical events instead of just returning the latest ones.
+
+<CodeGroup>
+```python Python
+# Continuing from the previous example...
+
+# Simulate a new conversation where the user asks a question
+recent_chats = [
     {"role": "user", "content": "What's my name?"}
-])
+]
+
+# Get context relevant to the recent chat
+relevant_context = u.context(chats=recent_chats)
+print(relevant_context)
 ```
-Detailed params is in [here](/api-reference/prompt/get_context#parameter-chats-str).
+
+```txt Output
+## User Background:
+- basic_info:name: Gus
+- basic_info:location: California
+
+## Latest Events:
+- User said his name is now Gus
+- User said he used to be called John
+...
+```
+</CodeGroup>
+
+### Controlling Context Size
+
+You can control the size of the returned context using the `max_tokens` parameter. 
+This is useful for managing the returned context size and controlling costs. 
+<CodeGroup>
+```python Python
+# Get a condensed context with a token limit
+compact_context = u.context(max_tokens=10)
+print(compact_context)
+```
+
+```txt Output
+# Memory
+Unless the user has relevant queries, do not actively mention those memories in the conversation.
+## User Background:
+- basic_info:name: Gus
+
+## Latest Events:
+```
+</CodeGroup>
+
+Memobase will truncate to the most recent profile and relevant events. 
+But note that the `max_tokens` is applied only to the sum of the tokens in the profile and events, not the final output context.
+If you have a very large [context prompt template](/api-reference/prompt/get_context#parameter-customize-context-prompt), the returned context may be still large.
+
+### Advanced Filtering and Customization
+
+The `context()` API offers several parameters for fine-grained control over the returned data.
+
+- `prefer_topics`: A list of topics to prioritize.
+- `only_topics`: Only return profile items with these topics.
+- `max_subtopic_size`: Limits the number of subtopics for any given topic.
+- `topic_limits_json`: A JSON string to specify limits for individual topics.
+- `profile_event_ratio`: The ratio of profile information to event information in the context.
+- `require_event_summary`: If `True`, the context will include a summary of events.
+- `event_similarity_threshold`: A float between 0 and 1 to control the similarity of returned events.
+- `time_range_in_days`:  Filters events to within a specific number of days.
+- `customize_context_prompt`: A template to customize the final output string.
+- `full_profile_and_only_search_event`: A boolean to control whether to search both profile and events.
+
+For more advanced usage and a full list of parameters, please refer to the [API Reference for `get_context`](/api-reference/prompt/get_context).
