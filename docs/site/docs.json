@@ -31,7 +31,8 @@
                   "features/profile/profile",
                   "features/profile/profile_desc",
                   "features/profile/profile_config",
-                  "features/profile/profile_filter"
+                  "features/profile/profile_filter",
+                  "features/profile/profile_search"
                 ]
               },
               {
@@ -44,7 +45,6 @@
               },
               "features/message",
               "features/context",
-              "features/search",
               "features/async_insert"
             ]
           },

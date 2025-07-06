@@ -1,5 +1,5 @@
 ---
-title: Search Profile and Context
+title: Search Profile
 ---
 
 In Memobase, we try to memorize user in a controllable, global [context](/features/context).
@@ -33,40 +33,20 @@ print(p)
 </CodeGroup>
 [API Reference](/api-reference/profiles/profile#parameter-chats-str)
 
-## Context Search
-<CodeGroup>
-```python Python
-c = u.context(chats = [{"role": "user", "content": "Find some restaurants for me"}])
-print(c)
-```
-```txt Output
-# Memory
-Unless the user has relevant queries, do not actively mention those memories in the conversation.
-## User Background:
-- basic_info:allergies: peanuts
-- basic_info:location: San Francisco
-- interests:food: user likes to eat pizza and sushi
-...
-
-## Latest Events:
-- User went to an Italian restaurant [mentioned on 2025-01-01]
-- User went to a Chinese restaurant in Chinatown [mentioned on 2025-01-01]
-...
-```
-</CodeGroup>
-[API Reference](/api-reference/prompt/get_context#parameter-chats-str)
-
-
-
-
-The search in Memobase is not a semantic-matching or keyword-matching, it heaily relies on the features of user, and using AI to rank what may be relevant.
+The profile search in Memobase is not a semantic-matching or keyword-matching, 
+it heaily relies on the features of user, and using AI to rank what may be relevant.
 For example, when user says "Find me a restaurant", Memobase does't just search for "restaurant", it thinks what aspects of user will help to answer this question, so:
 - user has a profile `basic_info:location`, that will help to decide the location of the restaurant.
 - user has a profile `interests:food`, that will help to decide the food type.
 - user has a profile `basic_info:allergies`, that will help to decide what not to include.
 
-And then Memobase will use those relevant profiles to search the possible user events to recall the details.
 
-In result, Memobase's search is much more helpful than a semantic search, and can help to answer the question.
+In result, Memobase's profile search is much more helpful than a semantic search, and can help to answer the question.
+
+
+
+### NOTICE
+- profile search will increase your latency by 2-5 seconds (depends on the profile size). Use it wisely.
+- profile search will cost your Memobase tokens, roughly 100~1000 tokens per chat based on the profile size.
 
 

@@ -2,7 +2,8 @@
 
 **Added**
 
-- `feat`: Add customize prompt template
+- `feat`: Add customize prompt template for context api
+- `feat`: Add search option for context api
 
 ### [0.0.35] - 2025/6/27
 

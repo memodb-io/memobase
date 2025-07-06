@@ -1808,11 +1808,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"description": "Time range in days, default is 7",
-							"default": 7,
+							"description": "Only allow events within the past few days, default is 21",
+							"default": 21,
 							"title": "Time Range In Days"
 						},
-						"description": "Time range in days, default is 7"
+						"description": "Only allow events within the past few days, default is 21"
 					}
 				],
 				"responses": {
@@ -1962,10 +1962,10 @@
 						"required": false,
 						"schema": {
 							"type": "string",
-							"description": "List of chats in OpenAI Message format, for example: [{\"role\": \"user\", \"content\": \"Hello\"}, {\"role\": \"assistant\", \"content\": \"Hi\"}]",
+							"description": "Pass the recent chats to enable context search. \nMemobase will use those chats to search for relevant events.\nIt's a list of chats in OpenAI Message format, for example: [{\"role\": \"user\", \"content\": \"Hello\"}, {\"role\": \"assistant\", \"content\": \"Hi\"}].\n\n**NOTICE**\n- It will increase your latency by 0.1-1 seconds, because Memobase will use Embedding to search for relevant profiles and events.\n- It will cost your Memobase tokens, roughly 100~200 tokens per chat based on the profile size.\n- The profiles in the context will not be searched by the `chats_str`.\n- If you want also search profiles, see `full_profile_and_only_search_event` query parameter.\n",
 							"title": "Chats Str"
 						},
-						"description": "List of chats in OpenAI Message format, for example: [{\"role\": \"user\", \"content\": \"Hello\"}, {\"role\": \"assistant\", \"content\": \"Hi\"}]"
+						"description": "Pass the recent chats to enable context search. \nMemobase will use those chats to search for relevant events.\nIt's a list of chats in OpenAI Message format, for example: [{\"role\": \"user\", \"content\": \"Hello\"}, {\"role\": \"assistant\", \"content\": \"Hi\"}].\n\n**NOTICE**\n- It will increase your latency by 0.1-1 seconds, because Memobase will use Embedding to search for relevant profiles and events.\n- It will cost your Memobase tokens, roughly 100~200 tokens per chat based on the profile size.\n- The profiles in the context will not be searched by the `chats_str`.\n- If you want also search profiles, see `full_profile_and_only_search_event` query parameter.\n"
 					},
 					{
 						"name": "event_similarity_threshold",
@@ -1980,6 +1980,18 @@
 						"description": "Event similarity threshold of returned Context"
 					},
 					{
+						"name": "time_range_in_days",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"description": "Only allow events within the past few days, default is 21",
+							"default": 21,
+							"title": "Time Range In Days"
+						},
+						"description": "Only allow events within the past few days, default is 21"
+					},
+					{
 						"name": "customize_context_prompt",
 						"in": "query",
 						"required": false,
@@ -1989,6 +2001,18 @@
 							"title": "Customize Context Prompt"
 						},
 						"description": "Customize context prompt template.\n- use `{profile_section}` to refer to the profile section\n- use `{event_section}` to refer to the event section\n\nFor example:\n```\n# Memory\nUnless the user has relevant queries, do not actively mention those memories in the conversation.\n## User Background:\n{profile_section}\n\n## Latest Events:\n{event_section}\n```\n"
+					},
+					{
+						"name": "full_profile_and_only_search_event",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"description": "If you pass `chats_str` and set this to `False`, Memobase will search for relevant profiles and events at the same time.\n**NOTICE**\n- It will increase your latency by 2-5(based on the profile size) seconds, because Memobase will use LLM and Embedding to search for relevant profiles and events.\n- It will cost your Memobase tokens, roughly 100~1000 tokens per chat based on the profile size.\n",
+							"default": true,
+							"title": "Full Profile And Only Search Event"
+						},
+						"description": "If you pass `chats_str` and set this to `False`, Memobase will search for relevant profiles and events at the same time.\n**NOTICE**\n- It will increase your latency by 2-5(based on the profile size) seconds, because Memobase will use LLM and Embedding to search for relevant profiles and events.\n- It will cost your Memobase tokens, roughly 100~1000 tokens per chat based on the profile size.\n"
 					}
 				],
 				"responses": {

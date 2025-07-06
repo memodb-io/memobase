@@ -31,3 +31,12 @@ print(u.context())
 Detailed params is in [here](/api-reference/prompt/get_context).
 
 
+## Search related events in Context
+You can pass recent user chats to the context API to search related events, so the returned events in context will be more accurate, instead of latest events.
+
+```python
+u.context(chats=[
+    {"role": "user", "content": "What's my name?"}
+])
+```
+Detailed params is in [here](/api-reference/prompt/get_context#parameter-chats-str).
