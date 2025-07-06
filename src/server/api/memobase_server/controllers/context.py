@@ -1,5 +1,5 @@
 from functools import partial
-from ..models.utils import Promise
+from ..models.utils import Promise, CODE
 from ..models.response import ContextData, OpenAICompatibleMessage
 from ..prompts.chat_context_pack import CONTEXT_PROMPT_PACK
 from ..utils import get_encoded_tokens, event_str_repr
@@ -18,53 +18,39 @@ def customize_context_prompt_func(
     )
 
 
-async def get_user_context(
+def pack_latest_chat(chats: list[OpenAICompatibleMessage], chat_num: int = 3) -> str:
+    return "\n".join([f"{m.content}" for m in chats[-chat_num:]])
+
+
+async def get_user_profiles_data(
     user_id: str,
     project_id: str,
-    max_token_size: int,
+    max_profile_token_size: int,
     prefer_topics: list[str],
     only_topics: list[str],
     max_subtopic_size: int,
     topic_limits: dict[str, int],
-    profile_event_ratio: float,
-    require_event_summary: bool,
     chats: list[OpenAICompatibleMessage],
-    event_similarity_threshold: float,
-    customize_context_prompt: str = None,
-) -> Promise[ContextData]:
-    assert 0 < profile_event_ratio <= 1, "profile_event_ratio must be between 0 and 1"
-    max_profile_token_size = int(max_token_size * profile_event_ratio)
-    add_query_context = None
-    # max_event_token_size = max_token_size - max_profile_token_size
-
-    p = await get_project_profile_config(project_id)
-    if not p.ok():
-        return p
-    profile_config = p.data()
-    use_language = profile_config.language or CONFIG.language
-    context_prompt_func = CONTEXT_PROMPT_PACK[use_language]
-    if customize_context_prompt is not None:
-        context_prompt_func = partial(
-            customize_context_prompt_func, customize_context_prompt
-        )
-
+    full_profile_and_only_search_event: bool,
+) -> Promise[tuple[str, list]]:
+    """Retrieve and process user profiles."""
     p = await get_user_profiles(user_id, project_id)
     if not p.ok():
         return p
     total_profiles = p.data()
+
     if max_profile_token_size > 0:
-        if chats:
+        if chats and (not full_profile_and_only_search_event):
             p = await filter_profiles_with_chats(
                 user_id,
                 project_id,
                 total_profiles,
                 chats,
                 only_topics=only_topics,
-                # max_filter_num=topk,
             )
             if p.ok():
                 total_profiles.profiles = p.data()["profiles"]
-                add_query_context = p.data()
+
         user_profiles = total_profiles
         use_profiles = await truncate_profiles(
             user_profiles,
@@ -86,34 +72,29 @@ async def get_user_context(
         )
     else:
         profile_section = ""
+        use_profiles = []
 
-    profile_section_tokens = len(get_encoded_tokens(profile_section))
-    max_event_token_size = min(
-        max_token_size - profile_section_tokens, max_token_size - max_profile_token_size
-    )
-    if max_event_token_size <= 0:
-        return Promise.resolve(
-            ContextData(context=context_prompt_func(profile_section, ""))
-        )
+    return Promise.resolve((profile_section, use_profiles))
 
-    # max 40 events, then truncate to max_event_token_size
+
+async def get_user_events_data(
+    user_id: str,
+    project_id: str,
+    chats: list[OpenAICompatibleMessage],
+    require_event_summary: bool,
+    event_similarity_threshold: float,
+    time_range_in_days: int,
+) -> Promise:
+    """Retrieve user events data."""
     if chats and CONFIG.enable_event_embedding:
-        search_query = chats[-1].content
-        if add_query_context:
-            filter_profiles = add_query_context["profiles"]
-            profoile_q = "\n".join(
-                [
-                    f"- {fp.attributes['topic']}::{fp.attributes['sub_topic']}"
-                    for fp in filter_profiles
-                ]
-            )
-            search_query = f"{profoile_q}\n---\n{search_query}"
+        search_query = pack_latest_chat(chats)
         p = await search_user_events(
             user_id,
             project_id,
             query=search_query,
             topk=20,
             similarity_threshold=event_similarity_threshold,
+            time_range_in_days=time_range_in_days,
         )
     else:
         p = await get_user_events(
@@ -121,21 +102,111 @@ async def get_user_context(
             project_id,
             topk=20,
             need_summary=require_event_summary,
+            time_range_in_days=time_range_in_days,
         )
+    return p
+
+
+async def get_user_context(
+    user_id: str,
+    project_id: str,
+    max_token_size: int,
+    prefer_topics: list[str],
+    only_topics: list[str],
+    max_subtopic_size: int,
+    topic_limits: dict[str, int],
+    profile_event_ratio: float,
+    require_event_summary: bool,
+    chats: list[OpenAICompatibleMessage],
+    event_similarity_threshold: float,
+    time_range_in_days: int,
+    customize_context_prompt: str = None,
+    full_profile_and_only_search_event: bool = False,
+) -> Promise[ContextData]:
+    import asyncio
+
+    assert 0 < profile_event_ratio <= 1, "profile_event_ratio must be between 0 and 1"
+    max_profile_token_size = int(max_token_size * profile_event_ratio)
+
+    p = await get_project_profile_config(project_id)
     if not p.ok():
         return p
-    user_events = p.data()
+    profile_config = p.data()
+    use_language = profile_config.language or CONFIG.language
+    context_prompt_func = CONTEXT_PROMPT_PACK[use_language]
+    if customize_context_prompt is not None:
+        context_prompt_func = partial(
+            customize_context_prompt_func, customize_context_prompt
+        )
+
+    # Execute profile and event retrieval in parallel
+    profile_result, event_result = await asyncio.gather(
+        get_user_profiles_data(
+            user_id,
+            project_id,
+            max_profile_token_size,
+            prefer_topics,
+            only_topics,
+            max_subtopic_size,
+            topic_limits,
+            chats,
+            full_profile_and_only_search_event,
+        ),
+        get_user_events_data(
+            user_id,
+            project_id,
+            chats,
+            require_event_summary,
+            event_similarity_threshold,
+            time_range_in_days,
+        ),
+        return_exceptions=True,
+    )
+
+    # Handle profile result
+    if isinstance(profile_result, Exception):
+        return Promise.reject(
+            CODE.SERVER_PARSE_ERROR, f"Profile retrieval failed: {str(profile_result)}"
+        )
+    if not profile_result.ok():
+        return profile_result
+    profile_section, use_profiles = profile_result.data()
+
+    # Handle event result
+    if isinstance(event_result, Exception):
+        return Promise.reject(
+            CODE.SERVER_PARSE_ERROR, f"Event retrieval failed: {str(event_result)}"
+        )
+    if not event_result.ok():
+        return event_result
+    user_events = event_result.data()
+
+    # Calculate token sizes and truncate events if needed
+    profile_section_tokens = len(get_encoded_tokens(profile_section))
+    max_event_token_size = min(
+        max_token_size - profile_section_tokens, max_token_size - max_profile_token_size
+    )
+
+    if max_event_token_size <= 0:
+        return Promise.resolve(
+            ContextData(context=context_prompt_func(profile_section, ""))
+        )
+
+    # Truncate events based on calculated token size
     p = await truncate_events(user_events, max_event_token_size)
     if not p.ok():
         return p
     user_events = p.data()
+
     event_section = "\n".join([event_str_repr(ed) for ed in user_events.events])
     event_section_tokens = len(get_encoded_tokens(event_section))
+
     TRACE_LOG.info(
         project_id,
         user_id,
-        f"Retrived {len(use_profiles)} profiles({profile_section_tokens} tokens), {len(user_events.events)} events({event_section_tokens} tokens)",
+        f"Retrieved {len(use_profiles)} profiles({profile_section_tokens} tokens), {len(user_events.events)} events({event_section_tokens} tokens)",
     )
+
     return Promise.resolve(
         ContextData(context=context_prompt_func(profile_section, event_section))
     )

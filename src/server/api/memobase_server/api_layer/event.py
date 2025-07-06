@@ -58,7 +58,9 @@ async def search_user_events(
     similarity_threshold: float = Query(
         0.2, description="Similarity threshold, default is 0.2"
     ),
-    time_range_in_days: int = Query(7, description="Time range in days, default is 7"),
+    time_range_in_days: int = Query(
+        21, description="Only allow events within the past few days, default is 21"
+    ),
 ) -> res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.event.search_user_events(

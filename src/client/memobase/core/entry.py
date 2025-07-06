@@ -309,6 +309,7 @@ class User:
         chats: list[OpenAICompatibleMessage] = None,
         event_similarity_threshold: float = None,
         customize_context_prompt: str = None,
+        full_profile_and_only_search_event: bool = None,
     ) -> str:
         params = f"?max_token_size={max_token_size}"
         if prefer_topics:
@@ -341,6 +342,8 @@ class User:
             params += (
                 f"&customize_context_prompt={quote_plus(customize_context_prompt)}"
             )
+        if full_profile_and_only_search_event is not None:
+            params += f"&full_profile_and_only_search_event={'true' if full_profile_and_only_search_event else 'false'}"
         r = unpack_response(
             self.project_client.client.get(f"/users/context/{self.user_id}{params}")
         )

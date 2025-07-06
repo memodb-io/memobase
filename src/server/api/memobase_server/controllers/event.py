@@ -17,10 +17,15 @@ async def get_user_events(
     project_id: str,
     topk: int = 10,
     need_summary: bool = False,
+    time_range_in_days: int = 21,
 ) -> Promise[UserEventsData]:
     with Session() as session:
-        query = session.query(UserEvent).filter_by(
-            user_id=user_id, project_id=project_id
+        query = (
+            session.query(UserEvent)
+            .filter_by(user_id=user_id, project_id=project_id)
+            .filter(
+                UserEvent.created_at > (func.now() - timedelta(days=time_range_in_days))
+            )
         )
         if need_summary:
             query = query.filter(
@@ -174,6 +179,11 @@ async def search_user_events(
     time_range_in_days: int = 21,
 ) -> Promise[UserEventsData]:
     if not CONFIG.enable_event_embedding:
+        TRACE_LOG.warning(
+            project_id,
+            user_id,
+            "Event embedding is not enabled, skip search",
+        )
         return Promise.reject(
             CODE.NOT_IMPLEMENTED,
             "Event embedding is not enabled",

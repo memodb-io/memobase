@@ -42,11 +42,24 @@ async def get_user_context(
     ),
     chats_str: str = Query(
         None,
-        description='List of chats in OpenAI Message format, for example: [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi"}]',
+        description="""Pass the recent chats to enable context search. 
+Memobase will use those chats to search for relevant events.
+It's a list of chats in OpenAI Message format, for example: [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi"}].
+
+**NOTICE**
+- It will increase your latency by 0.1-1 seconds, because Memobase will use Embedding to search for relevant profiles and events.
+- It will cost your Memobase tokens, roughly 100~200 tokens per chat based on the profile size.
+- The profiles in the context will not be searched by the `chats_str`.
+- If you want also search profiles, see `full_profile_and_only_search_event` query parameter.
+""",
     ),
     event_similarity_threshold: float = Query(
         0.2,
         description="Event similarity threshold of returned Context",
+    ),
+    time_range_in_days: int = Query(
+        21,
+        description="Only allow events within the past few days, default is 21",
     ),
     customize_context_prompt: str = Query(
         None,
@@ -64,6 +77,14 @@ Unless the user has relevant queries, do not actively mention those memories in 
 ## Latest Events:
 {event_section}
 ```
+""",
+    ),
+    full_profile_and_only_search_event: bool = Query(
+        True,
+        description="""If you pass `chats_str` and set this to `False`, Memobase will search for relevant profiles and events at the same time.
+**NOTICE**
+- It will increase your latency by 2-5(based on the profile size) seconds, because Memobase will use LLM and Embedding to search for relevant profiles and events.
+- It will cost your Memobase tokens, roughly 100~1000 tokens per chat based on the profile size.
 """,
     ),
 ) -> res.UserContextDataResponse:
@@ -89,6 +110,8 @@ Unless the user has relevant queries, do not actively mention those memories in 
         require_event_summary,
         chats,
         event_similarity_threshold,
+        time_range_in_days,
         customize_context_prompt=customize_context_prompt,
+        full_profile_and_only_search_event=full_profile_and_only_search_event,
     )
     return p.to_response(res.UserContextDataResponse)
