@@ -23,7 +23,6 @@ This project contains the code of running benchmark results on [Locomo dataset](
 | Mem0-Graph | 65.71         | 47.19        | 75.71          | 58.13       | 68.44      |
 | LangMem    | 62.23         | 47.92        | 71.12          | 23.43       | 58.10      |
 | Zep        | 61.70         | 41.35        | **76.60**      | 49.31       | 65.99      |
-| Zep*       | 74.11         | 66.04        | 67.71          | 79.79       | 75.14      |
 | OpenAI     | 63.79         | 42.92        | 62.29          | 21.71       | 52.90      |
 | Memobase   | 63.83         | **52.08**    | 71.82          | **80.37**   | **70.91**  |
 
