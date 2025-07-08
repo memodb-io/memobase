@@ -51,7 +51,12 @@ def get_prompt() -> str:
 
 
 def pack_messages(messages: list[OpenAICompatibleMessage]):
-    return "\n".join([f"[{m.role}]: {m.content}" for m in messages])
+    return "\n".join(
+        [
+            f"[{m.role}{f'({m.alias})' if m.alias else ''}]: {m.content}"
+            for m in messages
+        ]
+    )
 
 
 def get_input(role, user, before_plots: list[str], messages: list):
