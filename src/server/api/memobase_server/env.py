@@ -114,7 +114,6 @@ class Config:
     profile_strict_mode: bool = False
     profile_validate_mode: bool = True
 
-    enable_event_summary: bool = True
     minimum_chats_token_size_for_event_summary: int = 256
     event_tags: list[dict] = field(default_factory=list)
     # Telemetry
@@ -232,7 +231,6 @@ class ProfileConfig:
     overwrite_user_profiles: Optional[list[dict]] = None
     event_theme_requirement: Optional[str] = None
 
-    enable_event_summary: bool = None
     event_tags: list[dict] = None
 
     def __post_init__(self):

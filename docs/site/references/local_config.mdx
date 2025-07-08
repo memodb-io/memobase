@@ -1,7 +1,7 @@
 ---
-title: Detailed Configs
+title: Self-Hosted Configuration
 ---
-
+If you develop Memobase locally, you can use a `config.yaml` file to configure Memobase Backend.
 ## Full Explanation of `config.yaml`
 We use a single `config.yaml` file as the source to configure Memobase Backend. An example is like this:
 
@@ -44,7 +44,6 @@ profile_strict_mode: false
 profile_validate_mode: true
 
 # Summary Configuration
-enable_event_summary: true
 minimum_chats_token_size_for_event_summary: 256
 ```
 
@@ -107,7 +106,6 @@ Check what a profile is in Memobase [here](/features/customization/profile).
 - `profile_validate_mode`: boolean, default to `true`. Enables validation of profile data.
 
 ### Summary Configuration
-- `enable_event_summary`: boolean, default to `true`. Whether to enable event summarization.
 - `minimum_chats_token_size_for_event_summary`: int, default to `256`. Minimum token size required to trigger an event summary.
 - `event_tags`: list, default to `[]`. Custom event tags for classification.
 

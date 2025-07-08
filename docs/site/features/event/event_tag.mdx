@@ -11,7 +11,7 @@ You can use event tag to enrich the user event, and doing some tracking on the u
 
 ## How to set event tag?
 By default, Memobase will record no event tag. You need to set the event tag in your `config.yaml`:
-```yaml
+```yaml config.yaml
 event_tags:
   - name: "emotion"
     description: "Record the current emotion of user"
@@ -23,3 +23,16 @@ where `name` is the name of the event tag, and `description` is the description 
 
 Once you set the event tag, Memobase will record the event tag automatically and return events with event tags.
 Check [here](/api-reference/events/get_events) for more details.
+
+## Get event tags
+You can get event tags from server by calling `get_event_tags` API.
+```python
+from memobase import MemoBaseClient
+
+client = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+u = client.get_user(uid)
+
+events = u.event()
+for event in events:
+    print(event.event_data.event_tags)
+```

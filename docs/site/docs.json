@@ -40,6 +40,7 @@
                 "group": "User Event",
                 "pages": [
                   "features/event/event",
+                  "features/event/event_summary",
                   "features/event/event_tag",
                   "features/event/event_search"
                 ]
@@ -59,7 +60,8 @@
           {
             "group": "Referencces",
             "pages": [
-              "references/full",
+              "references/cloud_config",
+              "references/local_config",
               "references/async_client"
             ]
           }
