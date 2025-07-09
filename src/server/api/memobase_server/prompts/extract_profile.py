@@ -27,7 +27,7 @@ EXAMPLES = [
                     {
                         "topic": "life_event",
                         "sub_topic": "Marriage",
-                        "memo": "married to SiLei [happen at 2025/01/01]",
+                        "memo": "married to SiLei [mention 2025/01/15, the marriage at 2025/01/01]",
                     },
                 ]
             }
@@ -35,46 +35,7 @@ EXAMPLES = [
     ),
     (
         """
-- User lives in San Francisco [mention 2025/01/01]
-- User is looking for a daily restaurant in San Francisco [mention 2025/01/01]
-""",
-        AIUserProfiles(
-            **{
-                "facts": [
-                    {
-                        "topic": "contact_info",
-                        "sub_topic": "city",
-                        "memo": "San Francisco [mention 2025/01/01]",
-                    }
-                ]
-            }
-        ),
-    ),
-    (
-        """
-- User is referred as Melinda [mention 2025/01/01]
-- User is applying PhD [mention 2025/01/01]
-""",
-        AIUserProfiles(
-            **{
-                "facts": [
-                    {
-                        "topic": "basic_info",
-                        "sub_topic": "name",
-                        "memo": "Referred as Melinda",
-                    },
-                    {
-                        "topic": "education",
-                        "sub_topic": "degree",
-                        "memo": "user is applying PhD [mention 2025/01/01]",
-                    },
-                ]
-            }
-        ),
-    ),
-    (
-        """
-- User had a meeting with John at 3pm [mention 2024/10/11, happen at 2024/10/10]
+- User had a meeting with John at 3pm [mention 2024/10/11, the meeting at 2024/10/10]
 - User is starting a project with John [mention 2024/10/11]
 """,
         AIUserProfiles(
@@ -127,12 +88,12 @@ EXAMPLES = [
                     {
                         "topic": "interest",
                         "sub_topic": "Movie",
-                        "memo": "Inception, Interstellar and Tenet; favorite movie is Tenet [mention 2025/01/02]",
+                        "memo": "Inception, Interstellar[mention 2025/01/01]; favorite movie is Tenet [mention 2025/01/02]",
                     },
                     {
                         "topic": "interest",
                         "sub_topic": "movie_director",
-                        "memo": "user seems to be a Big fan of director Christopher Nolan [mention 2025/01/02]",
+                        "memo": "user seems to be a big fan of director Christopher Nolan",
                     },
                 ]
             }
@@ -163,23 +124,40 @@ You will receive a memo of user in Markdown format, which states user infos, eve
 The memo is summarized from the chats between user and a assistant.
 
 ### Output
-You need to extract the facts and preferences from the memo and place them in order list:
+#### Think
+You need to think about what's topics/subtopics are mentioned in the memo, or what implications can be inferred from the memo.
+#### Profile
+After your steps of thinking, you need to extract the facts and preferences from the memo and place them in order list:
 - TOPIC{tab}SUB_TOPIC{tab}MEMO
 For example:
 - basic_info{tab}name{tab}melinda
 - work{tab}title{tab}software engineer
-
 For each line is a fact or preference, containing:
 1. TOPIC: topic represents of this preference
 2. SUB_TOPIC: the detailed topic of this preference
 3. MEMO: the extracted infos, facts or preferences of `user`
 those elements should be separated by `{tab}` and each line should be separated by `\n` and started with "- ".
 
+Final output template:
+```
+[POSSIBLE TOPICS THINKING...]
+---
+- TOPIC{tab}SUB_TOPIC{tab}MEMO
+- ...
+```
 
-## Examples
+## Extraction Examples
 Here are some few shot examples:
 {examples}
 Return the facts and preferences in a markdown list format as shown above.
+Only extract the attributes with actual values, if the user does not provide any value, do not extract it.
+You need to first think, then extract the facts and preferences from the memo.
+
+
+#### Topics Guidelines
+Below is the list of topics and subtopics that you should focus on collecting and extracting:
+{topic_examples}
+
 
 Remember the following:
 - If the user mentions time-sensitive information, try to infer the specific date from the data.
@@ -188,18 +166,11 @@ Remember the following:
 - Make sure to return the response in the format mentioned in the formatting & examples section.
 - You should infer what's implied from the conversation, not just what's explicitly stated.
 - Place all content related to this topic/sub_topic in one element, no repeat.
-
-Following is a conversation between the user and the assistant. You have to extract/infer the relevant facts and preferences from the conversation and return them in the list format as shown above.
-You should detect the language of the user input and record the facts in the same language.
-If you do not find anything relevant facts, user memories, and preferences in the below conversation, just return "NONE" or "NO FACTS".
-
-Only extract the attributes with actual values, if the user does not provide any value, do not extract it.
-
-#### Topics Guidelines
-Below is the list of topics and subtopics that you should focus on collecting and extracting:
-{topic_examples}
+- The memo will have two types of time, one is the time when the memo is mentioned, the other is the time when the event happened. Both are important, don't mix them up.
 
 Now perform your task.
+Following is a conversation between the user and the assistant. You have to extract/infer the relevant facts and preferences from the conversation and return them in the list format as shown above.
+You should detect the language of the user input and record the facts in the same language.
 """
 
 

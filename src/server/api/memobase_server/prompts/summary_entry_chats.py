@@ -9,14 +9,14 @@ You will be given a chats between a user and an assistant.
 ## Requirement
 - You need to list all possible user info
 - You need to list all possible schedule
-- You need to list the user events with detailed datetime. Convert the event date info in the message based on [TIME] after your log. for example
+- If the user event/schedule has specific mention time or event happen time. Convert the event date info in the message based on [TIME] after your log. for example
     Input: `[2024/04/30] user: I bought a new car yesterday!`
-    Output: `user bought a new car. [mention 2024/04/29, happen at 2024/04/30]`
+    Output: `user bought a new car. [mention 2024/04/30, buy car in 2024/04/29]`
     Input: `[2024/04/30] user: I bought a car 4 years ago!`
-    Output: `user bought a car. [mention 2024/04/30, happen at 2020]`
+    Output: `user bought a car. [mention 2024/04/30, buy car in 2020]`
     Explain: because you don't know the exact date, only year, so 2024-4=2020. or you can log at [4 years before 2024/04/30]
     Input: `[2024/04/30] user: I bought a new car last week!`
-    Output: `user bought a new car. [mention 2024/04/30, happen at a week before 2024/04/30]`
+    Output: `user bought a new car. [mention 2024/04/30, buy car in 2024/04/30 a week before]`
     Explain: because you don't know the exact date.
     Input: `[...] user: I bought a new car last week!`
     Output: `user bought a new car.`
@@ -45,16 +45,18 @@ MESSAGE is the content of the conversation.
 TIME is the time of this message happened, so you need to convert the date info in the message based on TIME if necessary.
 
 ## Output Format
+- LOGGING[TIME INFO] // TYPE
 Output your logging result in Markdown unorder list format.
 For example:
 ```
-- Jack paint a picture about his kids today.[mention 2023/1/23] // event
+- Jack paint a picture about his kids.[mention 2023/1/23] // event
 - User's alias is Jack, assistant is Melinda. // info
 - Jack mentioned his work is software engineer in Memobase. [mention 2023/1/23] // info
-- Jack plans to go the gym tomorrow. [mention 2023/1/23, happen at 2023/1/24] // schedule
+- Jack plans to go the gym. [mention 2023/1/23, plan in 2023/1/24] // schedule
 ...
 ```
 Always add specific mention time of your log, and the event happen time if possible.
+Remember, make sure your logging is pure and concise, any time info should move to [TIME INFO] block.
 
 Finally, The logging result should use the same language as the chats. English in, English out. Chinese in, Chinese out.
 Now perform your task.

@@ -174,7 +174,7 @@ Today is [YYYY-MM-DD]
 [new_memo]
 </template>
 - [update_instruction], [topic_description], [old_memo] may be empty. When empty, a `NONE` will be placed.
-- Pay attention to and keep the time annotation in the new and old memos (e.g., XXX[mentioned on 2025, happend at 2023]).
+- Pay attention to and keep the time annotation in the new and old memos (e.g., XXX[mentioned on 2025, married on 2023]).
 
 ## Output requirements
 Think step by step before memo update.
