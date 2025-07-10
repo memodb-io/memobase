@@ -1,52 +1,51 @@
 ---
-title: Search Profile
+title: Context-Aware Profile Search
 ---
 
-In Memobase, we try to memorize user in a controllable, global [context](/features/context).
-So that the `get` process is really fast and won't affect your latency.
+While Memobase is designed to provide a comprehensive, global [context](/features/context) for each user with very low latency, there are times when you need to search for specific information within a user's profile.
 
-But sometimes, you may want to search for something specific in the user's profile or context.
+Memobase provides a powerful, context-aware search method to filter out irrelevant memories and retrieve only what's needed for the current turn of the conversation.
 
-Memobase offers a search method for you to filter out the unrelated memories.
-## Profile Search
+## How Profile Search Works
+
+Unlike simple keyword or semantic matching, Memobase's profile search uses the LLM to perform a feature-based analysis. It reasons about what aspects of a user's profile are relevant to their latest query.
+
+For example, if a user asks, "Can you recommend a good restaurant?", Memobase doesn't just search for the term "restaurant." Instead, it identifies key features that would help answer the question, such as:
+
+-   `basic_info::location`: To determine the city for the restaurant search.
+-   `interests::food`: To understand the user's cuisine preferences.
+-   `health::allergies`: To know what ingredients to avoid.
+
+This intelligent, feature-based approach results in a much more relevant and helpful set of memories than traditional search methods.
+
 <CodeGroup>
 ```python Python
-p = u.profile(
-    chats = [{"role": "user", "content": "Find some restaurants for me"}], 
+# Assume 'user' is an initialized MemoBaseUser object
+contextual_profile = user.profile(
+    chats=[{"role": "user", "content": "Find some restaurants for me"}],
     need_json=True
 )
 
-print(p)
+print(contextual_profile)
 ```
 ```json Output
 {
     "basic_info": {
-        "allergies": "peanuts",
-        "location": "San Francisco"
+        "location": "San Francisco",
+        "allergies": "peanuts"
     },
     "interests": {
-        "food": "user likes to eat pizza and sushi"
-        ...
-    } 
+        "food": "User enjoys trying new ramen shops."
+    }
 }
 ```
 </CodeGroup>
-[API Reference](/api-reference/profiles/profile#parameter-chats-str)
 
-The profile search in Memobase is not a semantic-matching or keyword-matching, 
-it heaily relies on the features of user, and using AI to rank what may be relevant.
-For example, when user says "Find me a restaurant", Memobase does't just search for "restaurant", it thinks what aspects of user will help to answer this question, so:
-- user has a profile `basic_info:location`, that will help to decide the location of the restaurant.
-- user has a profile `interests:food`, that will help to decide the food type.
-- user has a profile `basic_info:allergies`, that will help to decide what not to include.
+See the [API Reference](/api-reference/profiles/profile#parameter-chats-str) for more details.
 
+### Important Considerations
 
-In result, Memobase's profile search is much more helpful than a semantic search, and can help to answer the question.
-
-
-
-### NOTICE
-- profile search will increase your latency by 2-5 seconds (depends on the profile size). Use it wisely.
-- profile search will cost your Memobase tokens, roughly 100~1000 tokens per chat based on the profile size.
+-   **Latency**: Profile search is a powerful but computationally intensive operation. It can add **2-5 seconds** to your response time, depending on the size of the user's profile. Use it judiciously.
+-   **Cost**: Each profile search consumes Memobase tokens (roughly 100-1000 tokens per call), which will affect your usage costs.
 
 

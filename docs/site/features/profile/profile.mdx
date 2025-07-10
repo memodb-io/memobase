@@ -1,53 +1,56 @@
 ---
-title: Basic
+title: Profile Fundamentals
 ---
-Memobase is a [user profile](/features#user-profile-as-memory) backend for LLM Apps, that means it tracks the certain slots of user profile and updates them accordingly.
-<Frame caption="What a basic user profile looks like in Memobase">
+
+Memobase serves as a [user profile backend](/features#user-profile-as-memory) for LLM applications, enabling them to track and update specific user attributes over time.
+
+<Frame caption="A sample user profile in Memobase, showing structured data slots.">
   <img src="/images/profile_demo.png" />
 </Frame>
 
-By default, Memobase has a built-in user profile slots for general use cases.
-But it allows you to customize the user profile to control the memory your App want to collect. 
+By default, Memobase includes a set of built-in profile slots for common use cases, but it also offers full customization to control the specific memories your application collects.
 
-### Locate the `config.yaml` file of self-hosted Memobase
-Memobase uses a `config.yaml` file to configure the backend. 
-Find your `config.yaml` file in `src/server/api/config.yaml`, normally it looks like this:
+### Locating the `config.yaml` File
+
+Memobase uses a `config.yaml` file for backend configuration. You can find this file at `src/server/api/config.yaml` in your self-hosted instance. A typical configuration looks like this:
 
 ```yaml
 max_chat_blob_buffer_token_size: 1024
 buffer_flush_interval: 3600
 llm_api_key: sk-...
 best_llm_model: gpt-4o-mini
-...
-
+# ... other settings
 ```
-## Understand the user profile slots
-By default, Memobase has a built-in user profile slots, something like:
+
+## Understanding Profile Slots
+
+Memobase comes with a default schema of profile slots, such as:
+
 ```markdown
 - basic_info
     - name
     - gender
-    ...
 - education
     - school
     - major
-    ...
 ```
-If you like to add more slots, you can add them in the `additional_user_profiles` field in `config.yaml`:
+
+You can extend this schema by adding custom slots under the `additional_user_profiles` field in `config.yaml`:
+
 ```yaml
 additional_user_profiles:
     - topic: "Gaming"
-      description: "Track the gaming preferences/achievements of the user."
+      description: "Tracks the user's gaming preferences and achievements."
       sub_topics:
         - name: "FPS"
-        description: "Games like CSGO, Valorant, etc."
-        - "LOL"
-    - topic: "Whatever"
+          description: "First-person shooter games like CSGO, Valorant, etc."
+        - name: "LOL"
+    - topic: "Professional"
       sub_topics:
-        - "whatever 1"
-        - "whatever 2"
+        - name: "Industry"
+        - name: "Role"
 ```
-Memobase will track the additional slots and fill/update the user profile accordingly.  
-Also, if you like to completely control the slots, you can use `overwrite_user_profiles` to place your own slots.
 
-Check detailed format of profile slots in [here](/features/profile/profile_desc)
+Memobase will then track these additional slots and update the user profile accordingly. If you need to define a completely custom schema, use the `overwrite_user_profiles` field instead.
+
+For detailed instructions on formatting profile slots, see [Profile Slot Configuration](/features/profile/profile_desc).

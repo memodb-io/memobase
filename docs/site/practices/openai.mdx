@@ -1,153 +1,153 @@
 ---
-title: OpenAI API with Memory
+title: Using Memobase with the OpenAI API
 ---
-<Frame caption="Diagram of OpenAI API with Memory">
+
+<Frame caption="Diagram of OpenAI API with Memory Integration">
   <img src="/images/openai_client.png" />
 </Frame>
 
-Memobase supports OpenAI API integration. 
-This allows you to "patch" Memobase's memory capabilities to OpenAI chat completion
-(or any LLM provider that is compatible to OpenAI SDK) without changing the original code.
-
+Memobase integrates with the OpenAI API, allowing you to add long-term memory to chat completions without altering your existing code. This patch works with the official OpenAI SDK and any other OpenAI-compatible provider.
 
 ## Setup
-1. Make sure you install Memobase python SDK and OpenAI python SDK
-```bash
-pip install memobase openai
-```
 
-2. Initialize OpenAI and MemoBaseClient
-```python
-from openai import OpenAI
-from memobase import MemoBaseClient
+1.  **Install SDKs**: Ensure both the Memobase and OpenAI Python SDKs are installed.
+    ```bash
+    pip install memobase openai
+    ```
 
-client = OpenAI()
-mb_client = MemoBaseClient(
-    project_url=ENDPOINT,
-    api_key=TOKEN,
-)
-```
-Make sure you have the Memobase Endpoint and Token ready, check [here](/quickstart#get-prepared)
+2.  **Initialize Clients**: Create instances of both the OpenAI and Memobase clients.
+    ```python
+    from openai import OpenAI
+    from memobase import MemoBaseClient
 
-## Patch Memory 
+    client = OpenAI()
+    mb_client = MemoBaseClient(
+        project_url=YOUR_PROJECT_URL,
+        api_key=YOUR_API_KEY,
+    )
+    ```
+    You can find your `project_url` and `api_key` after [setting up your backend](/quickstart#memobase-backend).
+
+## Patch Memory
+
+Apply the Memobase memory patch to your OpenAI client instance with a single function call.
+
 ```python
 from memobase.patch.openai import openai_memory
 
 client = openai_memory(client, mb_client)
 ```
-You're all set!
 
+## Usage
 
-## How to use OpenAI with Memory?
-1. You can use OpenAI API as you normally would but simply add `user_id` to the request.
+1.  To enable memory, simply add a `user_id` to your standard API call. The client will automatically handle the memory context.
 
-<CodeGroup>
-```python OpenAI
-client.chat.completions.create(
-    messages=[
-        {"role": "user", "content": "I'm Gus"},
-    ],
-    model="gpt-4o"
-)
-```
-```python OpenAI with Memory
-client.chat.completions.create(
-    messages=[
-        {"role": "user", "content": "I'm Gus"},
-    ],
-    model="gpt-4o",
-    user_id="test",
-)
-```
-</CodeGroup>
-
-2. If no `user_id` is passed, the client will act just like the original OpenAI client.
-3. If `user_id` is passed, the client will use Memobase automatically.
-4. The memory processing of the user won't be trigger immediately, there is a buffer zone to collect the recent messages.
-However, you can manually trigger the process by
-```python
-client.flush("test")
-```
-
-## Make sure the memory is retained
-<CodeGroup>
-```python OpenAI
-client.chat.completions.create(
-    messages=[
-        {"role": "user", "content": "Who'm I?"},
-    ],
-    model="gpt-4o"
-)
-
-# I'm sorry, I can't determine your identity...
-```
-```python OpenAI with Memory
-client.chat.completions.create(
-    messages=[
-        {"role": "user", "content": "Who'm I?"},
-    ],
-    model="gpt-4o",
-    user_id="test",
-)
-
-# You're Gus! If you need anything specific...
-```
-</CodeGroup>
-
-## How it works?
-
-1. The `openai_memory` function patches the OpenAI client to call Memobase SDK before and after the chat completion.
-2. **Only the latest** user query and assistant response will be inserted into the memory.
-    - If your messages are:
-    ```json
-    [
-        {"role": "user", "content": "I'm Gus"},
-        {"role": "assistant", "content": "Hello Gus! How can I help you?"},
-        {"role": "user", "content": "Who'm I?"},
-    ]
+    <CodeGroup>
+    ```python OpenAI (Original)
+    client.chat.completions.create(
+        messages=[
+            {"role": "user", "content": "My name is Gus"},
+        ],
+        model="gpt-4o"
+    )
     ```
-    And the response is `You'r Gus!`. 
-    - Then the only the latest query and response will be inserted, equivalent to:
+    ```python OpenAI with Memory
+    client.chat.completions.create(
+        messages=[
+            {"role": "user", "content": "My name is Gus"},
+        ],
+        model="gpt-4o",
+        user_id="test_user_123",
+    )
+    ```
+    </CodeGroup>
+
+2.  If no `user_id` is passed, the client functions exactly like the original OpenAI client.
+
+3.  By default, memory processing is not immediate. User interactions are collected in a buffer to optimize performance. You can manually trigger processing using the `flush` method:
     ```python
-    u.insert(
-        ChatBlob(messages=[
-            {"role": "user", "content": "Who'm I?"},
-            {"role": "assistant", "content": "You're Gus!"},
-        ]
-    ))
+    client.flush("test_user_123")
     ```
-3. So you don't really change the way you're currently using OpenAI API, you can still keep the recent messages when you call the chat completion API.
-And Memobase won't repeatedly insert the same messages into the memory.
 
+## Verifying Memory Retention
 
-The full script is [here](https://github.com/memodb-io/memobase/blob/main/assets/openai_memory.py)
+Once a user's information is captured, it can be recalled in subsequent, separate conversations.
+
+<CodeGroup>
+```python OpenAI (No Memory)
+# In a new session
+response = client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "What is my name?"},
+    ],
+    model="gpt-4o"
+)
+# Assistant: "I'm sorry, I don't have access to personal information..."
+```
+```python OpenAI with Memory
+# In a new session
+response = client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "What is my name?"},
+    ],
+    model="gpt-4o",
+    user_id="test_user_123",
+)
+# Assistant: "Your name is Gus."
+```
+</CodeGroup>
+
+## How It Works
+
+The `openai_memory` function wraps the OpenAI client with two key actions:
+
+1.  **Before Request**: It retrieves the user's memory context from Memobase and injects it into the prompt.
+2.  **After Response**: It saves only the **latest** user query and assistant response to the memory buffer.
+
+For example, if your message history is:
+```json
+[
+    {"role": "user", "content": "My name is Gus"},
+    {"role": "assistant", "content": "Hello Gus! How can I help you?"},
+    {"role": "user", "content": "What is my name?"}
+]
+```
+And the final response is `Your name is Gus.`, Memobase will only store the last exchange. This is equivalent to:
+```python
+u.insert(
+    ChatBlob(messages=[
+        {"role": "user", "content": "What is my name?"},
+        {"role": "assistant", "content": "Your name is Gus."},
+    ])
+)
+```
+This design ensures you can manage short-term conversation history within your API calls as usual, while Memobase prevents duplicate entries in the long-term memory.
+
+The full implementation script is available [here](https://github.com/memodb-io/memobase/blob/main/assets/openai_memory.py).
 
 ## Advanced Usage
-### Params 
-When you use the `openai_memory` function, you can pass additional arguments to customize the memory behavior:
-```python
-client = openai_memory(client, mb_client, max_context_size=500)
-```
-`max_context_size` will control the maximum token size of Memory Context will take, default to 1000.
-```python
-client = openai_memory(client, mb_client, additional_memory_prompt="Make sure the user's query needs the memory, otherwise just return the answer directly.")
-```
-`additional_memory_prompt` will control how LLM will use the memory, some examples:
-```python
-additional_memory_prompt="Always use user memory to give a personalized answer"
-additional_memory_prompt="Use memory to dig deeper into the user's query and rewrite the query..."
-```
+
+### Custom Parameters
+
+You can pass additional arguments to `openai_memory` to customize its behavior:
+
+-   `max_context_size`: Controls the maximum token size of the injected memory context. Defaults to `1000`.
+    ```python
+    client = openai_memory(client, mb_client, max_context_size=500)
+    ```
+-   `additional_memory_prompt`: Provides a meta-prompt to guide the LLM on how to use the memory.
+    ```python
+    # Example: Encourage personalization
+    prompt = "Always use the user's memory to provide a personalized answer."
+    client = openai_memory(client, mb_client, additional_memory_prompt=prompt)
+    ```
 
 ### Patched Methods
-Once you patch the OpenAI client, you can use the following methods in it:
-```python
-client.get_memory_prompt("userid")
-```
-This method will return the current memory section(including memory, `memory_prompt`) of the user.
-```python
-client.flush("userid")
-```
-This method will flush the memory of the user immediately, Memobase **won't** update the memory right away, if you like to see the updated memory once your message is processed, call this method.
+
+The patched client includes new helper methods:
+
+-   `client.get_memory_prompt("user_id")`: Returns the current memory prompt that will be injected for a given user.
+-   `client.flush("user_id")`: Immediately processes the memory buffer for a user. Call this if you need to see memory updates reflected instantly.
 
 
 

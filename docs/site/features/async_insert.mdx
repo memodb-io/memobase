@@ -1,45 +1,37 @@
 ---
-title: 'Async Insert'
+title: Asynchronous Operations
 ---
 
-## Asynchronous Insert/Flush
+Memobase supports asynchronous operations for inserting and flushing data. Offloading these tasks to background processes improves your application's performance and responsiveness by preventing memory operations from blocking the main thread.
 
-Memobase offers asynchronous operations for inserting and flushing data. This allows for improved performance and responsiveness by offloading these tasks to background processes.
-
-When you perform an async insert or flush, the data is not immediately processed. Instead, it's queued for later processing. 
-
-By doing so, the memory process won't block your Apps, and you can just leave it to Memobase to handle the data.
+When you perform an asynchronous insert or flush, the data is queued for processing, and the method returns immediately. This allows your application to continue executing while Memobase handles the data in the background.
 
 ### SDK Examples
 
-Here are some examples of how to switch between sync and async insert/flush in our SDKs:
+Here’s how to use both synchronous and asynchronous operations in our SDKs:
 
 <CodeGroup>
 ```python Python
 from memobase import MemoBaseClient
 from memobase.core.blob import ChatBlob
 
-client = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
-u = client.get_user(uid)
+client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
+user = client.get_user('some_user_id')
 
-# Async insert (default)
-b = ChatBlob(messages=[
-    {
-        "role": "user",
-        "content": "Hi, I'm here again"
-    },
-    {
-        "role": "assistant",
-        "content": "Hi, Gus! How can I help you?"
-    }
+# Create a data blob
+blob = ChatBlob(messages=[
+    {"role": "user", "content": "Hi, I'm here again"},
+    {"role": "assistant", "content": "Hi, Gus! How can I help you?"}
 ])
-bid = u.insert(b)
 
-# Async flush (default)
-u.flush()
+# Asynchronous insert (default behavior)
+blob_id = user.insert(blob)
 
-# Sync flush (wait for completion)
-u.flush(sync=True)
+# Asynchronous flush (default behavior)
+user.flush()
+
+# Synchronous flush (waits for completion)
+user.flush(sync=True)
 ```
 
 ```javascript JavaScript
@@ -48,22 +40,16 @@ import { MemoBaseClient, Blob, BlobType } from '@memobase/memobase';
 const client = new MemoBaseClient(process.env.MEMOBASE_PROJECT_URL, process.env.MEMOBASE_API_KEY);
 const user = await client.getUser(userId);
 
-// Async insert
+// Asynchronous insert
 const blobId = await user.insert(Blob.parse({
   type: BlobType.Enum.chat,
   messages: [
-    {
-      role: 'user',
-      content: 'Hi, I\'m here again'
-    },
-    {
-      role: 'assistant',
-      content: 'Hi, Gus! How can I help you?'
-    }
+    { role: 'user', content: 'Hi, I\'m here again' },
+    { role: 'assistant', content: 'Hi, Gus! How can I help you?' }
   ]
 }));
 
-// Async flush
+// Asynchronous flush
 await user.flush(BlobType.Enum.chat);
 ```
 
@@ -77,56 +63,38 @@ import (
 )
 
 func main() {
-    projectURL := "YOUR_PROJECT_URL"
-    apiKey := "YOUR_API_KEY"
-    // Initialize the client
-    client, err := core.NewMemoBaseClient(
-        projectURL,
-        apiKey,
-    )
+    client, err := core.NewMemoBaseClient("YOUR_PROJECT_URL", "YOUR_API_KEY")
     if err != nil {
         log.Fatalf("Failed to create client: %v", err)
     }
 
-    // Get a user
-    userID := "EXISTING_USER_ID" // Replace with an actual user ID
-    user, err := client.GetUser(userID, false)
+    user, err := client.GetUser("EXISTING_USER_ID", false)
     if err != nil {
         log.Fatalf("Failed to get user: %v", err)
     }
 
-    // Create a chat blob
     chatBlob := &blob.ChatBlob{
-        BaseBlob: blob.BaseBlob{
-            Type: blob.ChatType,
-        },
         Messages: []blob.OpenAICompatibleMessage{
-            {
-                Role:    "user",
-                Content: "Hello, I am Jinjia!",
-            },
-            {
-                Role:    "assistant",
-                Content: "Hi there! How can I help you today?",
-            },
+            {Role: "user", Content: "Hello, I am Jinjia!"},
+            {Role: "assistant", Content: "Hi there! How can I help you today?"},
         },
     }
 
-    // Insert the blob asynchronously
+    // Asynchronous insert (sync=false)
     blobID, err := user.Insert(chatBlob, false)
     if err != nil {
         log.Fatalf("Failed to insert blob: %v", err)
     }
-    fmt.Printf("Successfully inserted blob with ID: %s\n", blobID)
+    fmt.Printf("Successfully queued blob for insertion with ID: %s\n", blobID)
 
-    // Flush the buffer asynchronously
+    // Asynchronous flush (sync=false)
     err = user.Flush(blob.ChatType, false)
     if err != nil {
         log.Fatalf("Failed to flush buffer: %v", err)
     }
-    fmt.Println("Successfully flushed buffer")
+    fmt.Println("Successfully queued buffer for flushing")
 
-    // Flush the buffer synchronously
+    // Synchronous flush (sync=true)
     err = user.Flush(blob.ChatType, true)
     if err != nil {
         log.Fatalf("Failed to flush buffer: %v", err)
@@ -136,4 +104,4 @@ func main() {
 ```
 </CodeGroup>
 
-For detailed API, refer to [flush](/api-reference/buffer/flush) and [insert](/api-reference/blobs/insert_data).
+For more details, see the API reference for [flush](/api-reference/buffer/flush) and [insert](/api-reference/blobs/insert_data).

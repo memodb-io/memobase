@@ -2,35 +2,41 @@
 title: OpenAI Client with User Memory
 ---
 
-One of the major use case of Memobase is to remember user preferences from the conversation history.
-In this tutorial, we will demonstrate how to **build memory feature around OpenAI client**.
-Memobase offers [an easy way](/practices/openai) already for OpenAI client to remember users.
-This document is a detailed code breakdown of how to implement this feature.
+A key feature of Memobase is its ability to remember user preferences from conversation history. This tutorial demonstrates how to integrate this memory capability directly into the OpenAI client.
+
+While Memobase offers a simple [patch](/practices/openai) for this, the following sections provide a detailed breakdown of the implementation.
 
 ## Setup
-1. Go to [Memobase](https://www.memobase.io/en) for your Memobase API Key or launch [a local server](https://github.com/memodb-io/memobase/tree/dev/src/server)
-2. Setup the environment variables:
-```bash
-OPENAI_API_KEY=your_openai_api_key
-MEMOBASE_URL=https://api.memobase.dev
-MEMOBASE_API_KEY=your_memobase_api_key
-```
-3. Install the dependencies:
-```bash
-pip install openai memobase
-```
+
+1.  **Get API Keys**: Obtain an API key from [Memobase](https://www.memobase.io/en) or run a [local server](https://github.com/memodb-io/memobase/tree/dev/src/server).
+2.  **Configure Environment Variables**:
+    ```bash
+    OPENAI_API_KEY="your_openai_api_key"
+    MEMOBASE_URL="https://api.memobase.dev"
+    MEMOBASE_API_KEY="your_memobase_api_key"
+    ```
+3.  **Install Dependencies**:
+    ```bash
+    pip install openai memobase
+    ```
 
 ## Code Breakdown
+
 <Frame caption="Diagram of OpenAI API with Memory">
   <img src="/images/openai_client.png" />
 </Frame>
-To implement the memory feature around OpenAI client, we need to:
-1. Add wrappers around the OpenAI client, so we can obtain the chat messages and modify the prompts to inject memory
-2. Integrate Memobase APIs in wrappers to memorize the chat history and retrieve user memory
-3. Test if the memory feature works as expected
 
-> [Full Code](https://github.com/memodb-io/memobase/blob/main/src/client/memobase/patch/openai.py)
+The implementation involves three main steps:
+1.  **Wrap the OpenAI client**: This allows us to intercept chat messages and inject memory context into prompts.
+2.  **Integrate Memobase APIs**: Use the wrappers to store chat history and retrieve user memories.
+3.  **Test**: Verify that the memory feature functions correctly.
+
+> You can find the [full source code](https://github.com/memodb-io/memobase/blob/main/src/client/memobase/patch/openai.py) on GitHub.
+
 ### Basic Setup
+
+First, initialize the OpenAI and Memobase clients.
+
 ```python
 import os
 from memobase import MemoBaseClient
@@ -42,9 +48,12 @@ mb_client = MemoBaseClient(
     project_url=os.getenv("MEMOBASE_URL"),
 )
 ```
-### Add wrappers around the OpenAI client
-We use duck typing to add wrappers around the OpenAI client.
-```python   
+
+### Wrapping the OpenAI Client
+
+We use duck typing to wrap the OpenAI client. This approach avoids altering the original client's class structure.
+
+```python
 def openai_memory(
     openai_client: OpenAI | AsyncOpenAI,
     mb_client: MemoBaseClient
@@ -56,21 +65,22 @@ def openai_memory(
         openai_client, mb_client
     )
 ```
-Above code is a simplified version of the actual implementation:
-- We first check if the OpenAI client is already patched, if so, we return the original client
-- We then replace the `chat.completions.create` method, which is the main method to generate the chat completion
 
-We use a function called `_sync_chat` to replace the `chat.completions.create` method.
+This simplified code does two things:
+- It checks if the client has already been patched to prevent applying the wrapper multiple times.
+- It replaces the standard `chat.completions.create` method with our custom `_sync_chat` function, which will contain the memory logic.
 
-### New `chat.completions.create` method
-We hope the new `chat.completions.create` method can:
-- receive `user_id` in the arguments, so that we can memoize for the specific user
-- receive every possible arguments that the original `create` method receives, so the new one won't break any existing code
-- return the same type as the original `create` method, and I want to support streaming too.
-- almost the same running time as the original `create` method
+### The New `chat.completions.create` Method
 
-We first make sure the orginal arguments can be passed to the original `create` method:
-```python   
+Our new `chat.completions.create` method must meet several requirements:
+- Accept a `user_id` to enable user-specific memory.
+- Support all original arguments to ensure backward compatibility.
+- Return the same data types, including support for streaming.
+- Maintain performance comparable to the original method.
+
+First, we ensure that calls without a `user_id` are passed directly to the original method.
+
+```python
 def _sync_chat(
     client: OpenAI,
     mb_client: MemoBaseClient,
@@ -79,138 +89,133 @@ def _sync_chat(
     _create_chat = client.chat.completions.create
     def sync_chat(*args, **kwargs) -> ChatCompletion | Stream[ChatCompletionChunk]:
         is_streaming = kwargs.get("stream", False)
-        if kwargs.get("user_id", None) is None:
-            kwargs.pop("user_id")
-            if not is_streaming:
-                return _create_chat(*args, **kwargs)
-            else:
-                return (r for r in _create_chat(*args, **kwargs))
+        # If no user_id, call the original method
+        if "user_id" not in kwargs:
+            return _create_chat(*args, **kwargs)
 
+        # Pop user_id and convert it to UUID for Memobase
         user_id = string_to_uuid(kwargs.pop("user_id"))
         ...
 
     return sync_chat
 ```
-As we can see, the new `chat.completions.create` method is almost the same as the original one, except that it can receive `user_id` in the arguments.
-Since Memobase use uuid to identify users, we need to convert the `user_id` to uuid. By doing so, you can pass any user name.
+The wrapper passes all arguments (`*args`, `**kwargs`) to the original function, preserving its behavior. Memobase uses UUIDs to identify users, so we convert the provided `user_id` (which can be any string) into a UUID.
 
+If a `user_id` is present, the workflow is:
+1.  Get or create the user in Memobase.
+2.  Inject the user's memory context into the message list.
+3.  Call the original `create` method with the modified messages.
+4.  Save the new conversation to Memobase for future recall.
 
-If the `user_id` is provided, we need to:
-1. Get or create the user in Memobase
-2. Insert the user's memory context into the messages
-3. Call the original `create` method
-4. Save the conversation to Memobase
-
-Here's how it's implemented:
-
+Here is the implementation logic:
 ```python
 def _sync_chat(client: OpenAI, mb_client: MemoBaseClient):
     _create_chat = client.chat.completions.create
-    
+
     def sync_chat(*args, **kwargs) -> ChatCompletion | Stream[ChatCompletionChunk]:
-        # ... existing code ...
+        # ... existing code for handling no user_id ...
         user_query = kwargs["messages"][-1]
         if user_query["role"] != "user":
-            LOG.warning(f"Last query is not user query: {user_query}")
+            LOG.warning(f"Last message is not from the user: {user_query}")
             return _create_chat(*args, **kwargs)
-            
-        # Get or create user in Memobase
+
+        # 1. Get or create user
         u = mb_client.get_or_create_user(user_id)
-        
-        # Inject user context into messages
+
+        # 2. Inject user context
         kwargs["messages"] = user_context_insert(
             kwargs["messages"], u
         )
-        
-        # Call original create method
+
+        # 3. Call original method
         response = _create_chat(*args, **kwargs)
-        
-        # Save conversation to Memobase
+
+        # 4. Save conversation (details below)
         # ... handle streaming and non-streaming cases
 ```
 
-### Enhancing messages with user context
+### Enhancing Messages with User Context
 
-The `user_context_insert` function adds the user's memory to the messages before sending to OpenAI:
+The `user_context_insert` function injects the user's memory into the prompt.
 
 ```python
-PROMPT = """
+PROMPT = '''
 
 --# ADDITIONAL INFO #--
 {user_context}
 {additional_memory_prompt}
---# DONE #--"""
+--# DONE #--'''
 
 def user_context_insert(
     messages, u: User, additional_memory_prompt: str="", max_context_size: int = 750
 ):
-    # Retrieve user context
+    # Retrieve user's memory from Memobase
     context = u.context(max_token_size=max_context_size)
-    if not len(context):
+    if not context:
         return messages
-        
-    # Format the system prompt with user context
+
+    # Format the context into a system prompt
     sys_prompt = PROMPT.format(
         user_context=context, additional_memory_prompt=additional_memory_prompt
     )
-    
-    # Add to existing system message or insert new one
-    if messages[0]["role"] == "system":
+
+    # Add the context to the list of messages
+    if messages and messages[0]["role"] == "system":
         messages[0]["content"] += sys_prompt
     else:
         messages.insert(0, {"role": "system", "content": sys_prompt.strip()})
     return messages
 ```
+This function retrieves the user's context from Memobase, formats it into a special system prompt, and prepends it to the message list sent to OpenAI.
 
-### Saving conversations
+### Saving Conversations
 
-After getting a response, we save the conversation to Memobase:
+After receiving a response from OpenAI, we save the conversation to Memobase to build the user's memory. This is done asynchronously using a background thread to avoid blocking.
 
 ```python
 def add_message_to_user(messages: ChatBlob, user: User):
     try:
-        r = user.insert(messages)
-        LOG.debug(f"Insert {messages}")
+        user.insert(messages)
+        LOG.debug(f"Inserted messages for user {user.id}")
     except ServerError as e:
-        LOG.error(f"Failed to insert message: {e}")
+        LOG.error(f"Failed to insert messages: {e}")
 ```
 
-For non-streaming responses, it's straightforward:
+#### Non-Streaming Responses
+
+For standard responses, we extract the content and save it.
 
 ```python
 # Non-streaming case
-r_string = response.choices[0].message.content
+response_content = response.choices[0].message.content
 messages = ChatBlob(
     messages=[
         {"role": "user", "content": user_query["content"]},
-        {"role": "assistant", "content": r_string},
+        {"role": "assistant", "content": response_content},
     ]
 )
 threading.Thread(target=add_message_to_user, args=(messages, u)).start()
 ```
 
-For streaming responses, we accumulate the chunks and save after all chunks are received:
+#### Streaming Responses
+
+For streaming, we yield each chunk as it arrives and accumulate the full response. Once the stream is complete, we save the entire conversation.
 
 ```python
 # Streaming case
 def yield_response_and_log():
-    total_response = ""
-    r_role = None
+    full_response = ""
+    for chunk in response:
+        yield chunk
+        content = chunk.choices[0].delta.content
+        if content:
+            full_response += content
 
-    for r in response:
-        yield r
-        try:
-            r_string = r.choices[0].delta.content
-            r_role = r_role or r.choices[0].delta.role
-            total_response += r_string or ""
-        except Exception:
-            continue
-            
     # Save the complete conversation after streaming finishes
     messages = ChatBlob(
         messages=[
             {"role": "user", "content": user_query["content"]},
-            {"role": "assistant", "content": total_response},
+            {"role": "assistant", "content": full_response},
         ]
     )
     threading.Thread(target=add_message_to_user, args=(messages, u)).start()
@@ -218,39 +223,37 @@ def yield_response_and_log():
 
 ### Utility Functions
 
-The wrapper also includes helper functions:
+The patch also adds several helper functions to the client for managing user memory:
 
 ```python
-# Get user profile
+# Get a user's profile
 def _get_profile(mb_client: MemoBaseClient):
-    def get_profile(u_string) -> list[UserProfile]:
-        uid = string_to_uuid(u_string)
+    def get_profile(user_string: str) -> list[UserProfile]:
+        uid = string_to_uuid(user_string)
         return mb_client.get_user(uid, no_get=True).profile()
     return get_profile
 
-# Get memory prompt
-def _get_memory_prompt(mb_client: MemoBaseClient, max_context_size: int = 1000, additional_memory_prompt: str = ""):
-    def get_memory(u_string) -> list[UserProfile]:
-        uid = string_to_uuid(u_string)
+# Get the formatted memory prompt for a user
+def _get_memory_prompt(mb_client: MemoBaseClient, ...):
+    def get_memory(user_string: str) -> str:
+        uid = string_to_uuid(user_string)
         u = mb_client.get_user(uid, no_get=True)
-        context = u.context(max_token_size=max_context_size)
-        sys_prompt = PROMPT.format(
-            user_context=context, additional_memory_prompt=additional_memory_prompt
-        )
-        return sys_prompt
+        context = u.context(...)
+        return PROMPT.format(user_context=context, ...)
     return get_memory
 
-# Clear user memory
+# Clear a user's memory
 def _flush(mb_client: MemoBaseClient):
-    def flush(u_string) -> list[UserProfile]:
-        uid = string_to_uuid(u_string)
+    def flush(user_string: str):
+        uid = string_to_uuid(user_string)
         return mb_client.get_user(uid, no_get=True).flush()
     return flush
 ```
+These functions provide direct access to get a user's profile, retrieve the generated memory prompt, or clear a user's history in Memobase.
 
 ## Usage Example
 
-Now that we understand how the client works, let's use it:
+Here’s how to use the patched OpenAI client.
 
 ```python
 import os
@@ -258,56 +261,59 @@ from openai import OpenAI
 from memobase import MemoBaseClient
 from memobase.patch import openai_memory
 
-# Initialize clients
+# 1. Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 mb_client = MemoBaseClient(
     api_key=os.getenv("MEMOBASE_API_KEY"),
     project_url=os.getenv("MEMOBASE_URL"),
 )
 
-# Patch the OpenAI client with memory capabilities
-memory_enabled_client = openai_memory(openai_client, mb_client)
+# 2. Patch the OpenAI client
+memory_client = openai_memory(openai_client, mb_client)
 
-# Use the patched client with a user_id
-response = memory_enabled_client.chat.completions.create(
+# 3. Use the patched client with a user_id
+# The first time, the AI won't know the user's name.
+response = memory_client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Hi, do you know my name?"}],
+    user_id="john_doe"  # Can be any string identifier
+)
+print(response.choices[0].message.content)
+# Expected output: "I'm sorry, I don't know your name."
+```
+
+Now, let's inform the AI of the user's name and see if it remembers.
+
+```python
+# Tell the AI the user's name
+memory_client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "My name is John Doe."}],
+    user_id="john_doe"
+)
+
+# Start a new conversation and ask again
+response = memory_client.chat.completions.create(
     model="gpt-4o",
     messages=[{"role": "user", "content": "What's my name?"}],
-    user_id="john_doe"  # Can be any string identifier
+    user_id="john_doe"
 )
 
 print(response.choices[0].message.content)
+# Expected output: "Your name is John Doe."
 ```
-
-The first time, the AI might not know the user's name. But after telling it:
-
-```python
-response = memory_enabled_client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "My name is John Doe"}],
-    user_id="john_doe"
-)
-
-# Later on, in a new conversation
-response = memory_enabled_client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "What's my name?"}],
-    user_id="john_doe"
-)
-
-# Now the AI will remember the user's name
-```
+Because the conversation history is now stored in Memobase, the AI can recall the user's name in subsequent, separate conversations.
 
 ## Conclusion
 
-This implementation demonstrates a powerful way to add user memory to the OpenAI client. The patched client:
+This guide demonstrates a powerful method for adding persistent user memory to the OpenAI client. The patched client:
 
-1. Works identically to the original OpenAI client
-2. Adds memory capabilities when `user_id` is provided
-3. Handles both streaming and non-streaming responses
-4. Automatically saves conversations to Memobase
-5. Retrieves and injects user context into prompts
+- **Is fully compatible**: It works identically to the original client.
+- **Enables memory**: Adds memory capabilities when a `user_id` is provided.
+- **Supports all modes**: Handles both streaming and non-streaming responses.
+- **Is automatic**: Seamlessly saves conversations and injects context without extra code.
 
-For applications requiring personalized AI interactions, this approach provides a clean, non-intrusive way to add memory capabilities to your existing OpenAI-based applications.
+This approach offers a clean and non-intrusive way to build personalized, stateful AI experiences into your existing OpenAI applications.
 
 
 

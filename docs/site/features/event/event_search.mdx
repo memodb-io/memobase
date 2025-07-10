@@ -1,23 +1,27 @@
 ---
-title: Search Events
+title: Searching Events
 ---
 
-Memobase Event is a sequence of experiences and [tags](/features/event/event_tag) of user.
-By default, their're ranked by time. But Memobase offers a way to search events by query.
+User events in Memobase are stored as a sequence of experiences, each enriched with [tags](/features/event/event_tag). By default, events are retrieved in chronological order, but Memobase also provides a powerful search function to find events based on a query.
 
-## Sementic Search
+## Semantic Search
+
+You can perform a semantic search to find events related to a specific topic or concept.
+
 ```python
-# To use the Python SDK, install the package:
+# To use the Python SDK, first install the package:
 # pip install memobase
 
-from memobase import Memobase
+from memobase import MemoBaseClient
 
-client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
-uid = client.add_user()
-u = client.get_user(uid)
+client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
+user = client.get_user('some_user_id')
 
-events = u.search_event("Anything about my emotion")
+# Search for events related to the user's emotions
+events = user.search_event("Anything about my emotions")
 print(events)
 ```
-Memobase will search events that the user talked about emotion, [tagged](/features/event/event_tag) with `emotion` or those which updated profiles with `emotion` slots. 
-Detailed params are [here](/api-reference/events/search_events)
+
+This query will return events where the user discussed their emotions, events that were automatically [tagged](/features/event/event_tag) with an `emotion` tag, or events that updated profile slots related to emotion.
+
+For a detailed list of search parameters, please refer to the [API documentation](/api-reference/events/search_events).

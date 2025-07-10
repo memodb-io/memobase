@@ -1,55 +1,47 @@
 ---
-title: Customize Chats
+title: Customizing Chat Messages
 ---
 
-Memobase remembers users by the chats you pass on, but sometime simple user/assistant messages will not enough:
-- ❓ What if the message was happened before or in the future? You may want to import some messages or running your App in a future fantasy.
-- ❓ What if the user/assistant has a name?
+Memobase builds user memories from the chat interactions you provide. However, simple `user` and `assistant` roles are not always sufficient to capture the full context. Memobase allows you to add custom metadata to your messages to handle more complex scenarios.
 
-Memobase allows you to pass additional fields to handle those cases
+## Custom Timestamps
 
-## Customize Any Timestamp for Your Chats
-We first need to be clear about the two kind of timestamps in Memobase:
-- The "external" timestamp of memories: the time when the memory is stored/updated in our DB.
-- The "interal" timestamp of memories:  Memory itself contains time-related information such as when events occurred, when travel plans were made, and birthdays, etc.
+It's important to distinguish between two types of timestamps in Memobase:
 
-The "interal" timestamp usually the one you will care, because it will occur in the memories and therefore may affect the response of your AI.
-By default, Memobase assumes the insert time of the messages is the time the messages actually happen.
+-   **External Timestamp**: The time a memory is stored or updated in the database.
+-   **Internal Timestamp**: The time an event actually occurred according to the content of the memory itself (e.g., a birthday, a travel date).
 
-But you can customize this:
+The internal timestamp is often more critical as it directly influences the AI's understanding and responses. By default, Memobase assumes the insertion time is the time the message occurred. You can override this by providing a `created_at` field.
+
+This is useful for importing historical data or for applications set in fictional timelines.
+
 ```python
-from memobase import MemobaseClient, ChatBlob
-生日
-client = MemobaseClient(api_key="your_api_key")
-u = client.get_user(client.add_user())
+from memobase import MemoBaseClient, ChatBlob
 
-# The messages is happened in the future
-m = ChatBlob(messages=[
-    dict(role="user", content="I start a war", created_at="Year 32637")
+client = MemoBaseClient(api_key="your_api_key")
+user = client.get_user(client.add_user())
+
+# This message occurred in a fictional future year
+messages = ChatBlob(messages=[
+    dict(role="user", content="I am starting a rebellion.", created_at="Year 32637")
 ])
 
-u.insert(m)
+user.insert(messages)
 ```
-By pass the date string in `created_at`, Memobase will process this chats in your time. 
-So the memory will be something like `User starts a way in year 32637`.
 
-You can use any format of date in here, Memobase will extract them at the appropriate granularity.
-For example:
-- `created_at="32637/1/1"`
-- `created_at="32637-01-13"`
-- `created_at="32637/23/19"`
+Memobase will process this chat according to the provided timestamp, resulting in a memory like: `"In the year 32637, the user started a rebellion."`
 
-They're both valid, and can be remembered.
+You can use any date or time format; Memobase will extract the time at the appropriate granularity.
 
-## Make Alias for Characters
-Sometimes the user/assistant relationship is more complicated😊.
-They may have their own name:
+## Character Aliases
+
+For more complex interactions, such as multi-character role-playing, you can assign names or `alias` values to the `user` and `assistant` roles.
+
 ```python
-m = ChatBlob(messages=[
-    dict(role="user", content="I want to start a war", alias="The Emperor"),
-    dict(role="assistant", content="Please go to your bed", alias="The Mother")
+messages = ChatBlob(messages=[
+    dict(role="user", content="I wish to declare war.", alias="The Emperor"),
+    dict(role="assistant", content="Perhaps you should rest instead.", alias="The Advisor")
 ])
 ```
 
-By passing their names in `alias`, Memobase will try to remember them with characters' name. 
-So the memories may be `The Emperor wants to start a war The Mother disagrees`.
+By providing aliases, you give Memobase the context to create more accurate and personalized memories, such as: `"The Emperor wished to declare war, but The Advisor suggested rest instead."`

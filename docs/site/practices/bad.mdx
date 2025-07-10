@@ -1,18 +1,26 @@
 ---
-title: How to Fix Bad Cases
+title: Troubleshooting Common Issues
 ---
 
-## Too many useless profile memories
-1. Make sure you have the idea of what a profile should have.
-2. [Configure](/features/profile/profile_desc) your `config.yaml` properly with profile slots' description.
-3. If you still have too many useless profile memories, you can enable [strict mode](/features/profile/profile_config#strict-mode) 
-to only collect the profiles you want.
+## Issue: Too Much Useless Information is Saved
 
-## Some profiles should be extracted, but it's not.
-1. Maybe your profile description is too hard for LLM to understand/infer, try to lower your requirements.
-2. If you still have this issue, you can disable the [profile validation](/features/profile/profile_config#profile-validate-mode) 
+If your user profiles are cluttered with irrelevant data, follow these steps:
 
-## My profile is inaccurate/wrong.
-1. Add more details to your [profile description](/features/profile/profile_desc), making sure the profile description is clear and easy to understand.
-2. Add [update descrption](/features/profile/profile_desc#instruct-memobase-to-update-a-profile-slot) for that profile also, it will help Memobase to merge the profile wisely.
+1.  **Define Profile Scope**: Start by clearly defining what information each user profile should contain.
+2.  **Refine Slot Descriptions**: Provide clear and specific descriptions for each profile slot in your `config.yaml`. This guides the AI on what to extract. [Learn more](/features/profile/profile_desc).
+3.  **Enable Strict Mode**: If the issue persists, enable [strict mode](/features/profile/profile_config#strict-mode) to ensure the AI only saves information that directly matches your defined profile slots.
+
+## Issue: Relevant Information is Not Being Saved
+
+If the AI fails to extract important details, try the following:
+
+1.  **Simplify Descriptions**: Your profile descriptions might be too complex for the LLM to interpret. Try simplifying them to be more direct.
+2.  **Disable Validation**: If information is still not being captured, you can disable [profile validation](/features/profile/profile_config#profile-validate-mode) to allow for more flexible data extraction.
+
+## Issue: Profile Data is Inaccurate or Wrong
+
+To improve the accuracy of the information stored in profiles:
+
+1.  **Add Detail to Descriptions**: Enhance your [profile descriptions](/features/profile/profile_desc) with more context and examples to ensure the AI understands the data format and meaning correctly.
+2.  **Use Update Instructions**: For each profile slot, add an [update description](/features/profile/profile_desc#instruct-memobase-to-update-a-profile-slot). This tells Memobase how to intelligently merge new information with existing data, which helps maintain accuracy over time.
 

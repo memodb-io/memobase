@@ -6,7 +6,7 @@ Ready to give your AI a memory boost? Here’s how to get started.
 
 <CardGroup cols={2}>
   <Card title="Patch OpenAI" icon="webhook" href="practices/openai">
-    Got an existing OpenAI setup? Upgrade it with Memobase memory.
+    Upgrade your existing OpenAI setup with Memobase memory.
   </Card>
   <Card title="Client-Side" icon="code-branch" href="#memobase-client">
     Use our SDKs or APIs to connect your app to a Memobase backend.
@@ -44,7 +44,7 @@ go get github.com/memodb-io/memobase/src/client/memobase-go@latest
 </CodeGroup>
 </Accordion>
 <Accordion title="Find Your Project URL and Token">
-You'll get these when you set up your [backend](#memobase-backend). Keep 'em handy.
+You'll get these when you set up your [backend](#memobase-backend). Keep them handy.
 </Accordion>
 </AccordionGroup>
 
@@ -138,8 +138,9 @@ curl -H "Authorization: Bearer $YOUR_API_KEY" "$YOUR_PROJECT_URL/api/v1/healthch
 </Accordion>
 </AccordionGroup>
 
-### Step 3: User Management (The Fun Part)
-Time to create, read, update, and delete users. The classic CRUD.
+### Step 3: User Management
+
+Create, read, update, and delete users.
 
 <AccordionGroup>
 <Accordion title="Create a User">
@@ -221,7 +222,7 @@ curl -X GET "$YOUR_PROJECT_URL/api/v1/users/{uid}" \
 </CodeGroup>
 </Accordion>
 
-<Accordion title="Delete a User (Bye!)">
+<Accordion title="Delete a User">
 <CodeGroup>
 
 ```python Python
@@ -249,10 +250,11 @@ curl -X DELETE "$YOUR_PROJECT_URL/api/v1/users/{uid}" \
 </AccordionGroup>
 
 ### Step 4: Manage User Data
+
 Now that you have a user, let's give them some memories.
 
 <AccordionGroup>
-<Accordion title="Insert Data (a.k.a. Chats)">
+<Accordion title="Insert Data (e.g. Chats)">
 <CodeGroup>
 
 ```python Python
@@ -348,13 +350,14 @@ curl -X DELETE "$YOUR_PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 {"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
-</Accordion> 
+</Accordion>
 </AccordionGroup>
 
 ### Step 5: Memory Operations
+
 This is where the magic happens. Memobase extracts and stores memories for each user.
 
-1.  **`flush`**: User data hangs out in a buffer. If the buffer gets too big or sits idle for too long, it gets processed. You can also trigger this manually.
+1.  **`flush`**: User data is held in a buffer. If the buffer gets too large or remains idle, it gets processed. You can also trigger this manually.
 
 <Accordion title="Flush (e.g., after a chat session ends)">
 <CodeGroup>
@@ -405,7 +408,7 @@ curl -X GET "$YOUR_PROJECT_URL/api/v1/users/profile/{uid}" \
 ```
 
 ```json Output
-{"data":{"profiles":[ {"content":"Gus", "attributes":{...}}, ... ]},"errno":0,"errmsg":""}
+{"data":{"profiles":[ {"content":"Gus", "attributes":{}}, ... ]},"errno":0,"errmsg":""}
 ```
 </CodeGroup>
 </Accordion>
@@ -450,11 +453,19 @@ Unless the user has relevant queries, do not actively mention those memories in 
 
 
 ## Memobase Backend
-We offer an [open-source solution](https://github.com/memodb-io/memobase) with a Docker backend so you can launch your own instance.
+We offer an [open-source solution](https://github.com/memodb-io/memobase) with a Docker backend to launch your own instance.
 You can use `docker-compose` to launch the backend [in one command](https://github.com/memodb-io/memobase/blob/main/src/server/readme.md#get-started).
 
-> **Cloud Service Coming Soon!**
-> We're working on a hosted cloud service. For now, you'll have to get your hands dirty with Docker. It's good for you.
-> 1. Sign up at [Memobase](https://memobase.io) (when it's ready).
-> 2. Create a new project and get your project URL and token.
 
+## Memobase Cloud
+We also offer a [hosted cloud service](https://www.memobase.io/), with free tier and nice dashboard.
+
+<Frame caption="Memobase Cloud Dashboard">
+  <video
+  autoPlay
+  muted
+  loop
+  playsInline
+  src="https://github.com/user-attachments/assets/eb2eea30-48bc-4714-9706-e417ae1931df"
+></video>
+</Frame>

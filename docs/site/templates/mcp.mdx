@@ -1,45 +1,34 @@
 ---
-title: Memobase MCP
+title: Memobase and the Model Context Protocol (MCP)
 ---
 
 > [Full Code](https://github.com/memodb-io/memobase/tree/dev/src/mcp)
 
-The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is revolutionizing how AI agents interact with external systems and data sources. 
-In this tutorial, we'll explore how to integrate **Memobase with MCP** to give your AI agents persistent, long-term memory capabilities.
-
-Memobase MCP server enables AI agents to store, retrieve, and search memories using semantic search, making your agents truly stateful and context-aware across conversations.
+This tutorial explains how to integrate Memobase with the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) to provide your AI agents with persistent, long-term memory. By using the Memobase MCP server, your agents can store, retrieve, and search memories, making them stateful and context-aware across conversations.
 
 ## What is MCP?
 
-The Model Context Protocol is an open standard that enables AI assistants to securely connect to external data sources and tools. Instead of being limited to their training data, AI agents can now access real-time information, execute functions, and maintain persistent state through MCP servers.
-
+The Model Context Protocol is an open standard that allows AI assistants to securely connect to external data sources and tools. This enables them to access real-time information, execute functions, and maintain a persistent state, breaking free from the limitations of their training data.
 
 ## Why Memobase + MCP?
 
-Traditional AI conversations are stateless - each interaction starts fresh without memory of previous exchanges. Memobase MCP changes this by providing:
+Traditional AI conversations are stateless. The Memobase MCP server changes this by providing:
 
-1. **Persistent Memory**: Store conversation history and user preferences across sessions
-2. **Semantic Search**: Find relevant context using natural language queries
-3. **User Profiles**: Build comprehensive understanding of users over time
-4. **Cross-Platform**: Works with any MCP-compatible client (Claude Desktop, Cursor, Windsurf, etc.)
+1.  **Persistent Memory**: Store conversation history and user preferences across sessions.
+2.  **Semantic Search**: Find relevant context using natural language queries.
+3.  **User Profiles**: Build a comprehensive understanding of users over time.
+4.  **Cross-Platform Compatibility**: Works with any MCP-compatible client, such as Claude Desktop, Cursor, or Windsurf.
 
 ## Setup
 
 ### Prerequisites
-- Python 3.11+
-- A Memobase backend (local or cloud)
 
-### Get Your Memobase Credentials
+-   Python 3.11+
+-   A Memobase backend (either [local](/references/local_config) or [cloud](https://www.memobase.io/en))
 
-You'll need:
-- **Project URL**: `http://localhost:8019` (local) or `https://api.memobase.dev` (cloud)
-- **API Key**: `secret` (local) or `sk-proj-xxxxxx` (cloud)
+### Installation
 
-Get free cloud credits at [Memobase Dashboard](https://www.memobase.io/en) or [deploy locally](../server/readme.md).
-
-### Installation Options
-
-#### Option 1: Using uv (Recommended)
+We recommend using `uv` for installation:
 
 ```bash
 # Install uv if you don't have it
@@ -57,17 +46,6 @@ cp .env.example .env
 # Edit .env with your Memobase credentials
 ```
 
-#### Option 2: Using Docker
-
-```bash
-# Build the Docker image
-docker build -t memobase-mcp --build-arg PORT=8050 .
-
-# Create and configure .env file
-cp .env.example .env
-# Edit .env with your credentials
-```
-
 ### Environment Configuration
 
 Configure your `.env` file:
@@ -76,33 +54,23 @@ Configure your `.env` file:
 TRANSPORT=sse
 HOST=0.0.0.0
 PORT=8050
-MEMOBASE_API_KEY=your_api_key_here
-MEMOBASE_BASE_URL=https://api.memobase.dev
+MEMOBASE_API_KEY="your_api_key_here"
+MEMOBASE_BASE_URL="https://api.memobase.dev"
 ```
 
 ## Running the MCP Server
 
-### Using uv
+Start the server using `uv`:
 
 ```bash
-# Start the server
 uv run src/main.py
 ```
 
-### Using Docker
+The server will be available at `http://localhost:8050` with an SSE endpoint at `/sse`.
 
-```bash
-# Run with environment file
-docker run --env-file .env -p 8050:8050 memobase-mcp
-```
+## Client Integration
 
-The server will start on `http://localhost:8050` and provide an SSE endpoint at `/sse`.
-
-## Integration with MCP Clients
-
-### Cursor Configuration
-
-Add this to your `.cursor/mcp.json`:
+Configure your MCP client to connect to the Memobase server. For example, in Cursor, add this to your `.cursor/mcp.json`:
 
 ```json
 {
@@ -115,200 +83,60 @@ Add this to your `.cursor/mcp.json`:
 }
 ```
 
-### Windsurf Configuration
-
-For Windsurf, use `serverUrl` instead:
-
-```json
-{
-  "mcpServers": {
-    "memobase": {
-      "transport": "sse",
-      "serverUrl": "http://localhost:8050/sse"
-    }
-  }
-}
-```
-
-### Claude Desktop Configuration
-
-For stdio transport with Claude Desktop:
-
-```json
-{
-  "mcpServers": {
-    "memobase": {
-      "command": "python",
-      "args": ["path/to/mcp/src/main.py"],
-      "env": {
-        "TRANSPORT": "stdio",
-        "MEMOBASE_API_KEY": "your-api-key",
-        "MEMOBASE_BASE_URL": "https://api.memobase.dev"
-      }
-    }
-  }
-}
-```
-
 ## Available Tools
 
-The Memobase MCP server provides three powerful tools:
+The Memobase MCP server exposes three powerful tools to your AI agent.
 
 ### 1. `save_memory`
 
-Store any information in long-term memory with semantic indexing.
+Stores information in long-term memory with semantic indexing.
 
 ```python
 # Example usage in your AI agent
-await save_memory("User prefers dark mode and uses Python for backend development")
+await save_memory("User prefers dark mode and uses Python for backend development.")
 ```
-
-**Use cases:**
-- Store user preferences
-- Remember important facts from conversations
-- Save project details and requirements
 
 ### 2. `search_memories`
 
-Find relevant context using natural language queries.
+Finds relevant context using natural language queries.
 
 ```python
 # Search for relevant memories
-context = await search_memories("What programming languages does the user prefer?")
+context = await search_memories("What are the user's programming language preferences?")
 ```
-
-**Parameters:**
-- `query`: Natural language search query
-- `max_length`: Maximum content length (default: 1000)
 
 ### 3. `get_user_profiles`
 
-Retrieve complete user profiles with organized topics and subtopics.
+Retrieves a comprehensive, structured user profile.
 
 ```python
-# Get comprehensive user profile
+# Get the full user profile
 profiles = await get_user_profiles()
 ```
 
-Returns structured information about the user organized by topics.
-
-## Code Breakdown
-
-Let's examine the core implementation:
-
-### Server Setup
-
-```python
-from mcp.server.fastmcp import FastMCP, Context
-from memobase import AsyncMemoBaseClient, ChatBlob
-from memobase.utils import string_to_uuid
-
-# Initialize FastMCP server with Memobase context
-mcp = FastMCP(
-    "memobase-mcp",
-    description="MCP server for long term memory storage and retrieval with Memobase",
-    lifespan=memobase_lifespan,
-    host=os.getenv("HOST", "0.0.0.0"),
-    port=os.getenv("PORT", 8050),
-)
-```
-
-### Memory Storage Tool
-
-```python
-@mcp.tool()
-async def save_memory(ctx: Context, text: str) -> str:
-    """Save information to your long-term memory."""
-    try:
-        memobase_client = ctx.request_context.lifespan_context.memobase_client
-        messages = [{"role": "user", "content": text}]
-        u = await memobase_client.get_or_create_user(DEFAULT_USER_ID)
-        await u.insert(ChatBlob(messages=messages))
-        await u.flush()
-        return f"Successfully saved memory: {text[:100]}..."
-    except Exception as e:
-        return f"Error saving memory: {str(e)}"
-```
-
-### Memory Search Tool
-
-```python
-@mcp.tool()
-async def search_memories(ctx: Context, query: str, max_length: int = 1000) -> str:
-    """Search user memories using semantic search."""
-    try:
-        memobase_client = ctx.request_context.lifespan_context.memobase_client
-        u = await memobase_client.get_or_create_user(DEFAULT_USER_ID)
-        context = await u.context(
-            chats=[{"role": "user", "content": query}], 
-            max_token_size=max_length
-        )
-        return context
-    except Exception as e:
-        return f"Error searching memories: {str(e)}"
-```
-
-### User Profile Tool
-
-```python
-@mcp.tool()
-async def get_user_profiles(ctx: Context) -> str:
-    """Get full user profiles with organized topics and subtopics."""
-    try:
-        memobase_client = ctx.request_context.lifespan_context.memobase_client
-        u = await memobase_client.get_or_create_user(DEFAULT_USER_ID)
-        profiles = await u.profile()
-        return "\n".join([f"- {p.describe}" for p in profiles])
-    except Exception as e:
-        return f"Error retrieving profiles: {str(e)}"
-```
-
-This tool retrieves structured user profiles that Memobase automatically generates from conversation history. The profiles are organized by topics and subtopics, providing a comprehensive overview of what the system knows about the user.
-
-**Key features:**
-- **Automatic Organization**: Memobase intelligently categorizes information into topics
-- **Structured Output**: Returns formatted profiles with clear descriptions
-- **Comprehensive View**: Provides a complete picture of stored user information
-
 ## Real-World Example
 
-Here's how the Memobase MCP transforms AI interactions:
-
 **Without Memory:**
-```
-User: "I prefer Python for backend development"
-AI: "That's great! Python is excellent for backend work."
 
-[Later conversation]
-User: "What's the best language for my new API?"
-AI: "There are many options like Python, Node.js, Go..."
-```
+> **User**: "I prefer Python for backend development."
+> **AI**: "That's great! Python is excellent for backend work."
+> 
+> *Later...*
+> 
+> **User**: "What's the best language for my new API?"
+> **AI**: "There are many options, like Python, Node.js, or Go..."
 
 **With Memobase MCP:**
-```
-User: "I prefer Python for backend development"
-AI: "That's great! I'll remember your Python preference."
-[Memory saved: "User prefers Python for backend development"]
 
-[Later conversation]
-User: "What's the best language for my new API?"
-AI: [Searches memories] "Based on your preference for Python, I'd recommend using Python with FastAPI or Django for your new API."
-```
-
-## Best Practices
-
-1. **Error Handling**: Always wrap MCP tools in try-catch blocks
-2. **Memory Efficiency**: Use appropriate `max_length` parameters for searches
-3. **User Privacy**: Implement proper user isolation for multi-user scenarios
-4. **Performance**: Use async operations for better concurrency
-5. **Monitoring**: Add logging for debugging and monitoring
+> **User**: "I prefer Python for backend development."
+> **AI**: "Got it. I'll remember your preference for Python."
+> *(Memory saved: "User prefers Python for backend development")*
+> 
+> *Later...*
+> 
+> **User**: "What's the best language for my new API?"
+> **AI**: *(Searches memories)* "Based on your preference for Python, I'd recommend using FastAPI or Django."
 
 ## Conclusion
 
-The Memobase MCP server bridges the gap between stateless AI interactions and truly intelligent, context-aware agents. By providing persistent memory capabilities through the standardized MCP protocol, you can build AI applications that learn and remember across conversations.
-
-Whether you're building customer service bots, personal assistants, or complex AI workflows, the combination of Memobase and MCP provides the foundation for more intelligent and personalized AI experiences.
-
-Get started today by deploying your own Memobase MCP server and transforming your AI agents from forgetful assistants into intelligent, memory-enabled companions.
-
-> For more advanced configurations and examples, check out the [Full Code](https://github.com/memodb-io/memobase/tree/dev/src/mcp) and explore the [Memobase documentation](https://docs.memobase.io).
+The Memobase MCP server transforms stateless AI interactions into intelligent, context-aware conversations. By providing persistent memory through a standardized protocol, you can build AI applications that learn, remember, and deliver truly personalized experiences.

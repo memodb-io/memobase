@@ -1,34 +1,35 @@
 ---
-title: Basic
+title: Event Fundamentals
 ---
 
-Memobase will track the past key memories and events of the users.
+Memobase automatically tracks key events and memories from user interactions, creating a chronological record of their experiences.
+
 ```python
-from memobase import MemobaseClient, ChatBlob
+from memobase import MemoBaseClient, ChatBlob
 
-client = MemobaseClient(api_key="your_api_key")
-uid = client.add_user()
-u = client.get_user(uid)
+# Initialize the client
+client = MemoBaseClient(api_key="your_api_key")
 
-u.insert(
+# Create a user and insert a chat message
+user = client.get_user(client.add_user())
+user.insert(
     ChatBlob(
-        messages=[{
-                "role": "user",
-                "content": "I'm Gus"
-        }]
+        messages=[{"role": "user", "content": "My name is Gus"}]
     )
 )
 
-print(u.event())
+# Retrieve the user's events
+print(user.event())
 ```
 
-## What is an event containing?
-An event contains the following information:
-- event summary, `optional`: the concise summary of user's recent experience. Check [here](/features/event/event_summary) for more details.
-- event tags, `optional`: the semantic tags of this event(*e.g.* `emotion::happy`, `goal::buy a house`), default to empty. 
-Check [here](./event_tag) to design your own event tags.
-- profile delta, `required`: the profile slots that are extracted in this event.
-- created time, `required`
+## Event Structure
 
-A detailed format is in [here](/api-reference/events/get_events).
+Each event object contains the following information:
+
+-   **Event Summary** (Optional): A concise summary of the user's recent interaction. Learn more about [Event Summaries](/features/event/event_summary).
+-   **Event Tags** (Optional): Semantic tags that categorize the event (e.g., `emotion::happy`, `goal::buy_a_house`). Learn how to [design custom tags](/features/event/event_tag).
+-   **Profile Delta** (Required): The specific profile slots that were created or updated during this event.
+-   **Created Time** (Required): The timestamp of when the event occurred.
+
+A detailed description of the event format can be found in the [API Reference](/api-reference/events/get_events).
 

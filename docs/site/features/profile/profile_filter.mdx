@@ -1,60 +1,57 @@
 ---
-title: Filter Profile when Retrieving
+title: Filtering Profiles at Retrieval
 ---
-For each user, Memobase will track and model the profile.
-You can use them in your [AI prompt](/features/context) to offer a global understanding of the user.
 
-In practice, the user profile won't be too large, 
-but it's better for you to be able to control the final size of you prompt.
+Memobase tracks and models a comprehensive profile for each user. You can use this profile in your [AI prompts](/features/context) to provide a global understanding of the user.
 
-Memobase offers some params to help you filter the profiles
+While user profiles are generally concise, it is good practice to control the final size of the context you inject into your prompts. Memobase provides several parameters to help you filter profiles at retrieval time.
 
-## Filter by Rules
-You can pass some rules to Memobase API to filter some profiles:
-- `max_token_size`: The maximum token size of the profile.
-- `prefer_topics`: those topics will be ranked higher, so they are more likely to be included in the final profile.
-- `only_topics`: only include these topics, other topics will be filtered.
+## Rule-Based Filtering
 
-Detailed params can be found in [API docs](/api-reference/profiles/profile).
+You can pass rules to the Memobase API to filter profiles based on specific criteria:
 
-## Filter by Context
-Memobase also offers a semantic filter to filter the profiles.
-You can pass the latest chat messages to Memobase, and get the "contextual" profiles.
-"Contextual" here is much more better than a embedding-based search:
-Memobase uses LLM to reason and judge which profile may help the future chatting.
+-   `max_token_size`: Sets the maximum token size for the entire profile context.
+-   `prefer_topics`: Ranks specified topics higher, making them more likely to be included in the final output.
+-   `only_topics`: Includes *only* the specified topics, filtering out all others.
 
-So if user just say ""Find some restaurants for me", 
-Memobase will filter `contact_info::city`, `interest::foods`, `health::allergies` and so on.
-Those profiles will be randed higher in the results.
+Detailed parameter descriptions can be found in the [API documentation](/api-reference/profiles/profile).
+
+## Context-Aware Filtering
+
+Memobase also offers a powerful semantic filtering capability. By passing the latest chat messages to the API, you can retrieve only the most "contextual" or relevant profiles for the current conversation.
+
+This is more advanced than a simple embedding-based search. Memobase uses the LLM to reason about which profile attributes would be most helpful for generating the next response.
+
+For example, if a user says, "Find some restaurants for me," Memobase will intelligently rank profiles like `contact_info::city`, `interests::food`, and `health::allergies` higher in the results.
 
 <CodeGroup>
 ```python Python
-from memobase import Memobase
+from memobase import MemoBaseClient
 
-client = Memobase(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
-uid = client.add_user()
-u = client.get_user(uid)
+client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
+user = client.get_user('some_user_id')
 
-p = u.profile(chats = [
-  {"role": "user", "content": "Find some restaurants for me"},
-  need_json=True
-])
+# Retrieve profile context relevant to the last message
+contextual_profile = user.profile(
+    chats=[{"role": "user", "content": "Find some restaurants for me"}],
+    need_json=True
+)
 
-print(p)
+print(contextual_profile)
 ```
 ```json Output
 {
   "contact_info": {
-    "city": "Shanghai",
+    "city": "San Francisco"
   },
-  "interest": {
-    "foods": "Chinese",
+  "interests": {
+    "food": "Loves Italian and Japanese cuisine"
   },
   "health": {
-    "allergies": "peanuts",
+    "allergies": "None"
   }
 }
 ```
 </CodeGroup>
 
-More details can be found in [here](/features/profile/profile_search)
+For more details on contextual search, see the [Profile Search documentation](/features/profile/profile_search).

@@ -1,20 +1,24 @@
 ---
-title: Performance
+title: Performance and Cost
 ---
+
 ## Overview
-- Memobase is extremely fast when comes to query, because it simply return the full profiles of users.
-- The final total tokens of a user profile is controllable: #profile slots X #maximum tokens size of each slots.
-    - [Here](features/customization/profile) to see how to design your profile slots.
-    - [Here](features/customization/full#basic-config) to see how to control the maximum tokens size of each slots.
-- Insertion is relatively fast and cheap, because Memobase uses a online buffer to aggregate the recent messages and process them together.
-So the overhead prompt cost is amortized.
-    - [Here](features/customization/full) to see how to control the buffer token size.
 
-## Comparing with other solutions
+Memobase is designed for high performance and cost-efficiency.
+
+-   **Query Performance**: Queries are extremely fast because Memobase returns a pre-compiled user profile, eliminating the need for on-the-fly analysis.
+-   **Controllable Costs**: You can manage costs by controlling the size of user profiles. This is done by configuring the number of profile slots and the maximum token size for each.
+    -   Learn to design profile slots [here](/features/profile/profile_config).
+    -   Learn to control token limits [here](/references/cloud_config).
+-   **Insertion Efficiency**: New data is added to a buffer and processed in batches. This approach amortizes the cost of AI analysis, making insertions fast and inexpensive.
+    -   Learn to configure the buffer [here](/references/cloud_config).
+
+## Comparison vs. Other Solutions
+
 #### Memobase vs. [mem0](https://github.com/mem0ai/mem0)
-- **Cost**: Memobase is 5x~ cheaper than mem0
-- **Performance**: Memobase is 5x~ faster than mem0
-- **Quality**: mem0 has more gist memories, and Memobase has structured and organized memories
 
+-   **Cost**: Memobase is approximately 5x more cost-effective.
+-   **Performance**: Memobase is roughly 5x faster.
+-   **Memory Quality**: mem0 provides gist-based memories, while Memobase delivers structured and organized profiles for more predictable recall.
 
-The full report is available at [here](https://github.com/memodb-io/memobase/tree/docs/docs/experiments/900-chats).
+The full technical report is available [here](https://github.com/memodb-io/memobase/tree/docs/docs/experiments/900-chats).

@@ -1,38 +1,55 @@
 ---
-title: Event Tag
+title: Using Event Tags
 ---
 
-Event tag is a way to tag anything attributes of event automatically.
-You can use event tag to enrich the user event, and doing some tracking on the user sequential behavior, something like:
-- emotion
-- goal
-- romance
-- ...
+Event tags are a powerful feature for automatically categorizing user events with semantic attributes. You can use them to enrich event data and track user behavior over time across various dimensions, such as:
 
-## How to set event tag?
-By default, Memobase will record no event tag. You need to set the event tag in your `config.yaml`:
+-   Emotion (`happy`, `frustrated`)
+-   Life Goals (`buying_a_house`, `learning_a_skill`)
+-   Relationships (`new_friend`, `family_mention`)
+
+## Configuring Event Tags
+
+By default, no event tags are recorded. You must define the tags you want to track in your `config.yaml` file:
+
 ```yaml config.yaml
 event_tags:
   - name: "emotion"
-    description: "Record the current emotion of user"
+    description: "Records the user's current emotional state."
   - name: "romance"
-    description: "Record anything about romance between user and assistant"
-...
+    description: "Tracks any mention of romantic relationships or feelings."
 ```
-where `name` is the name of the event tag, and `description` is the description of the event tag.
 
-Once you set the event tag, Memobase will record the event tag automatically and return events with event tags.
-Check [here](/api-reference/events/get_events) for more details.
+Once configured, Memobase will automatically analyze interactions and apply these tags to events when relevant. The `description` field is crucial for helping the AI accurately understand when to apply each tag.
 
-## Get event tags
-You can get event tags from server by calling `get_event_tags` API.
+## Retrieving Event Tags
+
+Event tags are returned as part of the event object when you retrieve a user's event history.
+
 ```python
 from memobase import MemoBaseClient
 
-client = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
-u = client.get_user(uid)
+client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
+user = client.get_user('some_user_id')
 
-events = u.event()
+events = user.event()
 for event in events:
     print(event.event_data.event_tags)
 ```
+
+## Searching Events by Tag
+
+You can also search for events that have specific tags applied.
+
+```python
+from memobase import MemoBaseClient
+
+client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
+user = client.get_user('some_user_id')
+
+# Find all events tagged with 'emotion'
+events = user.search_event(tags=["emotion"])
+print(events)
+```
+
+For more details, see the [API Reference](/api-reference/events/search_events).

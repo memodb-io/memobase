@@ -1,105 +1,91 @@
 ---
-title: Tips to Use Memobase
+title: Best Practices & Tips
 ---
 
-## Memory Configuration
+This guide provides tips for effectively using Memobase in your applications.
 
-In simple terms, Memobase can provide user profile memory for your users. You can configure a secondary tag:
+## Configuring User Memory
+
+You can define the structure of user profiles by configuring topics and sub-topics in your `config.yaml` file. This tells Memobase what kind of information to track.
 
 ```yaml
 - topic: "Gaming"
-  description: "Track the gaming preferences/achievements of the user."
+  description: "Tracks the user's gaming preferences and achievements."
   sub_topics:
       - name: "FPS"
       - name: "LOL"
-        ...
-- topic: "Whatever"
+- topic: "Professional"
+  description: "Tracks the user's professional background."
   sub_topics:
-    ...
-```
-Memobase will generate user profile preferences based on your configuration.
-Refer to [Customization](/features/profile) for more details.
-
-## How to Integrate Memory?
-
-We provide the `profile` API and `context` API:
-
-- `profile` API: This API returns a JSON that includes the user profile for each sub-topic. You need to assemble it into a string to include it in the prompt. Generally, a portion of the System Prompt is reserved for the Memobase profile.
-- `context` API: This API returns a string with a prompt hint, which you can directly integrate into the prompt.
-
-Refer to [Using Memobase Memory](#using-memobase-memory) for more details.
-
-## When to `flush`?
-Memobase won't update the memory immediately, it will only update when one of the following conditions is met:
-- `buffer` is too big. Memobase will track the size of the unprocessed messages for user, if it exceeds the limit, Memobase will flush the buffer to the database.
-- `buffer` is idle for a long time. Memobase will flush the buffer to the database after a period of inactivity.
-- You call `flush` API manually.
-
-Normally, you should call `flush` API right after a chat session is closed.
-
-## User System Management
-
-Users in Memobase do not need to correspond one-to-one with your actual users. 
-One of your actual users can correspond to multiple Memobase users if a user in your application has multiple segmented memories:
-
-- AI Role-Playing: Each agent should have independent memory for the user, so one user might have dozens of corresponding Memobase users for the various role agents they have interacted with.
-- AI Companionship + AI Education: You might provide a unified agent for the user, in which case your user can correspond one-to-one with Memobase.
-
-In summary, it is best to maintain a one-to-many design when recording the relationship between your user ID and Memobase user ID.
-
-## Inserting Conversations into Memobase
-
-Memobase is working on multi-modal user data, currently focusing on conversation data:
-
-- You can set the AI's `alias` when inserting a conversation, and Memobase will involve specific role names in the memory.
-
-```json
-{
-    "role": "assistant",
-    "content": "Hi, nice to meet you, Gus!",
-    "alias": "HerAI",
-}
+    - name: "Industry"
+    - name: "Role"
 ```
 
-- You can set the message time in any format, and Memobase will follow your time settings to attempt to build memory.
+Memobase uses this configuration to generate structured user profiles. Learn more about customization at [Profile Configuration](/features/profile/profile_config).
 
-```json
-{
-    "role": "user",
-    "content": "Hello, I'm Gus",
-    "created_at": "2025-01-14",
-}
-```
+## Integrating Memory into Prompts
 
-[demo script](https://github.com/memodb-io/memobase/blob/main/assets/quickstart.py)
+There are two primary ways to retrieve and use a user's memory.
 
-## Using Memobase Memory
+### Method 1: Profile API (Manual Assembly)
 
-Memobase supports user profile memory and event sequences. You can obtain user memory in two ways:
+The [Profile API](/api-reference/profiles/profile) returns a structured JSON object containing the user's profile data. You are responsible for formatting this JSON into a string and inserting it into your prompt.
 
-### Profile-Only
+**Key Considerations:**
+-   **Context Length**: Control the token count of the memory context to manage cost and performance. Use `max_token_size` to set a hard limit and `max_subtopic_size` to limit the number of sub-topics per topic.
+-   **Topic Filtering**: Use `only_topics` to retrieve specific profile sections or `prefer_topics` to prioritize the most important information.
 
-[API](https://docs.memobase.io/api-reference/profiles/profile#parameter-user-id), User profile data structure, you need to consider:
+### Method 2: Context API (Automated Assembly)
 
-- What is the acceptable length of the Memory context? Common lengths are 500 tokens or 1000 tokens. Excessive Memory length may affect your AI's business performance. You can control the maximum context size using `max_token_size`.
-  - Memobase is a two-level profile system, and you can control the maximum number of sub-topics for each topic by setting `max_subtopic_size`.
-- What are the most important parts of the profile for you? Some applications care about `basic_info`, some about `relationship`, and others about `education_background`. You can adjust by considering the following parameters:
-  - `only_topics`: Only certain topics recorded in Memobase profiles are needed for your product.
-  - `prefer_topics`: The most important topics in Memobase profiles for you, ensuring they are always retained in Memory.
+The [Context API](/api-reference/prompt/get_context) returns a pre-formatted string containing both the user's profile and recent events, ready to be injected directly into your system prompt. It uses a template like this:
 
-### Context
-
-[API](https://docs.memobase.io/api-reference/prompt/get_context), Directly returns the user's personalized context, which you can directly place in the prompt.
-
-The parameters for the Context API are similar to those for the Profile API, except that Context automatically assembles the profile and recent events into a string, with a built-in prompt indicating it is a memory:
-
-```
+```text
 <memory>
-# Below is the user profile:
+# User Profile:
 {profile}
 
-# Below is the latest events of the user:
+# Recent Events:
 {event}
 </memory>
-Please provide your answer using the information within the <memory> tag at the appropriate time.
+Use the information in the <memory> tag when relevant.
 ```
+
+## Flushing the Memory Buffer
+
+Memobase uses a buffer to collect user interactions. A `flush` operation processes this buffer and updates the long-term memory. Flushing occurs automatically when:
+
+-   The buffer exceeds a certain size.
+-   The buffer has been idle for a set period.
+
+You can also trigger it manually with the `flush` API. It is best practice to call `flush` at the end of a user session or conversation.
+
+## User ID Management
+
+A single user in your application can correspond to multiple Memobase users. This is useful for creating segmented memories.
+
+-   **Example: AI Role-Playing**: If a user interacts with multiple AI agents (e.g., a history tutor and a creative writer), you can create a separate Memobase user for each agent. This keeps the memories for each role distinct.
+
+We recommend designing your system with a one-to-many mapping between your application's user ID and Memobase user IDs.
+
+## Enriching Conversation Data
+
+You can add metadata to the messages you insert to provide more context for memory extraction.
+
+-   **Speaker Alias**: Use `alias` to specify the name of the AI assistant in the conversation.
+    ```json
+    {
+        "role": "assistant",
+        "content": "Hi, nice to meet you, Gus!",
+        "alias": "HerAI"
+    }
+    ```
+-   **Timestamps**: Provide a `created_at` timestamp for each message so Memobase can build a timeline of events.
+    ```json
+    {
+        "role": "user",
+        "content": "Hello, I'm Gus",
+        "created_at": "2025-01-14T10:00:00Z"
+    }
+    ```
+
+See a full implementation in our [demo script](https://github.com/memodb-io/memobase/blob/main/assets/quickstart.py).

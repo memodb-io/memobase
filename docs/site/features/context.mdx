@@ -1,29 +1,27 @@
 ---
-title: Get Memory Prompt
+title: Retrieving the Memory Prompt
 ---
 
-Memobase automatically extracts and structures various types of memories from user interactions, such as:
-- **User Profile**: Key-value pairs describing the user (e.g., name, preferences).
-- **User Events**: Significant occurrences or interactions (e.g., past conversations, actions taken).
+Memobase automatically extracts and structures various types of memories from user interactions, including:
+-   **User Profile**: Key-value attributes describing the user (e.g., name, location, preferences).
+-   **User Events**: Significant occurrences and interactions from the user's history.
 
-All of these memories constitute a user's personalized context. 
-Memobase provides a powerful `context()` API to retrieve this information in a structured prompt, ready to be injected into your prompts.
+This collection of memories forms a user's personalized context. Memobase provides a powerful `context()` API to retrieve this information as a structured string, ready to be injected directly into your LLM prompts.
 
 ### Basic Usage
 
-The most straightforward way to get a user's context is to call the `context()` method on a user object.
+The simplest way to get a user's context is to call the `context()` method on a user object.
 
 <CodeGroup>
 ```python Python
-from memobase import MemobaseClient, ChatBlob
+from memobase import MemoBaseClient, ChatBlob
 
 # Initialize client and get/create a user
-client = MemobaseClient(api_key="your_api_key")
-uid = client.add_user(profile={"name": "Gus"})
-u = client.get_user(uid)
+client = MemoBaseClient(api_key="your_api_key")
+user = client.get_user(client.add_user(profile={"name": "Gus"}))
 
-# Insert some data to create memories
-u.insert(
+# Insert data to generate memories
+user.insert(
     ChatBlob(
         messages=[
             {"role": "user", "content": "I live in California."},
@@ -32,92 +30,85 @@ u.insert(
     )
 )
 
-# Retrieve the default context
-user_context = u.context()
+# Retrieve the default context prompt
+user_context = user.context()
 print(user_context)
 ```
 
 ```txt Output
 # Memory
-Unless the user has relevant queries, do not actively mention those memories in the conversation.
+Unless the user has relevant queries, do not actively mention these memories in the conversation.
+
 ## User Background:
 - basic_info:name: Gus
 - basic_info:location: California
 
 ## Latest Events:
-- User said he live in California
-...
+- User mentioned living in California.
 ```
 </CodeGroup>
 
-### Searching with Recent Chats
+### Context-Aware Retrieval
 
-To make the retrieved context more relevant to the current conversation, you can provide recent chat messages. Memobase will perform a semantic search to find the most relevant historical events instead of just returning the latest ones.
+To make the retrieved context more relevant to the ongoing conversation, you can provide recent chat messages. Memobase will perform a semantic search to prioritize the most relevant historical events, rather than simply returning the most recent ones.
 
 <CodeGroup>
 ```python Python
 # Continuing from the previous example...
-
-# Simulate a new conversation where the user asks a question
 recent_chats = [
-    {"role": "user", "content": "What's my name?"}
+    {"role": "user", "content": "What is my name?"}
 ]
 
 # Get context relevant to the recent chat
-relevant_context = u.context(chats=recent_chats)
+relevant_context = user.context(chats=recent_chats)
 print(relevant_context)
 ```
 
 ```txt Output
+# Memory
+...
 ## User Background:
 - basic_info:name: Gus
 - basic_info:location: California
 
 ## Latest Events:
-- User said his name is now Gus
-- User said he used to be called John
-...
+- User stated their name is Gus.
+- User previously mentioned being called John.
 ```
 </CodeGroup>
 
 ### Controlling Context Size
 
-You can control the size of the returned context using the `max_tokens` parameter. 
-This is useful for managing the returned context size and controlling costs. 
+You can manage the size and cost of your prompts by limiting the token count of the retrieved context using the `max_tokens` parameter.
+
 <CodeGroup>
 ```python Python
 # Get a condensed context with a token limit
-compact_context = u.context(max_tokens=10)
+compact_context = user.context(max_tokens=20)
 print(compact_context)
 ```
 
 ```txt Output
 # Memory
-Unless the user has relevant queries, do not actively mention those memories in the conversation.
+...
 ## User Background:
 - basic_info:name: Gus
 
 ## Latest Events:
+- User mentioned living in California.
 ```
 </CodeGroup>
 
-Memobase will truncate to the most recent profile and relevant events. 
-But note that the `max_tokens` is applied only to the sum of the tokens in the profile and events, not the final output context.
-If you have a very large [context prompt template](/api-reference/prompt/get_context#parameter-customize-context-prompt), the returned context may be still large.
+**Note**: The `max_tokens` limit applies to the profile and event content, not the final formatted string. If you use a large custom prompt template, the final output may still exceed the limit.
 
-### Advanced Filtering and Customization
+### Advanced Filtering
 
-The `context()` API offers several parameters for fine-grained control over the returned data.
+The `context()` API offers several parameters for fine-grained control:
 
-- `prefer_topics`: A list of topics to prioritize.
-- `only_topics`: Only return profile items with these topics.
-- `max_subtopic_size`: Limits the number of subtopics for any given topic.
-- `topic_limits_json`: A JSON string to specify limits for individual topics.
-- `profile_event_ratio`: The ratio of profile information to event information in the context.
-- `require_event_summary`: If `True`, the context will include a summary of events.
-- `event_similarity_threshold`: A float between 0 and 1 to control the similarity of returned events.
-- `time_range_in_days`:  Filters events to within a specific number of days.
-- `customize_context_prompt`: A template to customize the final output string.
-- `full_profile_and_only_search_event`: A boolean to control whether to search both profile and events.
+-   `prefer_topics`, `only_topics`: Prioritize or exclusively include certain profile topics.
+-   `max_subtopic_size`: Limit the number of sub-topics returned per topic.
+-   `profile_event_ratio`: Adjust the balance between profile and event information.
+-   `time_range_in_days`: Filter events to a specific time window.
+-   `customize_context_prompt`: Provide a custom template for the final output string.
 
-For more advanced usage and a full list of parameters, please refer to the [API Reference for `get_context`](/api-reference/prompt/get_context).
+For a full list of parameters, refer to the [API Reference for `get_context`](/api-reference/prompt/get_context).

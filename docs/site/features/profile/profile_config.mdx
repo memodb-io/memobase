@@ -1,44 +1,50 @@
 ---
-title: Profile Validation
+title: Profile Validation and Strictness
 ---
 
-## Auto-Validate
-By default, Memobase will validate the new profile value before saving it.
-By doing this, Memobase can:
-1. Make sure the extracted profile value is meaningful.
-LLM may generate memories with very few information. For example, "User didn't speak his name", "User has work".
-Validation in Memobase can remove those meaningless memories.
-2. Make sure the extracted profile is matched with your `description`([how to design profiles](/features/profile/profile_desc)).
+## Auto-Validation
 
-But if you encounter some issues of missing profiles or the user profile is not big enough, maybe you can disable the validation by:
+By default, Memobase validates all new profile information before saving it. This process serves two main purposes:
+
+1.  **Ensures Meaningful Data**: It filters out low-quality or irrelevant information that the LLM might generate, such as "User has a job" or "User did not state their name."
+2.  **Maintains Schema Adherence**: It verifies that the extracted information aligns with the descriptions you have defined for your [profile slots](/features/profile/profile_desc).
+
+However, if you find that too much information is being filtered out, you can disable this feature by setting `profile_validate_mode` to `false` in your `config.yaml`:
+
 ```yaml config.yaml
 profile_validate_mode: false
 ```
-Memobase will save more possible profiles, but it may lead to some wrong/weird profiles.
+
+Disabling validation will result in more data being saved, but it may also lead to less accurate or less relevant profile information.
 
 ## Strict Mode
-We allow Memobase to extend the current designed profile schema to include more important profiles.
-For example, if you config is:
+
+By default, Memobase operates in a flexible mode, allowing the AI to extend your defined profile schema with new, relevant sub-topics it discovers during conversations. For example, if your configuration is:
+
 ```yaml config.yaml
 overwrite_user_profiles:
     - topic: "work"
       sub_topics:
         - "company"
 ```
-Memobase may have user profiles that look like:
-```json Maybe Profile
-"work": {
-    "company": "Google",
-    "position": "Software Engineer",
-    "department": "Engineering",
-    ...
+
+Memobase might generate a more detailed profile like this:
+
+```json Possible Profile Output
+{
+    "work": {
+        "company": "Google",
+        "position": "Software Engineer",
+        "department": "Engineering"
+    }
 }
 ```
-In many cases, the additional profiles extended by AI are really helpful because you couldn't plan all the useful profiles for your users in advance.
 
-But if you only want the profiles that you have designed in `config.yaml`, you can enable the strict mode by:
+This is often useful, as it's difficult to anticipate all the valuable information your users might provide. However, if you require that **only** the profile slots you have explicitly defined are saved, you can enable strict mode:
+
 ```yaml config.yaml
 profile_strict_mode: true
 ```
-Memobase will strictly save the profiles in your `config.yaml`.
+
+In strict mode, Memobase will adhere rigidly to the schema in your `config.yaml`.
 
