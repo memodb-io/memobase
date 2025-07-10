@@ -138,12 +138,10 @@ Memobase is building with FastAPI, Postgres and Redis, supporting request cachin
 > [!NOTE]
 >
 > Try [Memobase Playground](https://app.memobase.io/playground) to see how profile-based memory works — no setup needed.
-
-* **Visualize** how user profiles and memory events evolve over time.
-* **Interact** with the memory mechanism directly.
-* **Explore** key features and concepts in a live environment.
-
-Watch the demo below — see how memory evolves around user profiles.
+> * **Visualize** how user profiles and memory events evolve over time.
+> * **Interact** with the memory mechanism directly.
+> * **Explore** key features and concepts in a live environment.
+> Watch the demo below — see how memory evolves around user profiles.
 
 https://github.com/user-attachments/assets/eb2eea30-48bc-4714-9706-e417ae1931df
 
@@ -262,27 +260,24 @@ print(u.context(max_token_size=500, prefer_topics=["basic_info"]))
 Something like:
 
 ```
-<memory>
-# Below is the user profile:
-- basic_info::name: Gus
+# Memory
+Unless the user has relevant queries, do not actively mention those memories in the conversation.
+## User Background:
+- basic_info:name: Gus
 ...
-# Below is the latest events of the user:
-2025/02/24 04:25PM:
-- work::meetings: Scheduled a meeting with John.
+
+## Latest Events:
 ...
-</memory>
-Please provide your answer using the information within the <memory> tag at the appropriate time.
 ```
 
 Checkout the detail params [here](https://docs.memobase.io/api-reference/prompt/get_context).
 
 ### What's next?
 
-- Checkout the [quickstart script](./assets/quickstart.py) for more details
-- You may want to explore the [customization](https://docs.memobase.io/features/profile/profile) of Memobase to make sure the system works as your expectation.
-- If you want to test Memobase on your own data, we offer a [script](./docs/experiments/chat_sessions) that allows you to set multiple chat sessions and see how the memory grows.
-- See our [integrations](https://docs.memobase.io/templates/livekit) to find anything may help you.
-- Check [Memobase-Playground](https://github.com/memodb-io/memobase-playground), an open-source, full-stack template AI Chatbot with long-term memory. [live-demo](https://app.memobase.io/playground)
+- **Run script**: Checkout the [quickstart script](./assets/quickstart.py) for more details
+- **Design your profile!**: You may want to explore the [customization](https://docs.memobase.io/features/profile/profile) of Memobase to make sure the system works as your expectation.
+- **Full-stack Chatbot with Memobase**: Check [Memobase-Playground](https://github.com/memodb-io/memobase-playground). An open-source, full-stack template AI Chatbot with long-term memory. [live-demo](https://app.memobase.io/playground)
+- **Web UI for Memobase**: Check [Memobase-Inspector](https://github.com/memodb-io/memobase-inspector). An open-source UI for your Memobase project with user table, usage chart and test playground. [live-demo](https://app.memobase.io/inspector)
 
 
 
