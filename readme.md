@@ -91,6 +91,28 @@ Memobase can provide you structured profiles of users, check out the [result](./
 
 
 
+## Table of Contents
+
+- [Table of Contents](#table-of-contents)
+- [Core Features](#core-features)
+- [Get Started](#get-started)
+- [Step-by-step break down](#step-by-step-break-down)
+  - [1. Make sure you're connected](#1-make-sure-youre-connected)
+  - [2. Manage Users](#2-manage-users)
+  - [3. Insert Data](#3-insert-data)
+  - [4. Get your Memory](#4-get-your-memory)
+  - [5. Integrate memory into your prompt](#5-integrate-memory-into-your-prompt)
+- [What's next?](#whats-next)
+- [Why/Where should I use Memobase?](#whywhere-should-i-use-memobase)
+  - [Remember the users](#remember-the-users)
+  - [User analysis and tracking](#user-analysis-and-tracking)
+  - [Sell something to your customers.](#sell-something-to-your-customers)
+- [Documentation](#documentation)
+- [Stay Updated](#stay-updated)
+- [Support](#support)
+- [Contribute](#contribute)
+- [License](#license)
+
 ## Core Features
 
 **🎯 Memory for User, not Agent**
@@ -272,7 +294,7 @@ Unless the user has relevant queries, do not actively mention those memories in 
 
 Checkout the detail params [here](https://docs.memobase.io/api-reference/prompt/get_context).
 
-### What's next?
+## What's next?
 
 - **Run script**: Checkout the [quickstart script](./assets/quickstart.py) for more details
 - **Design your profile!**: You may want to explore the [customization](https://docs.memobase.io/features/profile/profile) of Memobase to make sure the system works as your expectation.
