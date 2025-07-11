@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "almond",
+  "theme": "mint",
   "name": "Memobase",
   "description": "First User Profile-based Long-term Memory Backend",
   "favicon": "/logo/favicon.png",
@@ -51,16 +51,16 @@
             ]
           },
           {
-            "group": "Practices",
+            "group": "References",
             "pages": [
-              "practices/bad",
-              "practices/tips",
-              "practices/openai"
-            ]
-          },
-          {
-            "group": "Referencces",
-            "pages": [
+              {
+                "group": "Best Practices",
+                "pages": [
+                  "practices/bad",
+                  "practices/tips",
+                  "practices/openai"
+                ]
+              },
               "references/cloud_config",
               "references/local_config",
               "references/async_client"
