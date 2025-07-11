@@ -1,13 +1,14 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "almond",
   "name": "Memobase",
-  "colors": {
-    "primary": "#6c60f0",
-    "light": "#ececdb",
-    "dark": "#a3df02"
-  },
+  "description": "First User Profile-based Long-term Memory Backend",
   "favicon": "/logo/favicon.png",
+  "colors": {
+    "primary": "#6366f1",
+    "light": "#f8fafc",
+    "dark": "#0f172a"
+  },
   "navigation": {
     "tabs": [
       {
