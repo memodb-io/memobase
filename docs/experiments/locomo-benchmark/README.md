@@ -17,14 +17,15 @@ This project contains the code of running benchmark results on [Locomo dataset](
 
 - We mainly report the LLM Judge Sorce (higher is better).
 
-| Method     | Single-Hop(%) | Multi-Hop(%) | Open Domain(%) | Temporal(%) | Overall(%) |
-| ---------- | ------------- | ------------ | -------------- | ----------- | ---------- |
-| Mem0       | **67.13**     | 51.15        | 72.93          | 55.51       | 66.88      |
-| Mem0-Graph | 65.71         | 47.19        | 75.71          | 58.13       | 68.44      |
-| LangMem    | 62.23         | 47.92        | 71.12          | 23.43       | 58.10      |
-| Zep        | 61.70         | 41.35        | **76.60**      | 49.31       | 65.99      |
-| OpenAI     | 63.79         | 42.92        | 62.29          | 21.71       | 52.90      |
-| Memobase   | 63.83         | **52.08**    | 71.82          | **80.37**   | **70.91**  |
+| Method                 | Single-Hop(%) | Multi-Hop(%) | Open Domain(%) | Temporal(%) | Overall(%) |
+| ---------------------- | ------------- | ------------ | -------------- | ----------- | ---------- |
+| Mem0                   | **67.13**     | 51.15        | 72.93          | 55.51       | 66.88      |
+| Mem0-Graph             | 65.71         | 47.19        | 75.71          | 58.13       | 68.44      |
+| LangMem                | 62.23         | 47.92        | 71.12          | 23.43       | 58.10      |
+| Zep                    | 61.70         | 41.35        | **76.60**      | 49.31       | 65.99      |
+| OpenAI                 | 63.79         | 42.92        | 62.29          | 21.71       | 52.90      |
+| Memobase(*v0.0.32*) | 63.83         | **52.08**    | 71.82          | **80.37**   | **70.91**  |
+| Memobase(*v0.0.37-a1*) | **67.60**     | 39.76    | **76.65**      | 78.87   | **73.27**  |
 
 > **What is LLM Judge Score?**
 >
@@ -32,29 +33,35 @@ This project contains the code of running benchmark results on [Locomo dataset](
 
 We attached the artifacts of Memobase under `fixture/memobase/`:
 
-- `fixture/memobase/results_0503_3000.json`: predicted answers from Memobase Memory
-- `fixture/memobase/memobase_eval_0503_3000.json`: LLM Judge results of predicted answers
+- v0.0.32
+  - `fixture/memobase/results_0503_3000.json`: predicted answers from Memobase Memory
+  - `fixture/memobase/memobase_eval_0503_3000.json`: LLM Judge results of predicted answers
 
-To generate the scorings, run:
+- v0.0.37-a1
+  - `fixture/memobase/results_0709_3000.json`: predicted answers from Memobase Memory
+  - `fixture/memobase/memobase_eval_0709_3000.json`: LLM Judge results of predicted answers
+
+To generate the latest scorings, run:
 
 ```bash
-python generate_scores.py --input_path="fixture/memobase/memobase_eval_0503_3000.json"
+python generate_scores.py --input_path="fixture/memobase/memobase_eval_0709_3000.json"
 ```
 
 Output:
 
 ```
+Mean Scores Per Category:
           bleu_score  f1_score  llm_score  count         type
 category
-1             0.3045    0.4283     0.6383    282   single_hop
-2             0.4582    0.6438     0.8037    321     temporal
-3             0.2078    0.3085     0.5208     96    multi_hop
-4             0.3429    0.4698     0.7182    841  open_domain
+1             0.3048    0.4254     0.6760    250   single_hop
+2             0.4323    0.6052     0.7887    284     temporal
+3             0.1943    0.2616     0.3976     83    multi_hop
+4             0.4121    0.5207     0.7665    771  open_domain
 
 Overall Mean Scores:
-bleu_score    0.3515
-f1_score      0.4884
-llm_score     0.7091
+bleu_score    0.3839
+f1_score      0.5053
+llm_score     0.7327
 dtype: float64
 ```
 

@@ -131,7 +131,7 @@ class MemobaseADD:
                 args=(
                     speaker_a_user_id,
                     messages,
-                    "Adding Memories for Speaker A",
+                    f"{idx} Adding Memories for {speaker_a}",
                 ),
             )
             thread_b = threading.Thread(
@@ -139,7 +139,7 @@ class MemobaseADD:
                 args=(
                     speaker_b_user_id,
                     messages_reverse,
-                    "Adding Memories for Speaker B",
+                    f"{idx} Adding Memories for {speaker_b}",
                 ),
             )
 
