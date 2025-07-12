@@ -490,6 +490,7 @@ class UserEvent(Base):
         back_populates="event",
         cascade="all, delete-orphan",
         init=False,
+        overlaps="related_user_event_gists",
     )
 
     __table_args__ = (
@@ -538,6 +539,7 @@ class UserEventGist(Base):
         back_populates="related_user_event_gists",
         init=False,
         foreign_keys=[event_id, project_id],
+        overlaps="related_user_event_gists",
     )
 
     user: Mapped[User] = relationship(
@@ -545,6 +547,7 @@ class UserEventGist(Base):
         back_populates="related_user_event_gists",
         init=False,
         foreign_keys=[user_id, project_id],
+        overlaps="event,related_user_event_gists",
     )
 
     embedding: Mapped[Vector] = mapped_column(

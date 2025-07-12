@@ -202,7 +202,7 @@ async def test_filter_user_events(db_env, mock_event_get_embedding):
                     "attributes": {"topic": "mood", "sub_topic": "positive"},
                 }
             ],
-            "event_tip": "User had a great day",
+            "event_tip": "- User had a great day",
             "event_tags": [
                 {"tag": "emotion", "value": "happy"},
                 {"tag": "goal", "value": "relax"},
@@ -216,7 +216,7 @@ async def test_filter_user_events(db_env, mock_event_get_embedding):
                     "attributes": {"topic": "mood", "sub_topic": "negative"},
                 }
             ],
-            "event_tip": "User had a rough day",
+            "event_tip": "- User had a rough day",
             "event_tags": [
                 {"tag": "emotion", "value": "sad"},
                 {"tag": "location", "value": "home"},
@@ -230,7 +230,7 @@ async def test_filter_user_events(db_env, mock_event_get_embedding):
                     "attributes": {"topic": "work", "sub_topic": "productivity"},
                 }
             ],
-            "event_tip": "User is being productive",
+            "event_tip": "- User is being productive",
             "event_tags": [
                 {"tag": "goal", "value": "work"},
                 {"tag": "location", "value": "office"},
@@ -244,7 +244,7 @@ async def test_filter_user_events(db_env, mock_event_get_embedding):
                     "attributes": {"topic": "mood", "sub_topic": "positive"},
                 }
             ],
-            "event_tip": "User is excited about something",
+            "event_tip": "- User is excited about something",
             "event_tags": [{"tag": "emotion", "value": "happy"}],
         },
         # Event 5: no event_tags at all
@@ -255,7 +255,7 @@ async def test_filter_user_events(db_env, mock_event_get_embedding):
                     "attributes": {"topic": "info", "sub_topic": "general"},
                 }
             ],
-            "event_tip": "User shared some general information",
+            "event_tip": "- User shared some general information",
         },
     ]
 
@@ -268,7 +268,7 @@ async def test_filter_user_events(db_env, mock_event_get_embedding):
         assert p.ok()
         event_ids.append(p.data())
 
-    assert mock_event_get_embedding.await_count == len(test_events)
+    assert mock_event_get_embedding.await_count == len(test_events) * 2
     # Test 1: Filter by tag existence - events that have 'emotion' tag
     p = await controllers.event.filter_user_events(
         u_id, DEFAULT_PROJECT_ID, has_event_tag=["emotion"]
@@ -411,7 +411,7 @@ async def test_filter_user_events_edge_cases(db_env, mock_event_get_embedding):
                 "attributes": {"topic": "test", "sub_topic": "test"},
             }
         ],
-        "event_tip": "Test event",
+        "event_tip": "- Test event",
         "event_tags": [],
     }
     p = await controllers.event.append_user_event(u_id, DEFAULT_PROJECT_ID, event_data)
@@ -433,7 +433,7 @@ async def test_filter_user_events_edge_cases(db_env, mock_event_get_embedding):
                 "attributes": {"topic": "test", "sub_topic": "test"},
             }
         ],
-        "event_tip": "Test event 2",
+        "event_tip": "- Test event 2",
         "event_tags": None,
     }
     p = await controllers.event.append_user_event(
@@ -449,7 +449,7 @@ async def test_filter_user_events_edge_cases(db_env, mock_event_get_embedding):
     events = p.data().events
     assert len(events) == 0
 
-    assert mock_event_get_embedding.await_count == 2
+    assert mock_event_get_embedding.await_count == 2 * 2
 
     # Cleanup
     p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
