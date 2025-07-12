@@ -25,7 +25,7 @@ overwrite_user_profiles:
       - name: "creative_pursuits"
       - name: "mental_health"
       - name: "self_care_activities"
-  - topic: "future_plans"
+  - topic: "plans"
     sub_topics:
       - name: "career_goals"
       - name: "personal_aspirations"
