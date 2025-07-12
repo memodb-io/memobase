@@ -25,3 +25,34 @@ print(events)
 This query will return events where the user discussed their emotions, events that were automatically [tagged](/features/event/event_tag) with an `emotion` tag, or events that updated profile slots related to emotion.
 
 For a detailed list of search parameters, please refer to the [API documentation](/api-reference/events/search_events).
+
+## Search Event Gists
+
+A user event is a group of user infos happened in a period of time.
+So when you need to search for specific facts or infos, you may need a more fine-grained search.
+
+In Memobase, we call it `event_gist`. `event_gist` is a fraction of `user_event` that only contains one fact, schedule, or reminder of user.
+
+So if you want to search particular things of user, without the context of other infos, you can use `search_event_gist` to conduct a search:
+<CodeGroup>
+```python Python
+# To use the Python SDK, install the package:
+# pip install memobase
+from memobase import MemoBaseClient
+from memobase.core.blob import ChatBlob
+
+client = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+u = client.get_user(UID)
+
+events = u.search_event_gist('Car')
+print(events)
+```
+```txt Output
+- user bought a car [mentioned at 2025-01]
+- user drove to the car dealership [mentioned at 2025-06]
+- user likes BMW [mentioned at 2024-08]
+...
+```
+</CodeGroup>
+
+For detail API, please refer to [Search Event Gists](/api-reference/events/search_event_gists).
