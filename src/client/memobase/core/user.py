@@ -55,6 +55,10 @@ class EventData(BaseModel):
     event_tags: Optional[list[EventTag]] = Field(None, description="List of event tags")
 
 
+class EventGistData(BaseModel):
+    content: str = Field(..., description="The event gist content")
+
+
 class UserEventData(BaseModel):
     id: UUID4 | UUID5 = Field(..., description="The event's unique identifier")
     event_data: Optional[EventData] = Field(None, description="User event data in JSON")
@@ -63,5 +67,17 @@ class UserEventData(BaseModel):
     )
     updated_at: datetime = Field(
         None, description="Timestamp when the event was last updated"
+    )
+    similarity: Optional[float] = Field(None, description="Similarity score")
+
+
+class UserEventGistData(BaseModel):
+    id: UUID4 | UUID5 = Field(..., description="The event gist's unique identifier")
+    gist_data: EventGistData = Field(None, description="User event gist data")
+    created_at: datetime = Field(
+        None, description="Timestamp when the event gist was created"
+    )
+    updated_at: datetime = Field(
+        None, description="Timestamp when the event gist was last updated"
     )
     similarity: Optional[float] = Field(None, description="Similarity score")

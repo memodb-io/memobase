@@ -8,7 +8,7 @@ from pydantic import HttpUrl, ValidationError
 from dataclasses import dataclass
 from urllib.parse import quote_plus
 from .blob import BlobData, Blob, BlobType, ChatBlob, OpenAICompatibleMessage
-from .user import UserProfile, UserProfileData, UserEventData
+from .user import UserProfile, UserProfileData, UserEventData, UserEventGistData
 from ..network import unpack_response
 from ..error import ServerError
 from ..utils import LOG
@@ -286,7 +286,7 @@ class User:
         query: str,
         topk: int = 10,
         similarity_threshold: float = 0.2,
-        time_range_in_days: int = 7,
+        time_range_in_days: int = 180,
     ) -> list[UserEventData]:
         params = f"?query={query}&topk={topk}&similarity_threshold={similarity_threshold}&time_range_in_days={time_range_in_days}"
         r = unpack_response(
@@ -295,6 +295,21 @@ class User:
             )
         )
         return [UserEventData.model_validate(e) for e in r.data["events"]]
+
+    def search_event_gist(
+        self,
+        query: str,
+        topk: int = 10,
+        similarity_threshold: float = 0.2,
+        time_range_in_days: int = 180,
+    ) -> list[UserEventData]:
+        params = f"?query={query}&topk={topk}&similarity_threshold={similarity_threshold}&time_range_in_days={time_range_in_days}"
+        r = unpack_response(
+            self.project_client.client.get(
+                f"/users/event_gist/search/{self.user_id}{params}"
+            )
+        )
+        return [UserEventGistData.model_validate(e) for e in r.data["gists"]]
 
     def context(
         self,
