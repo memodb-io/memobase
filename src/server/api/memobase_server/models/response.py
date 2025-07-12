@@ -290,6 +290,12 @@ class UserEventsDataResponse(BaseResponse):
     )
 
 
+class UserEventGistsDataResponse(BaseResponse):
+    data: Optional[UserEventGistsData] = Field(
+        None, description="Response containing user event gists"
+    )
+
+
 class UserContextDataResponse(BaseResponse):
     data: Optional[ContextData] = Field(
         None, description="Response containing user context"

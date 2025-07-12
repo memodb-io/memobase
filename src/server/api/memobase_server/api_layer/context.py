@@ -58,8 +58,8 @@ It's a list of chats in OpenAI Message format, for example: [{"role": "user", "c
         description="Event similarity threshold of returned Context",
     ),
     time_range_in_days: int = Query(
-        21,
-        description="Only allow events within the past few days, default is 21",
+        180,
+        description="Only allow events within the past few days, default is 180",
     ),
     customize_context_prompt: str = Query(
         None,

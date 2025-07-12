@@ -256,3 +256,33 @@ func main() {
 """
     ),
 )
+
+
+add_api_code_docs(
+    "GET",
+    "/users/event_gist/search/{user_id}",
+    py_code(
+        """from memobase import MemoBaseClient
+from memobase.core.blob import ChatBlob
+
+client = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+uid = client.add_user()
+u = client.get_user(uid)
+
+b = ChatBlob(messages=[
+    {
+        "role": "user",
+        "content": "Hi, I'm here again"
+    },
+    {
+        "role": "assistant",
+        "content": "Hi, Gus! How can I help you?"
+    }
+])
+u.insert(b)
+u.flush(sync=True)
+
+events = u.search_event_gist('query')
+print(events)"""
+    ),
+)

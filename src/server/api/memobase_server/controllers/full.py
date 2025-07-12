@@ -5,5 +5,6 @@ from . import buffer_background
 from . import profile
 from . import project
 from . import event
+from . import event_gist
 from . import context
 from . import billing

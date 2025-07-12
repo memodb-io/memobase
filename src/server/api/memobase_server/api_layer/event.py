@@ -59,7 +59,7 @@ async def search_user_events(
         0.2, description="Similarity threshold, default is 0.2"
     ),
     time_range_in_days: int = Query(
-        21, description="Only allow events within the past few days, default is 21"
+        180, description="Only allow events within the past few days, default is 180"
     ),
 ) -> res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
@@ -67,3 +67,22 @@ async def search_user_events(
         user_id, project_id, query, topk, similarity_threshold, time_range_in_days
     )
     return p.to_response(res.UserEventsDataResponse)
+
+
+async def search_user_event_gists(
+    request: Request,
+    user_id: str = Path(..., description="The ID of the user"),
+    query: str = Query(..., description="The query to search for"),
+    topk: int = Query(10, description="Number of events to retrieve, default is 10"),
+    similarity_threshold: float = Query(
+        0.2, description="Similarity threshold, default is 0.2"
+    ),
+    time_range_in_days: int = Query(
+        180, description="Only allow events within the past few days, default is 180"
+    ),
+) -> res.UserEventGistsDataResponse:
+    project_id = request.state.memobase_project_id
+    p = await controllers.event_gist.search_user_event_gists(
+        user_id, project_id, query, topk, similarity_threshold, time_range_in_days
+    )
+    return p.to_response(res.UserEventGistsDataResponse)
