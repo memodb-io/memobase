@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Memobase API",
 		"summary": "APIs for Memobase, a user memory system for LLM Apps",
-		"version": "0.0.35"
+		"version": "0.0.37"
 	},
 	"servers": [
 		{
@@ -1808,11 +1808,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"description": "Only allow events within the past few days, default is 21",
-							"default": 21,
+							"description": "Only allow events within the past few days, default is 180",
+							"default": 180,
 							"title": "Time Range In Days"
 						},
-						"description": "Only allow events within the past few days, default is 21"
+						"description": "Only allow events within the past few days, default is 180"
 					}
 				],
 				"responses": {
@@ -1847,6 +1847,104 @@
 						"lang": "go",
 						"source": "// To use the Go SDK, install the package:\n// go get github.com/memodb-io/memobase/src/client/memobase-go@latest\n\nimport (\n    \"fmt\"\n    \"log\"\n\n    \"github.com/memodb-io/memobase/src/client/memobase-go/core\"\n)\n\nfunc main() {\n    projectURL := \"YOUR_PROJECT_URL\"\n    apiKey := \"YOUR_API_KEY\"\n    // Initialize the client\n    client, err := core.NewMemoBaseClient(\n        projectURL,\n        apiKey,\n    )\n    if err != nil {\n        log.Fatalf(\"Failed to create client: %v\", err)\n    }\n\n    // Get a user\n    userID := \"EXISTING_USER_ID\" // Replace with an actual user ID\n    user, err := client.GetUser(userID, false)\n    if err != nil {\n        log.Fatalf(\"Failed to get user: %v\", err)\n    }\n\n    // Search for events\n    events, err := user.SearchEvent(\"query\", 10, 0.7, 7)\n    if err != nil {\n        log.Fatalf(\"Failed to search events: %v\", err)\n    }\n\n    fmt.Printf(\"Found %d events\n\", len(events))\n}\n\n",
 						"label": "Go"
+					}
+				]
+			}
+		},
+		"/api/v1/users/event_gist/search/{user_id}": {
+			"get": {
+				"tags": [
+					"event_gist"
+				],
+				"summary": "Search User Event Gists",
+				"operationId": "search_user_event_gists_api_v1_users_event_gist_search__user_id__get",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The ID of the user",
+							"title": "User Id"
+						},
+						"description": "The ID of the user"
+					},
+					{
+						"name": "query",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "The query to search for",
+							"title": "Query"
+						},
+						"description": "The query to search for"
+					},
+					{
+						"name": "topk",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"description": "Number of events to retrieve, default is 10",
+							"default": 10,
+							"title": "Topk"
+						},
+						"description": "Number of events to retrieve, default is 10"
+					},
+					{
+						"name": "similarity_threshold",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "number",
+							"description": "Similarity threshold, default is 0.2",
+							"default": 0.2,
+							"title": "Similarity Threshold"
+						},
+						"description": "Similarity threshold, default is 0.2"
+					},
+					{
+						"name": "time_range_in_days",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"description": "Only allow events within the past few days, default is 180",
+							"default": 180,
+							"title": "Time Range In Days"
+						},
+						"description": "Only allow events within the past few days, default is 180"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserEventGistsDataResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				},
+				"x-code-samples": [
+					{
+						"lang": "python",
+						"source": "# To use the Python SDK, install the package:\n# pip install memobase\nfrom memobase import MemoBaseClient\nfrom memobase.core.blob import ChatBlob\n\nclient = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\nuid = client.add_user()\nu = client.get_user(uid)\n\nb = ChatBlob(messages=[\n    {\n        \"role\": \"user\",\n        \"content\": \"Hi, I'm here again\"\n    },\n    {\n        \"role\": \"assistant\",\n        \"content\": \"Hi, Gus! How can I help you?\"\n    }\n])\nu.insert(b)\nu.flush(sync=True)\n\nevents = u.search_event_gist('query')\nprint(events)\n",
+						"label": "Python"
 					}
 				]
 			}
@@ -1985,11 +2083,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"description": "Only allow events within the past few days, default is 21",
-							"default": 21,
+							"description": "Only allow events within the past few days, default is 180",
+							"default": 180,
 							"title": "Time Range In Days"
 						},
-						"description": "Only allow events within the past few days, default is 21"
+						"description": "Only allow events within the past few days, default is 180"
 					},
 					{
 						"name": "customize_context_prompt",
@@ -2013,6 +2111,18 @@
 							"title": "Full Profile And Only Search Event"
 						},
 						"description": "If you pass `chats_str` and set this to `False`, Memobase will search for relevant profiles and events at the same time.\n**NOTICE**\n- It will increase your latency by 2-5(based on the profile size) seconds, because Memobase will use LLM and Embedding to search for relevant profiles and events.\n- It will cost your Memobase tokens, roughly 100~1000 tokens per chat based on the profile size.\n"
+					},
+					{
+						"name": "fill_window_with_events",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"description": "If set to `True`, Memobase will fill the token window with the rest events.",
+							"default": false,
+							"title": "Fill Window With Events"
+						},
+						"description": "If set to `True`, Memobase will fill the token window with the rest events."
 					}
 				],
 				"responses": {
@@ -2696,6 +2806,20 @@
 				"type": "object",
 				"title": "EventData"
 			},
+			"EventGistData": {
+				"properties": {
+					"content": {
+						"type": "string",
+						"title": "Content",
+						"description": "The event gist content"
+					}
+				},
+				"type": "object",
+				"required": [
+					"content"
+				],
+				"title": "EventGistData"
+			},
 			"EventTag": {
 				"properties": {
 					"tag": {
@@ -3359,6 +3483,102 @@
 					"id"
 				],
 				"title": "UserEventData"
+			},
+			"UserEventGistData": {
+				"properties": {
+					"id": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "uuid4"
+							},
+							{
+								"type": "string",
+								"format": "uuid5"
+							}
+						],
+						"title": "Id",
+						"description": "The event gist's unique identifier"
+					},
+					"gist_data": {
+						"$ref": "#/components/schemas/EventGistData",
+						"description": "User event gist data"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Created At",
+						"description": "Timestamp when the event gist was created"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Updated At",
+						"description": "Timestamp when the event gist was last updated"
+					},
+					"similarity": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Similarity",
+						"description": "Similarity score"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id"
+				],
+				"title": "UserEventGistData"
+			},
+			"UserEventGistsData": {
+				"properties": {
+					"gists": {
+						"items": {
+							"$ref": "#/components/schemas/UserEventGistData"
+						},
+						"type": "array",
+						"title": "Gists",
+						"description": "List of user event gists"
+					}
+				},
+				"type": "object",
+				"required": [
+					"gists"
+				],
+				"title": "UserEventGistsData"
+			},
+			"UserEventGistsDataResponse": {
+				"properties": {
+					"data": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/UserEventGistsData"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"description": "Response containing user event gists"
+					},
+					"errno": {
+						"$ref": "#/components/schemas/CODE",
+						"description": "Error code, 0 means success",
+						"default": 0
+					},
+					"errmsg": {
+						"type": "string",
+						"title": "Errmsg",
+						"description": "Error message, empty when success",
+						"default": ""
+					}
+				},
+				"type": "object",
+				"title": "UserEventGistsDataResponse"
 			},
 			"UserEventsData": {
 				"properties": {

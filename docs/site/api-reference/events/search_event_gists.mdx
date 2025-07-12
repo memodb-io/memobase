@@ -1,0 +1,16 @@
+---
+title: 'Search Event Gists'
+openapi: get /api/v1/users/event_gist/search/{user_id}
+---
+Search event gists by query.
+Event gist is a fraction of User Event. For example, if a user event has the `event_tips`:
+```
+- A // info
+- B // schedule
+- C // reminder
+```
+The event gists will be 
+- `- A // info`
+- `- B // schedule`
+- `- C // reminder`
+

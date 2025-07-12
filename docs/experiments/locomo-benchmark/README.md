@@ -9,7 +9,7 @@ This project contains the code of running benchmark results on [Locomo dataset](
 - zep
 - basic rag
 - naive LLM
-- Memobase (version [0.0.32-beta1](https://github.com/orgs/memodb-io/packages/container/memobase/408325731?tag=0.0.32-beta1) or later)
+- Memobase
 
 ## Result
 
@@ -22,10 +22,10 @@ This project contains the code of running benchmark results on [Locomo dataset](
 | Mem0                   | **67.13**     | 51.15        | 72.93          | 55.51       | 66.88      |
 | Mem0-Graph             | 65.71         | 47.19        | 75.71          | 58.13       | 68.44      |
 | LangMem                | 62.23         | 47.92        | 71.12          | 23.43       | 58.10      |
-| Zep                    | 61.70         | 41.35        | **76.60**      | 49.31       | 65.99      |
+| Zep                    | 61.70         | 41.35        | 76.60      | 49.31       | 65.99      |
 | OpenAI                 | 63.79         | 42.92        | 62.29          | 21.71       | 52.90      |
-| Memobase(*v0.0.32*) | 63.83         | **52.08**    | 71.82          | **80.37**   | **70.91**  |
-| Memobase(*v0.0.37-a1*) | **67.60**     | 39.76    | **76.65**      | 78.87   | **73.27**  |
+| Memobase(*v0.0.32*) | 63.83         | **52.08**    | 71.82          | 80.37   | 70.91  |
+| Memobase(*v0.0.37*) | **70.92** | 46.88 | **77.17**   | **85.05** | **75.78** |
 
 > **What is LLM Judge Score?**
 >
@@ -37,14 +37,14 @@ We attached the artifacts of Memobase under `fixture/memobase/`:
   - `fixture/memobase/results_0503_3000.json`: predicted answers from Memobase Memory
   - `fixture/memobase/memobase_eval_0503_3000.json`: LLM Judge results of predicted answers
 
-- v0.0.37-a1
-  - `fixture/memobase/results_0709_3000.json`: predicted answers from Memobase Memory
-  - `fixture/memobase/memobase_eval_0709_3000.json`: LLM Judge results of predicted answers
+- v0.0.37
+  - `fixture/memobase/results_0710_3000.json`: predicted answers from Memobase Memory
+  - `fixture/memobase/memobase_eval_0710_3000.json`: LLM Judge results of predicted answers
 
 To generate the latest scorings, run:
 
 ```bash
-python generate_scores.py --input_path="fixture/memobase/memobase_eval_0709_3000.json"
+python generate_scores.py --input_path="fixture/memobase/memobase_eval_0710_3000.json"
 ```
 
 Output:
@@ -53,15 +53,15 @@ Output:
 Mean Scores Per Category:
           bleu_score  f1_score  llm_score  count         type
 category
-1             0.3048    0.4254     0.6760    250   single_hop
-2             0.4323    0.6052     0.7887    284     temporal
-3             0.1943    0.2616     0.3976     83    multi_hop
-4             0.4121    0.5207     0.7665    771  open_domain
+1             0.3516    0.4629     0.7092    282   single_hop
+2             0.4758    0.6423     0.8505    321     temporal
+3             0.1758    0.2293     0.4688     96    multi_hop
+4             0.4089    0.5155     0.7717    841  open_domain
 
 Overall Mean Scores:
-bleu_score    0.3839
-f1_score      0.5053
-llm_score     0.7327
+bleu_score    0.3978
+f1_score      0.5145
+llm_score     0.7578
 dtype: float64
 ```
 

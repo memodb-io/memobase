@@ -58,8 +58,8 @@ It's a list of chats in OpenAI Message format, for example: [{"role": "user", "c
         description="Event similarity threshold of returned Context",
     ),
     time_range_in_days: int = Query(
-        21,
-        description="Only allow events within the past few days, default is 21",
+        180,
+        description="Only allow events within the past few days, default is 180",
     ),
     customize_context_prompt: str = Query(
         None,
@@ -87,6 +87,10 @@ Unless the user has relevant queries, do not actively mention those memories in 
 - It will cost your Memobase tokens, roughly 100~1000 tokens per chat based on the profile size.
 """,
     ),
+    fill_window_with_events: bool = Query(
+        False,
+        description="If set to `True`, Memobase will fill the token window with the rest events.",
+    ),
 ) -> res.UserContextDataResponse:
     project_id = request.state.memobase_project_id
     topic_limits_json = topic_limits_json or "{}"
@@ -113,5 +117,6 @@ Unless the user has relevant queries, do not actively mention those memories in 
         time_range_in_days,
         customize_context_prompt=customize_context_prompt,
         full_profile_and_only_search_event=full_profile_and_only_search_event,
+        fill_window_with_events=fill_window_with_events,
     )
     return p.to_response(res.UserContextDataResponse)

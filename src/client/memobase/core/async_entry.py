@@ -5,8 +5,9 @@ from collections import defaultdict
 from typing import Optional, Literal
 from pydantic import HttpUrl, ValidationError
 from dataclasses import dataclass
+from urllib.parse import quote_plus
 from .blob import BlobData, Blob, BlobType, ChatBlob, OpenAICompatibleMessage
-from .user import UserProfile, UserProfileData, UserEventData
+from .user import UserProfile, UserProfileData, UserEventData, UserEventGistData
 from ..network import unpack_response
 from ..error import ServerError
 from ..utils import LOG
@@ -303,7 +304,7 @@ class AsyncUser:
         query: str,
         topk: int = 10,
         similarity_threshold: float = 0.5,
-        time_range_in_days: int = 7,
+        time_range_in_days: int = 180,
     ) -> list[UserEventData]:
         params = f"?query={query}&topk={topk}&similarity_threshold={similarity_threshold}&time_range_in_days={time_range_in_days}"
         r = unpack_response(
@@ -312,6 +313,21 @@ class AsyncUser:
             )
         )
         return [UserEventData.model_validate(e) for e in r.data["events"]]
+
+    async def search_event_gist(
+        self,
+        query: str,
+        topk: int = 10,
+        similarity_threshold: float = 0.2,
+        time_range_in_days: int = 180,
+    ) -> list[UserEventData]:
+        params = f"?query={query}&topk={topk}&similarity_threshold={similarity_threshold}&time_range_in_days={time_range_in_days}"
+        r = unpack_response(
+            self.project_client.client.get(
+                f"/users/event_gist/search/{self.user_id}{params}"
+            )
+        )
+        return [UserEventGistData.model_validate(e) for e in r.data["gists"]]
 
     async def context(
         self,
@@ -324,6 +340,9 @@ class AsyncUser:
         require_event_summary: bool = None,
         chats: list[OpenAICompatibleMessage] = None,
         event_similarity_threshold: float = None,
+        customize_context_prompt: str = None,
+        full_profile_and_only_search_event: bool = None,
+        fill_window_with_events: bool = None,
     ) -> str:
         params = f"?max_token_size={max_token_size}"
         if prefer_topics:
@@ -352,6 +371,14 @@ class AsyncUser:
             params += chats_query
         if event_similarity_threshold:
             params += f"&event_similarity_threshold={event_similarity_threshold}"
+        if customize_context_prompt:
+            params += (
+                f"&customize_context_prompt={quote_plus(customize_context_prompt)}"
+            )
+        if full_profile_and_only_search_event is not None:
+            params += f"&full_profile_and_only_search_event={'true' if full_profile_and_only_search_event else 'false'}"
+        if fill_window_with_events is not None:
+            params += f"&fill_window_with_events={'true' if fill_window_with_events else 'false'}"
         r = unpack_response(
             await self.project_client.client.get(
                 f"/users/context/{self.user_id}{params}"
