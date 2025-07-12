@@ -96,12 +96,28 @@ class EventTag(BaseModel):
     value: str = Field(..., description="The event tag value")
 
 
+class EventGistData(BaseModel):
+    content: str = Field(..., description="The event gist content")
+
+
 class EventData(BaseModel):
     profile_delta: Optional[list[ProfileDelta]] = Field(
         None, description="List of profile data"
     )
     event_tip: Optional[str] = Field(None, description="Event tip")
     event_tags: Optional[list[EventTag]] = Field(None, description="List of event tags")
+
+
+class UserEventGistData(BaseModel):
+    id: UUID = Field(..., description="The event gist's unique identifier")
+    gist_data: EventGistData = Field(None, description="User event gist data")
+    created_at: datetime = Field(
+        None, description="Timestamp when the event gist was created"
+    )
+    updated_at: datetime = Field(
+        None, description="Timestamp when the event gist was last updated"
+    )
+    similarity: Optional[float] = Field(None, description="Similarity score")
 
 
 class UserEventData(BaseModel):
@@ -137,6 +153,10 @@ class UserProfilesData(BaseModel):
 
 class UserEventsData(BaseModel):
     events: list[UserEventData] = Field(..., description="List of user events")
+
+
+class UserEventGistsData(BaseModel):
+    gists: list[UserEventGistData] = Field(..., description="List of user event gists")
 
 
 class StrIntData(BaseModel):

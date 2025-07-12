@@ -1,5 +1,5 @@
 from pydantic import ValidationError
-from ..models.database import UserEvent
+from ..models.database import UserEvent, UserEventGist
 from ..models.response import UserEventData, UserEventsData, EventData
 from ..models.utils import Promise, CODE
 from ..connectors import Session
@@ -27,10 +27,11 @@ async def get_user_events(
                 UserEvent.created_at > (func.now() - timedelta(days=time_range_in_days))
             )
         )
-        if need_summary:
-            query = query.filter(
-                UserEvent.event_data.contains({"event_tip": None}).is_(False)
-            ).filter(UserEvent.event_data.has_key("event_tip"))
+        # Abort this parameter because the summary is moved to gist
+        # if need_summary:
+        #     query = query.filter(
+        #         UserEvent.event_data.contains({"event_tip": None}).is_(False)
+        #     ).filter(UserEvent.event_data.has_key("event_tip"))
         user_events = query.order_by(UserEvent.created_at.desc()).limit(topk).all()
         if user_events is None:
             return Promise.resolve(UserEventsData(events=[]))
@@ -108,6 +109,38 @@ async def append_user_event(
     else:
         embedding = [None]
 
+    event_gist_dbs = []
+    if validated_event.event_tip is not None:
+        event_gists = validated_event.event_tip.split("\n")
+        event_gists = [l.strip() for l in event_gists if l.strip().startswith("-")]
+        TRACE_LOG.info(
+            project_id, user_id, f"Processing {len(event_gists)} event gists"
+        )
+        if CONFIG.enable_event_embedding:
+            event_gists_embedding = await get_embedding(
+                project_id,
+                event_gists,
+                phase="document",
+                model=CONFIG.embedding_model,
+            )
+            if not event_gists_embedding.ok():
+                TRACE_LOG.error(
+                    project_id,
+                    user_id,
+                    f"Failed to get embeddings: {event_gists_embedding.msg()}",
+                )
+                event_gists_embedding = [None] * len(event_gists)
+            else:
+                event_gists_embedding = event_gists_embedding.data()
+        else:
+            event_gists_embedding = [None] * len(event_gists)
+        for event_gist, event_gist_embedding in zip(event_gists, event_gists_embedding):
+            event_gist_dbs.append(
+                {
+                    "gist_data": {"content": event_gist},
+                    "embedding": event_gist_embedding,
+                }
+            )
     with Session() as session:
         user_event = UserEvent(
             user_id=user_id,
@@ -116,6 +149,16 @@ async def append_user_event(
             embedding=embedding[0],
         )
         session.add(user_event)
+        for event_gist_data in event_gist_dbs:
+            session.add(
+                UserEventGist(
+                    user_id=user_id,
+                    project_id=project_id,
+                    event_id=user_event.id,
+                    gist_data=event_gist_data["gist_data"],
+                    embedding=event_gist_data["embedding"],
+                )
+            )
         session.commit()
         eid = user_event.id
     return Promise.resolve(eid)
