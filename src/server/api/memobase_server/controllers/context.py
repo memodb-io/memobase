@@ -122,6 +122,7 @@ async def get_user_context(
     time_range_in_days: int,
     customize_context_prompt: str = None,
     full_profile_and_only_search_event: bool = False,
+    fill_window_with_events: bool = False,
 ) -> Promise[ContextData]:
     import asyncio
 
@@ -183,9 +184,13 @@ async def get_user_context(
 
     # Calculate token sizes and truncate events if needed
     profile_section_tokens = len(get_encoded_tokens(profile_section))
-    max_event_token_size = min(
-        max_token_size - profile_section_tokens, max_token_size - max_profile_token_size
-    )
+    if fill_window_with_events:
+        max_event_token_size = max_token_size - profile_section_tokens
+    else:
+        max_event_token_size = min(
+            max_token_size - profile_section_tokens,
+            max_token_size - max_profile_token_size,
+        )
 
     if max_event_token_size <= 0:
         return Promise.resolve(

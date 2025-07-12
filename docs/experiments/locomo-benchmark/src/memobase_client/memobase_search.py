@@ -54,6 +54,7 @@ class MemobaseSearch:
                     max_token_size=self.max_memory_context_size,
                     chats=[{"role": "user", "content": query}],
                     event_similarity_threshold=0.2,
+                    fill_window_with_events=True,
                 )
                 break
             except ServerError as e:

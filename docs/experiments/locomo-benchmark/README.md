@@ -24,7 +24,7 @@ This project contains the code of running benchmark results on [Locomo dataset](
 | LangMem                | 62.23         | 47.92        | 71.12          | 23.43       | 58.10      |
 | Zep                    | 61.70         | 41.35        | **76.60**      | 49.31       | 65.99      |
 | OpenAI                 | 63.79         | 42.92        | 62.29          | 21.71       | 52.90      |
-| Memobase(*v0.0.32*) | 63.83         | **52.08**    | 71.82          | **80.37**   | **70.91**  |
+| Memobase(*v0.0.32*) | 63.83         | **52.08**    | 71.82          | **80.37**   | 70.91  |
 | Memobase(*v0.0.37-a1*) | **67.60**     | 39.76    | **76.65**      | 78.87   | **73.27**  |
 
 > **What is LLM Judge Score?**
