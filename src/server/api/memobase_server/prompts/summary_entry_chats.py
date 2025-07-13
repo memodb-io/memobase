@@ -7,8 +7,8 @@ SUMMARY_PROMPT = """You are a expert of logging personal info, schedule, events 
 You will be given a chats between a user and an assistant.
 
 ## Requirement
-- You need to list all possible user info
-- You need to list all possible schedule
+- You need to list all possible user info, schedule and events
+- {additional_requirements}
 - If the user event/schedule has specific mention time or event happen time. Convert the event date info in the message based on [TIME] after your log. for example
     Input: `[2024/04/30] user: I bought a new car yesterday!`
     Output: `user bought a new car. [mention 2024/04/30, buy car in 2024/04/29]`
@@ -21,11 +21,6 @@ You will be given a chats between a user and an assistant.
     Input: `[...] user: I bought a new car last week!`
     Output: `user bought a new car.`
     Explain: because you don't know the exact date, so don't attach any date.
-
-## Special Requirements
-Below is the special requirements for your job:
-{additional_requirements}
-If empty, just ignore it. Otherwise, you must follow those requirements.
 
 ### Important Info
 Below is the topics/subtopics you should log from the chats.
@@ -57,6 +52,10 @@ For example:
 ```
 Always add specific mention time of your log, and the event happen time if possible.
 Remember, make sure your logging is pure and concise, any time info should move to [TIME INFO] block.
+
+## Content Requirement
+- You need to list all possible user info, schedule and events
+- {additional_requirements}
 
 Finally, The logging result should use the same language as the chats. English in, English out. Chinese in, Chinese out.
 Now perform your task.
