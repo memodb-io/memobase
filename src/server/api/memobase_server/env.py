@@ -48,6 +48,7 @@ USAGE_TOKEN_LIMIT_MAP = {
 class ContanstTable:
     topic = "topic"
     sub_topic = "sub_topic"
+    memo = "memo"
     update_hits = "update_hits"
 
     roleplay_plot_status = "roleplay_plot_status"

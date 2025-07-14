@@ -1,5 +1,6 @@
 import asyncio
 from ....env import CONFIG, ContanstTable, TRACE_LOG
+from ....utils import truncate_string
 from ....models.utils import Promise
 from ....models.blob import Blob, BlobType
 from ....models.response import AIUserProfiles, CODE
@@ -64,14 +65,24 @@ async def extract_topics(
                 for p in profiles
             ]
         )
+        already_topic_subtopics_values = {
+            (
+                attribute_unify(p.attributes[ContanstTable.topic]),
+                attribute_unify(p.attributes[ContanstTable.sub_topic]),
+            ): p.content
+            for p in profiles
+        }
         if STRICT_MODE:
             already_topics_subtopics = already_topics_subtopics.intersection(
                 allowed_topic_subtopics
             )
+            already_topic_subtopics_values = {
+                k: already_topic_subtopics_values[k] for k in already_topics_subtopics
+            }
         already_topics_subtopics = sorted(already_topics_subtopics)
         already_topics_prompt = "\n".join(
             [
-                f"- {topic}{CONFIG.llm_tab_separator}{sub_topic}"
+                f"- {topic}{CONFIG.llm_tab_separator}{sub_topic}{CONFIG.llm_tab_separator}{truncate_string(already_topic_subtopics_values[(topic, sub_topic)], 5)}"
                 for topic, sub_topic in already_topics_subtopics
             ]
         )
@@ -99,7 +110,13 @@ async def extract_topics(
     if not p.ok():
         return p
     results = p.data()
-    # print(user_memo)
+    # print(
+    #     PROMPTS[USE_LANGUAGE]["extract"].pack_input(
+    #         already_topics_prompt,
+    #         user_memo,
+    #         strict_mode=STRICT_MODE,
+    #     )
+    # )
     # print("-------------------------------")
     # print(results)
     parsed_facts: AIUserProfiles = parse_string_into_profiles(results)

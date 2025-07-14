@@ -186,8 +186,8 @@ def pack_input(already_input, chat_strs, strict_mode: bool = False):
 如果提取相关的主题/子主题，请考虑使用下面的主题/子主题命名:
 {already_input}
 
-#### 对话
-请注意，不要输出任何关于对话中未提及的主题/子主题的信息:
+#### 备忘录
+请注意，不要输出任何关于备忘录中未提及的主题/子主题的信息:
 {chat_strs}
 """
 
