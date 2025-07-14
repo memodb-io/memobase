@@ -217,7 +217,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://memobase.io/dashboard"
+      "href": "https://app.memobase.io/dashboard"
     }
   },
   "footer": {
