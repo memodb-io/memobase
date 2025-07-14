@@ -1,3 +1,14 @@
+### [0.0.37] - unreleased
+
+**breaking changes**:
+
+- Add event gist table, need migration
+
+**Added** 
+
+- Add fine-grained event gists in context api
+- Update profile extract, summary prompts
+
 ### [0.0.36] - 2025/7/6
 
 **Added**
