@@ -122,7 +122,7 @@ export class MemoBaseClient {
     const params = new URLSearchParams();
     params.append('last_days', last_days.toString());
 
-    const response = await this.fetch<GetProjectUsageItemResponse[]>(`/project/usage`);
+    const response = await this.fetch<GetProjectUsageItemResponse[]>(`/project/usage?${params.toString()}`);
     if (response.data) {
       return response.data;
     }
