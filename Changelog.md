@@ -1,8 +1,8 @@
-### [0.0.37] - unreleased
+### [0.0.37] - 2025/7/15
 
 **breaking changes**:
 
-- Add event gist table, need migration
+- Add event gist table, need DB migration
 
 **Added** 
 
