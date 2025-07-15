@@ -1,3 +1,9 @@
+### [0.0.38] - unreleased
+
+**Added**
+
+- Update Merge Prompt to reduce token cost
+
 ### [0.0.37] - 2025/7/15
 
 **breaking changes**:
