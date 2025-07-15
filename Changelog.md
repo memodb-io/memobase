@@ -1,8 +1,9 @@
-### [0.0.38] - unreleased
+### [0.0.38] - 2025/7/15
 
 **Added**
 
 - Update Merge Prompt to reduce token cost
+- Add root status check
 
 ### [0.0.37] - 2025/7/15
 
