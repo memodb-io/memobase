@@ -80,7 +80,6 @@ async def search_user_event_gists(
             CODE.NOT_IMPLEMENTED,
             "Event embedding is not enabled",
         )
-
     query_embeddings = await get_embedding(
         project_id, [query], phase="query", model=CONFIG.embedding_model
     )
@@ -93,20 +92,23 @@ async def search_user_event_gists(
         return query_embeddings
     query_embedding = query_embeddings.data()[0]
 
+    # Calculate the time cutoff once
+    time_cutoff = func.now() - timedelta(days=time_range_in_days)
+
+    # Store the similarity expression to avoid recomputation
+    similarity_expr = 1 - UserEventGist.embedding.cosine_distance(query_embedding)
+
     stmt = (
         select(
             UserEventGist,
-            (1 - UserEventGist.embedding.cosine_distance(query_embedding)).label(
-                "similarity"
-            ),
-        )
-        .where(UserEventGist.user_id == user_id, UserEventGist.project_id == project_id)
-        .where(
-            UserEventGist.created_at > func.now() - timedelta(days=time_range_in_days)
+            similarity_expr.label("similarity"),
         )
         .where(
-            (1 - UserEventGist.embedding.cosine_distance(query_embedding))
-            > similarity_threshold
+            UserEventGist.user_id == user_id,
+            UserEventGist.project_id == project_id,
+            UserEventGist.created_at > time_cutoff,
+            similarity_expr > similarity_threshold,
+            UserEventGist.embedding.is_not(None),  # Skip null embeddings
         )
         .order_by(desc("similarity"))
         .limit(topk)
