@@ -106,6 +106,11 @@ router.get(
     "/healthcheck", tags=["chore"], openapi_extra=API_X_CODE_DOCS["GET /healthcheck"]
 )(api_layer.chore.healthcheck)
 
+router.get(
+    "/admin/status_check",
+    tags=["admin"],
+    # openapi_extra=API_X_CODE_DOCS["GET /admin/status_check"],
+)(api_layer.chore.root_running_status_check)
 
 router.post(
     "/project/profile_config",

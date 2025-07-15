@@ -20,6 +20,8 @@ from ..auth.token import (
 
 
 PATH_MAPPINGS = [
+    "/api/v1/admin/status_check",
+    "/api/v1/users/blobs",
     "/api/v1/users/blobs",
     "/api/v1/users/profile",
     "/api/v1/users/buffer",
