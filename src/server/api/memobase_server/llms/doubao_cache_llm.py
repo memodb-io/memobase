@@ -50,7 +50,12 @@ async def doubao_cache_create_context_and_save(
 
 
 async def doubao_cache_complete(
-    model, prompt, system_prompt=None, history_messages=[], **kwargs
+    model,
+    prompt,
+    system_prompt=None,
+    history_messages=[],
+    thinking_enable=False,
+    **kwargs,
 ) -> str:
     sp_args, kwargs = exclude_special_kwargs(kwargs)
     prompt_id = sp_args.get("prompt_id", None)
@@ -60,6 +65,12 @@ async def doubao_cache_complete(
     messages = []
     messages.extend(history_messages)
     messages.append({"role": "user", "content": prompt})
+
+    # if thinking_enable:
+    #     kwargs["thinking"] = {"type": "enabled"}
+    # else:
+    #     kwargs["thinking"] = {"type": "disabled"}
+
     if sp_args.get("no_cache", None) or system_prompt is None:
 
         if system_prompt is not None:

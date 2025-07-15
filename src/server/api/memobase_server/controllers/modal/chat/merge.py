@@ -155,6 +155,32 @@ async def handle_profile_merge_or_valid(
                     "attributes": profile_attributes,
                 }
             )
+    elif update_response["action"] == "APPEND":
+        if runtime_profile is None:
+            session_merge_validate_results["add"].append(
+                {
+                    "content": profile_content,
+                    "attributes": profile_attributes,
+                }
+            )
+        else:
+            if ContanstTable.update_hits not in runtime_profile.attributes:
+                runtime_profile.attributes[ContanstTable.update_hits] = 1
+            else:
+                runtime_profile.attributes[ContanstTable.update_hits] += 1
+            session_merge_validate_results["update"].append(
+                {
+                    "profile_id": runtime_profile.id,
+                    "content": f"{runtime_profile.content};{profile_content}",
+                    "attributes": runtime_profile.attributes,
+                }
+            )
+            session_merge_validate_results["update_delta"].append(
+                {
+                    "content": profile_content,
+                    "attributes": profile_attributes,
+                }
+            )
     elif update_response["action"] == "ABORT":
         if runtime_profile is None:
             TRACE_LOG.info(

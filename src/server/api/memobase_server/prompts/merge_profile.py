@@ -5,215 +5,72 @@ from ..env import CONFIG
 ADD_KWARGS = {
     "prompt_id": "merge_profile",
 }
-EXAMPLES = {
-    "replace": [
-        {
-            "input": """## User Topic
-basic_info, Age
-## Old Memo
-User is 39 years old
-## New Memo
-User is 40 years old[mentioned on 2025-05-17]
-""",
-            "response": """
-Age has one true value only, the old one is outdated, so replace it with the new one.
----
-- UPDATE{tab}User is 40 years old[mentioned on 2025-05-17]
-""",
-        },
-    ],
-    "merge": [
-        {
-            "input": """## User Topic
-interest, Food
-## Old Memo
-User loves cheese pizza[mentioned on 2025-03]
-## New Memo
-User loves chicken pizza[mentioned on 2025-05]; User ate chicken pizza[mentioned on 2025-05]
-""",
-            "response": """
-interest of food is not exclusive, so merge the two memos. Also, I need to keep the final memo concise.
----
-- UPDATE{tab}Love cheese pizza[mentioned on 2025-03] and chicken pizza[mentioned on 2025-05]
-""",
-        },
-    ],
-    "keep": [
-        {
-            "input": """## User Topic
-basic_info, Birthday
-## Old Memo
-1999/04/30
-## New Memo
-User didn't provide any birthday
-""",
-            "response": """
-birthday is a unique value and the new memo doesn't provide any valuable info, so keep the old one.
----
-- ABORT{tab}invalid
-""",
-        },
-    ],
-    "special": [
-        {
-            "input": """## Update Instruction
-Always keep the latest goal and remove the old one.
-## User Topic
-work, goal
-## Old Memo
-Want to be a software engineer
-## New Memo
-Want to start a startup
-""",
-            "response": """
-Goal is not exclusive, but the instruction requires to keep the latest goal and remove the old one.
-So replace the old one with the new one.
----
-- UPDATE{tab}Start a startup
-""",
-        },
-    ],
-    "validate": [
-        {
-            "input": """### Topic Description
-Record the user's long-term goal of study.
-## User Topic
-study, goal
-## Old Memo
-NONE
-## New Memo
-I want to play video game in the next weekend
-""",
-            "response": """Just validate the new memo.
-The topic is about the user's goal of study, but the value is about planning for playing games.
-Also, this topic is about long-term goal and the value is about short-term plan.
----
-- ABORT{tab}invalid
-""",
-        },
-        {
-            "input": """Today is 2025-04-05
-### Topic Description
-Record the user's current working plans, forgive the outdated plans
-## User Topic
-work, curent_plans
-## Old Memo
-User need to prepare for the interview in 2025-03-21[mentioned on 2025-03-11]
-## New Memo
-User need to develop a Memobase Playgeound App before 2025-05-01[mentioned on 2025-04-05]
-""",
-            "response": """User can have multiple current working plans, I can merge the two plans.
-But based on the requirements, the old memo is outdated(today is 04-05, but the interview is in 03-21), so I need to discard the old memo.
----
-- UPDATE{tab}User need to develop a Memobase Playgeound App before 2025-05-01[mentioned on 2025-04-05]
-""",
-        },
-    ],
-}
 
-MERGE_FACTS_PROMPT = """You are a smart memo manager which controls the memory/figure of a user.
-You job is to validate the memo and merge memos.
-You will be given two memos, one old and one new on the same topic/aspect of the user.
-You should update the memo based on the inputs.
+MERGE_FACTS_PROMPT = """You are responsible for maintaining user memos.
+Your job is to determine how new supplementary information should be merged with the current memo.
+You should decide whether the new supplementary information should be directly added, updated, or merged should be abandoned.
+The user will provide the topic/subtopic of the memo, and may also provide topic descriptions and specific update requirements.
 
-There are some guidelines about how to update the memo:
-### replace the old one
-The old memo is considered outdated and should be replaced with the new memo, or the new memo is conflicting with the old memo:
-<example>
-{example_replace}
-</example>
+Here are your output actions:
+1. Direct addition: If the supplementary information brings new information, you should directly add it. If the current memo is empty, you should directly add the supplementary information.
+2. Update memo: If the supplementary information conflicts with the current memo or you need to modify the current memo to better reflect the current information, you should update the memo.
+3. Abandon merge: If the supplementary information itself has no value, or the information is already completely covered by the current memo, or does not meet the content requirements of the current memo, you should abandon the merge.
 
-### merge the memos
-Note that MERGE should be selected as long as there is information in the old memo that is not included in the new memo.
-The old and new memo tell different parts of the same story and should be merged together:
-<example>
-{example_merge}
-</example>
+## Thinking
+Before you output an action, you need to think about the following:
+1. Whether the supplementary information meets the topic description of the memo
+    1.1. If it doesn't meet the requirements, determine whether you can modify the supplementary information to get content that meets the memo requirements, then process your modified supplementary information
+    1.2. If you can't modify the supplementary information, you should abandon the merge
+3. For supplementary information that meets the current memo requirements, you need to refer to the above description to determine the output action
+4. If you choose to update the memo, also think about whether there are other parts of the current memo that can be simplified or removed.
 
-### keep the old one
-If the new memo has no information added,  containing nothing useful or is invalid, you should keep the old memo by aborting this update(output `- ABORT{tab}invalid`)
-<example>
-{example_keep}
-</example>
+Additional situations:
+1. The current memo may be empty. In this case, after thinking step 1, if you can get supplementary information that meets the requirements, just add it directly
+2. If the update requirements are not empty, you need to refer to the user's update requirements for thinking
 
-### special case
-User may give you instructions in '## Update Instruction' section to update the memo in a certain way.
-You need to understand the instruction and update the memo accordingly.
-<example>
-{example_special}
-</example>
-
-### no old memo
-`## Old Memo` is not always provided, if empty, you just need to validate the new memo based on the topic description.
-
-## Save the final memo with valid requirements
-The final memo(w/wo old memo) should be saved matching the topic description.
-The topic description may contain some requirements for the memo:
-- The value should be certain type, format, in a certain range, etc.
-- The value should only record certain information, for example, the user's name, email, long-term goal of study, etc.
-You need to judge whether the topic's value matches the description.
-If not, you should modify the valid content in memo or decide to discard this operation(output `- ABORT{tab}invalid`).
-!! If there is not specific topic description, you should accept the memo as long as it's revelant, only reject/invalid the memo if it's completely inrevelant.
-<example>
-{example_validate}
-</example>
-
-## Input formate
-Below is the input format:
-<template>
-Today is [YYYY-MM-DD]
-## Update Instruction
-[update_instruction]
-### Topic Description
-[topic_description]
-## User Topic
-[topic], [subtopic]
-## Old Memo
-[old_memo]
-## New Memo
-[new_memo]
-</template>
-- [update_instruction], [topic_description], [old_memo] may be empty. When empty, a `NONE` will be placed.
-- Pay attention to and keep the time annotation in the new and old memos (e.g., XXX[mentioned on 2025, married on 2023]).
-
-## Output requirements
-Think step by step before memo update.
-Based on the above instructions, you need to think step by step and output your final result in the following format:
+## Output Actions
+### Direct Addition
 ```
-YOUR THOUGHT
----
-- UPDATE{tab}MEMO
+- APPEND{tab}APPEND
 ```
-Or
+When choosing direct addition, output the `APPEND` word directly, without repeating the content
+### Update Memo
 ```
-YOUR THOUGHT
+- UPDATE{tab}[UPDATED_MEMO]
+```
+When choosing to update the memo, you need to rewrite the updated memo in the `[UPDATED_MEMO]` section
+### Abort Merge
+```
+- ABORT{tab}ABORT
+```
+When choosing to abandon the merge, output the `ABORT` word directly, without repeating the content
+
+## Output Template
+Based on the above instructions, your output should be in the following format:
+
+THOUGHT
 ---
-- ABORT{tab}invalid
+ACTION
+
+Where:
+- `THOUGHT` is your thinking process
+- `ACTION` is your output action
+For example:
+```example
+The supplementary information mentions that the user's current learning goal is to prepare for final exams, and the current topic description records the user's learning goals, which meets the requirements. At the same time, the current memo also has a record of preparing for midterm exams, which suggests that the midterm exams should already be over. So the supplementary information cannot simply be added, but needs to update the current memo.
+I need to update the corresponding area while retaining the rest of the memo
+---
+- UPDATE{tab}...Currently self-studying Japanese using Duolingo, hoping to pass the Japanese Level 2 exam [mentioned on 2025/05/05]; Preparing for final exams [mentioned on 2025/06/01];
 ```
 
-You first need to think about the requirements and if the topic's value is suitable for this topic step by step.
-Then output your result on topic's value after `---` .
-### RESULT
-If the topic can be revised to match the description's requirements, output:
-- UPDATE{tab}MEMO
-the new line must start with `- UPDATE{tab}`, then output the revised value of the topic
-If the memo is totally invalid, just output `- ABORT{tab}invalid` after `---`
-If there is not specific topic description, you should accept the memo as long as it's revelant, only reject/invalid the memo if it's completely inrevelant.
-If the memo is not formatted correctly, you should decide whether it can be fixed by revising the memo, if yes, update it, if not, abort the update.
+Follow these instructions:
+- Strictly adhere to the correct output format.
+- Ensure the final memo does not exceed 5 sentences. Always keep it concise and output the key points of the memo.
+- Never make up content not mentioned in the input.
+- Preserve time annotations from both old and new memos (e.g.: XXX[mentioned on 2025/05/05, occurred in 2022]).
+- If you decide to update, ensure the final memo is concise and has no redundant information. (e.g.: "User is sad; User's mood is sad" == "User is sad")
 
-Make sure you understand the topic description(In `### Topic Description` section) if it exists and update the final memo accordingly.
-Understand the memos wisely, you are allowed to infer the information from the new memo and old memo to decide the final memo.
-Follow the instruction mentioned below:
-- Do not return anything from the custom few shot prompts provided above.
-- Stick to the correct output format. 
-- Make sure the final memo is no more than 5 sentences. Always concise and output the guts of the memo.
-- Do not make any explanations in MEMO, only output the final value related to the topic.
-- Never make up things that are not mentioned in the input.
-- If the input memos are not matching the topic description, you should output `- ABORT{tab}invalid` after `---`
-- Keep the time annotation in the new and old memos (e.g., XXX[mentioned on 2025, happend at 2023]).
-- If you decide to update, make sure the final memo is concise and no redundant information. (e.g. "User is sad; User's mood is sad" -> "User is sad")
-
-That's all, now perform your job.
+That's all the content, now execute your work.
 """
 
 
@@ -222,46 +79,21 @@ def get_input(
 ):
     today = datetime.now().astimezone(CONFIG.timezone).strftime("%Y-%m-%d")
     return f"""Today is {today}.
-## Update Instruction
-{update_instruction or "NONE"}
-### Topic Description
-{topic_description or "NONE"}
-## User Topic
+## Memo Update Instruction
+{update_instruction or "[empty]"}
+### Memo Topic Description
+{topic_description or "[empty]"}
+## Memo Topic
 {topic}, {subtopic}
-## Old Memo
-{old_memo or "NONE"}
-## New Memo
+## Current Memo
+{old_memo or "[empty]"}
+## Supplementary Information
 {new_memo}
 """
 
 
-def form_example(examples: list[dict]) -> str:
-    return "\n".join(
-        [
-            f"""<input>
-{example['input']}
-</input>
-<output>
-{example['response']}
-</output>
-"""
-            for example in examples
-        ]
-    ).format(tab=CONFIG.llm_tab_separator)
-
-
 def get_prompt() -> str:
-    example_replace = form_example(EXAMPLES["replace"])
-    example_merge = form_example(EXAMPLES["merge"])
-    example_keep = form_example(EXAMPLES["keep"])
-    example_special = form_example(EXAMPLES["special"])
-    example_validate = form_example(EXAMPLES["validate"])
     return MERGE_FACTS_PROMPT.format(
-        example_replace=example_replace,
-        example_merge=example_merge,
-        example_keep=example_keep,
-        example_special=example_special,
-        example_validate=example_validate,
         tab=CONFIG.llm_tab_separator,
     )
 
