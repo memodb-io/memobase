@@ -48,7 +48,7 @@ async def predict_new_topics(
         model=CONFIG.thinking_llm_model,
         **prompt.get_kwargs(),
         no_cache=True,
-        thinking_enabled=True,
+        # thinking_enabled=True,
     )
     if not r.ok():
         return r
