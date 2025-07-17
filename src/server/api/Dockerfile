@@ -10,4 +10,4 @@ COPY ./memobase_server /app/memobase_server
 COPY ./api.py /app
 
 
-CMD ["python3.11", "-m", "fastapi", "run", "api.py"]
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--proxy-headers"]
