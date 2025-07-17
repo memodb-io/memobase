@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/memodb-io-memobase-badge.png)](https://mseep.ai/app/memodb-io-memobase)
+
 <div align="center">
     <a href="https://memobase.io">
     <picture>
