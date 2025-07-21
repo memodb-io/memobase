@@ -2,9 +2,11 @@ import memobase_server.env
 import os
 
 # Done setting up env
-
+import logging
+import traceback
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
+from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from memobase_server.connectors import (
@@ -12,16 +14,36 @@ from memobase_server.connectors import (
     init_redis_pool,
 )
 from memobase_server import api_layer
-from memobase_server.env import LOG
+from memobase_server.env import LOG, TRACE_LOG
 from memobase_server.llms.embeddings import check_embedding_sanity
 from memobase_server.llms import llm_sanity_check
-from uvicorn.config import LOGGING_CONFIG
 from memobase_server.api_layer.docs import API_X_CODE_DOCS
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 
+def configure_logging():
+    # Configure uvicorn's loggers to use your format
+    uvicorn_access = logging.getLogger("uvicorn.access")
+    uvicorn_error = logging.getLogger("uvicorn.error")
+
+    # Clear existing handlers
+    uvicorn_access.handlers.clear()
+
+    uvicorn_access.name = "memobase_server"
+
+    # Add your custom handler to uvicorn loggers
+    custom_handler = LOG.handlers[0] if LOG.handlers else None
+    if custom_handler:
+        uvicorn_access.addHandler(custom_handler)
+
+    # Set log levels
+    uvicorn_access.setLevel(logging.INFO)
+    uvicorn_error.setLevel(logging.CRITICAL)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_logging()
     init_redis_pool()
     await check_embedding_sanity()
     await llm_sanity_check()
@@ -86,20 +108,24 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-router = APIRouter(prefix="/api/v1")
-LOGGING_CONFIG["formatters"]["default"][
-    "fmt"
-] = "%(levelprefix)s %(asctime)s %(message)s"
-LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
 
-LOGGING_CONFIG["formatters"]["default"][
-    "fmt"
-] = "%(levelprefix)s %(asctime)s %(message)s"
-LOGGING_CONFIG["formatters"]["access"][
-    "fmt"
-] = "%(levelprefix)s %(asctime)s %(client_addr)s - %(request_line)s %(status_code)s"
-LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
-LOGGING_CONFIG["formatters"]["access"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    project_id = getattr(request.state, "memobase_project_id", "unknown")
+    traceback_str = traceback.format_exc().replace("\n", "<br>")
+    TRACE_LOG.error(
+        project_id, "", f"Unknown Error: {exc}. Traceback: '{traceback_str}'"
+    )
+    return JSONResponse(
+        content={
+            "data": None,
+            "errno": 500,
+            "errmsg": f"Sorry, we have encountered an unknown error: \n{exc}\nPlease report this issue to https://github.com/memodb-io/memobase/issues",
+        },
+    )
+
+
+router = APIRouter(prefix="/api/v1")
 
 
 router.get(

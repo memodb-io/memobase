@@ -308,11 +308,14 @@ class ProjectLogger:
             + message
         )
 
-    def error(self, project_id: str, user_id: str, message: str):
+    def error(
+        self, project_id: str, user_id: str, message: str, exc_info: bool = False
+    ):
         self.logger.error(
             json.dumps({"project_id": str(project_id), "user_id": str(user_id)})
             + " | "
-            + message
+            + message,
+            exc_info=exc_info,
         )
 
 
