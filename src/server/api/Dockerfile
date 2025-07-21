@@ -1,13 +1,28 @@
-FROM python:3.11-slim-buster AS build
+FROM python:3.12-slim-bookworm
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 
+# Set working directory
 WORKDIR /app
 
-COPY ./requirements.txt /app/requirements.txt
-RUN python3.11 -m pip install -r requirements.txt --no-cache-dir
+# Copy dependency files
+COPY ./pyproject.toml /app
+COPY ./uv.lock /app
 
+# Install Python dependencies using uv
+RUN uv sync --frozen --no-dev --no-cache-dir
+
+# Copy the application code
 COPY ./memobase_server /app/memobase_server
 COPY ./api.py /app
 
 
-CMD ["python3.11", "-m", "fastapi", "run", "api.py"]
+
+# Expose port 8000 (FastAPI default)
+EXPOSE 8000
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+
+# Run the FastAPI server using uvicorn
+CMD ["/app/.venv/bin/uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]

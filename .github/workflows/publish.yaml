@@ -30,23 +30,22 @@ jobs:
     name: Tests on ${{ matrix.os }} for ${{ matrix.python-version }}
     strategy:
       matrix:
-        python-version: [3.11]
+        python-version: [3.12]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     permissions: 
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install
       - name: Install dependencies
         working-directory: ./src/server/api
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          uv sync --frozen --no-dev --no-cache-dir
       - name: Start containers
         working-directory: ./src/server
         run: |
@@ -64,7 +63,7 @@ jobs:
         working-directory: ./src/server/api
         run: |
           cp .env.example .env
-          pytest --junit-xml=junit/test-results-${{ matrix.python-version }}.xml --cov=. --cov-report=xml:coverage-${{ matrix.python-version }}.xml tests/ -s -v
+          uv run -m pytest --junit-xml=junit/test-results-${{ matrix.python-version }}.xml --cov=. --cov-report=xml:coverage-${{ matrix.python-version }}.xml tests/ -s -v
       - name: Upload pytest test results and coverage
         uses: actions/upload-artifact@v4
         with:

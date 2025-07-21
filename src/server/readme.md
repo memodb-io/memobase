@@ -88,9 +88,9 @@ Check out the [docs](https://docs.memobase.io/quickstart) of how to use Memobase
 
 1. Start a local DB first by `sh script/up-dev.sh`
 2. Open a new terminal window and `cd ./api`
-3. Install python deps: `pip install -r requirements.txt`
-4. To test if you got everything right, run `pytest` to see if all the tests are passed.
-5. Launch Memobase Server in dev mode: `fastapi dev --port 8019`
+3. Install python deps: `uv sync`
+4. To test if you got everything right, run `uv run pytest` to see if all the tests are passed.
+5. Launch Memobase Server in dev mode: `uv run -m fastapi dev --port 8019`
 
 > `fastapi dev` has hot-reload, so you can just modify the code and test it without relaunch the service.
 
