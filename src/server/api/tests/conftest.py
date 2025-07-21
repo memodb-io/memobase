@@ -1,5 +1,5 @@
 import pytest
-import asyncio
+import pytest_asyncio
 from api import app
 from memobase_server.env import CONFIG
 from fastapi.testclient import TestClient
@@ -23,7 +23,7 @@ CONFIG.persistent_chat_blobs = True
 #     loop.close()
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def db_env():
     client = TestClient(app)
     response = client.get(f"{PREFIX}/healthcheck")
