@@ -11,7 +11,7 @@ async def get_project_usage(project_id: str) -> Promise[BillingData]:
     async with AsyncClient(
         base_url=ADMIN_URL, headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
     ) as client:
-        response = await client.get(f"/api/v1/billing/project/{project_id}")
+        response = await client.get(f"/api/v1/billing/project/{project_id}", timeout=10)
 
         if response.status_code != 200:
             return Promise.reject(
