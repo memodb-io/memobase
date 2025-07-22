@@ -1,3 +1,10 @@
+### [0.0.39] - unreleased
+
+**Added**
+
+- Update logger to handle unknown errors
+- Fix thining parameters in `llm_complete`
+
 ### [0.0.38] - 2025/7/15
 
 **Added**
