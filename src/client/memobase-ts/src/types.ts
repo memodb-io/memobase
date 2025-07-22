@@ -139,7 +139,8 @@ export const UserEvent = z.object({
             value: z.string(),
           }),
         )
-        .optional().nullable(),
+        .optional()
+        .nullable(),
     })
     .optional(),
   created_at: z.coerce.date(),
@@ -147,11 +148,31 @@ export const UserEvent = z.object({
 });
 export type UserEvent = z.infer<typeof UserEvent>;
 
+// UserGistEvent 类型
+export const UserGistEvent = z.object({
+  id: z.string(),
+  gist_data: z
+    .object({
+      content: z.string(),
+    })
+    .optional(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  similarity: z.number().optional(),
+});
+export type UserGistEvent = z.infer<typeof UserGistEvent>;
+
 // EventResponse 类型
 export const EventResponse = z.object({
   events: z.array(UserEvent),
 });
 export type EventResponse = z.infer<typeof EventResponse>;
+
+// GistEventResponse 类型
+export const GistEventResponse = z.object({
+  events: z.array(UserGistEvent),
+});
+export type GistEventResponse = z.infer<typeof GistEventResponse>;
 
 // ContextResponse 类型
 export const ContextResponse = z.object({
@@ -184,5 +205,11 @@ export const GetProjectUsersResponse = z.object({
 export type GetProjectUsersResponse = z.infer<typeof GetProjectUsersResponse>;
 
 // GetProjectUsageItemResponse 类型
-export const GetProjectUsageItemResponse = z.object({ date: z.coerce.date(), total_insert: z.number(), total_success_insert: z.number(), total_input_token: z.number(), total_output_token: z.number() });
+export const GetProjectUsageItemResponse = z.object({
+  date: z.coerce.date(),
+  total_insert: z.number(),
+  total_success_insert: z.number(),
+  total_input_token: z.number(),
+  total_output_token: z.number(),
+});
 export type GetProjectUsageItemResponse = z.infer<typeof GetProjectUsageItemResponse>;

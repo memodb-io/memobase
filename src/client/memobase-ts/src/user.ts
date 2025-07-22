@@ -7,7 +7,10 @@ import {
   ProfileResponse,
   UserEvent,
   EventResponse,
+  UserGistEvent,
+  GistEventResponse,
   ContextResponse,
+  OpenAICompatibleMessage,
 } from './types';
 
 export class User {
@@ -15,17 +18,20 @@ export class User {
     private readonly userId: string,
     private readonly projectClient: MemoBaseClient,
     public readonly fields?: Record<string, any>,
-  ) { }
+  ) {}
 
-  async insert(blobData: Blob): Promise<string> {
-    const response = await this.projectClient.fetch<IdResponse>(`/blobs/insert/${this.userId}`, {
-      method: 'POST',
-      body: JSON.stringify({
-        blob_type: blobData.type,
-        fields: blobData.fields,
-        blob_data: blobData,
-      }),
-    });
+  async insert(blobData: Blob, sync = false): Promise<string> {
+    const response = await this.projectClient.fetch<IdResponse>(
+      `/blobs/insert/${this.userId}?wait_process=${sync}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          blob_type: blobData.type,
+          fields: blobData.fields,
+          blob_data: blobData,
+        }),
+      },
+    );
     return response.data!.id;
   }
 
@@ -46,8 +52,10 @@ export class User {
     return true;
   }
 
-  async flush(blobType: BlobType = 'chat'): Promise<boolean> {
-    await this.projectClient.fetch(`/users/buffer/${this.userId}/${blobType}`, { method: 'POST' });
+  async flush(blobType: BlobType = 'chat', sync = false): Promise<boolean> {
+    await this.projectClient.fetch(`/users/buffer/${this.userId}/${blobType}?wait_process=${sync}`, {
+      method: 'POST',
+    });
     return true;
   }
 
@@ -143,7 +151,12 @@ export class User {
     return true;
   }
 
-  async searchEvent(query: string, topk = 10, similarityThreshold = 0.2, timeRangeInDays = 7): Promise<UserEvent[]> {
+  async searchEvent(
+    query: string,
+    topk = 10,
+    similarityThreshold = 0.2,
+    timeRangeInDays = 180,
+  ): Promise<UserEvent[]> {
     const params = new URLSearchParams();
     params.append('query', query);
     params.append('topk', topk.toString());
@@ -156,6 +169,24 @@ export class User {
     return response.data!.events.map((e) => UserEvent.parse(e));
   }
 
+  async searchEventGist(
+    query: string,
+    topk = 10,
+    similarityThreshold = 0.2,
+    timeRangeInDays = 180,
+  ): Promise<UserGistEvent[]> {
+    const params = new URLSearchParams();
+    params.append('query', query);
+    params.append('topk', topk.toString());
+    params.append('similarity_threshold', similarityThreshold.toString());
+    params.append('time_range_in_days', timeRangeInDays.toString());
+
+    const response = await this.projectClient.fetch<GistEventResponse>(
+      `/users/event_gist/search/${this.userId}?${params.toString()}`,
+    );
+    return response.data!.events.map((e) => UserGistEvent.parse(e));
+  }
+
   async context(
     maxTokenSize = 1000,
     maxSubtopicSize?: number,
@@ -163,6 +194,12 @@ export class User {
     onlyTopics?: string[],
     topicLimits?: Record<string, number>,
     profileEventRatio?: number,
+    requireEventSummary?: boolean,
+    chats?: OpenAICompatibleMessage[],
+    eventSimilarityThreshold?: number,
+    customizeContextPrompt?: string,
+    fullProfileAndOnlySearchEvent?: boolean,
+    fillWindowWithEvents?: boolean,
   ): Promise<string> {
     const params = new URLSearchParams();
 
@@ -185,6 +222,24 @@ export class User {
     }
     if (profileEventRatio !== undefined) {
       params.append('profile_event_ratio', profileEventRatio.toString());
+    }
+    if (requireEventSummary !== undefined) {
+      params.append('require_event_summary', requireEventSummary.toString());
+    }
+    if (chats !== undefined && chats.length > 0) {
+      params.append('chats_str', JSON.stringify(chats));
+    }
+    if (eventSimilarityThreshold !== undefined) {
+      params.append('event_similarity_threshold', eventSimilarityThreshold.toString());
+    }
+    if (customizeContextPrompt !== undefined) {
+      params.append('customize_context_prompt', customizeContextPrompt);
+    }
+    if (fullProfileAndOnlySearchEvent !== undefined) {
+      params.append('full_profile_and_only_search_event', fullProfileAndOnlySearchEvent.toString());
+    }
+    if (fillWindowWithEvents !== undefined) {
+      params.append('fill_window_with_events', fillWindowWithEvents.toString());
     }
 
     const response = await this.projectClient.fetch<ContextResponse>(
