@@ -67,7 +67,7 @@ import { MemoBaseClient, Blob, BlobType } from '@memobase/memobase';
 const client = new MemoBaseClient(process.env['MEMOBASE_PROJECT_URL'], process.env['MEMOBASE_API_KEY'])
 ```
 
-```go Go
+{/* ```go Go
 import (
     "fmt"
     "log"
@@ -87,7 +87,7 @@ func main() {
         log.Fatalf("Failed to create client: %v", err)
     }
 }
-```
+``` */}
 </CodeGroup>
 </Accordion>
 <Accordion title="Test the Connection (Ping!)">
@@ -99,7 +99,7 @@ assert client.ping()
 ```typescript Node
 const ping = await client.ping()
 ```
-```go Go
+{/* ```go Go
 import (
     "fmt"
     "log"
@@ -125,7 +125,7 @@ func main() {
     }
     fmt.Println("Successfully connected to server")
 }
-```
+``` */}
 
 ```bash cURL
 curl -H "Authorization: Bearer $YOUR_API_KEY" "$YOUR_PROJECT_URL/api/v1/healthcheck"
@@ -152,12 +152,12 @@ uid = client.add_user({"name": "Gustavo"})
 ```typescript Node
 const userId = await client.addUser({name: "Gustavo"})
 ```
-```go Go
+{/* ```go Go
 import "github.com/google/uuid"
 
 userID := uuid.New().String()
 _, err := client.AddUser(map[string]interface{}{"name": "Gustavo"}, userID)
-```
+``` */}
 ```bash cURL
 curl -X POST "$YOUR_PROJECT_URL/api/v1/users" \
      -H "Authorization: Bearer $YOUR_API_KEY" \
@@ -167,31 +167,6 @@ curl -X POST "$YOUR_PROJECT_URL/api/v1/users" \
 
 ```json Output
 {"data":{"id":"some-unique-user-id"},"errno":0,"errmsg":""}
-```
-</CodeGroup>
-</Accordion>
-
-<Accordion title="Update a User">
-<CodeGroup>
-
-```python Python
-client.update_user(uid, {"status": "caffeinated"})
-```
-```typescript Node
-await client.updateUser(userId, {status: "caffeinated"})
-```
-```go Go
-_, err = client.UpdateUser(userID, map[string]interface{}{"status": "caffeinated"})
-```
-```bash cURL
-curl -X PUT "$YOUR_PROJECT_URL/api/v1/users/{uid}" \
-     -H "Authorization: Bearer $YOUR_API_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{"data": {"status": "caffeinated"}}'
-```
-
-```json Output
-{"data":{"id": "some-unique-user-id"},"errno":0,"errmsg":""}
 ```
 </CodeGroup>
 </Accordion>
@@ -207,9 +182,9 @@ u = client.get_user(uid)
 const user = await client.getUser(userId)
 ```
 
-```go Go
+{/* ```go Go
 user, err := client.GetUser(userID, false)
-```
+``` */}
 
 ```bash cURL
 curl -X GET "$YOUR_PROJECT_URL/api/v1/users/{uid}" \
@@ -222,7 +197,7 @@ curl -X GET "$YOUR_PROJECT_URL/api/v1/users/{uid}" \
 </CodeGroup>
 </Accordion>
 
-<Accordion title="Delete a User">
+{/* <Accordion title="Delete a User">
 <CodeGroup>
 
 ```python Python
@@ -246,10 +221,11 @@ curl -X DELETE "$YOUR_PROJECT_URL/api/v1/users/{uid}" \
 {"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
-</Accordion>
+</Accordion> */}
 </AccordionGroup>
 
-### Step 4: Manage User Data
+
+### Step 4: Insert Message
 
 Now that you have a user, let's give them some memories.
 
@@ -277,7 +253,7 @@ const blobId = await user.insert(Blob.parse({
 }))
 ```
 
-```go Go
+{/* ```go Go
 chatBlob := &blob.ChatBlob{
     Messages: []blob.OpenAICompatibleMessage{
         {Role: "user", Content: "Hello, I am Jinjia!"},
@@ -285,7 +261,7 @@ chatBlob := &blob.ChatBlob{
     },
 }
 blobID, err := user.Insert(chatBlob, false)
-```
+``` */}
 
 ```bash cURL
 curl -X POST "$YOUR_PROJECT_URL/api/v1/blobs/insert/{uid}" \
@@ -300,7 +276,7 @@ curl -X POST "$YOUR_PROJECT_URL/api/v1/blobs/insert/{uid}" \
 </CodeGroup>
 </Accordion>
 
-<Accordion title="Get Data">
+{/* <Accordion title="Get Data">
 <CodeGroup>
 
 ```python Python
@@ -350,7 +326,7 @@ curl -X DELETE "$YOUR_PROJECT_URL/api/v1/blobs/{uid}/{bid}" \
 {"data":null,"errno":0,"errmsg":""}
 ```
 </CodeGroup>
-</Accordion>
+</Accordion> */}
 </AccordionGroup>
 
 ### Step 5: Memory Operations
@@ -363,16 +339,17 @@ This is where the magic happens. Memobase extracts and stores memories for each 
 <CodeGroup>
 
 ```python Python
-u.flush()
+u.flush() # async
+u.flush(sync=True) # sync
 ```
 
 ```typescript Node
 await user.flush(BlobType.Enum.chat)
 ```
 
-```go Go
+{/* ```go Go
 err := user.Flush(blob.ChatType, false)
-```
+``` */}
 
 ```bash cURL
 curl -X POST "$YOUR_PROJECT_URL/api/v1/users/buffer/{uid}/chat" \
@@ -385,9 +362,9 @@ curl -X POST "$YOUR_PROJECT_URL/api/v1/users/buffer/{uid}/chat" \
 </CodeGroup>
 </Accordion>
 
-2.  **`profile`**: Get the memory profile of a user.
+{/* 2.  **`profile`**: Get the memory profile of a user. */}
 
-<Accordion title="Get User Profile">
+{/* <Accordion title="Get User Profile">
 <CodeGroup>
 
 ```python Python
@@ -411,11 +388,11 @@ curl -X GET "$YOUR_PROJECT_URL/api/v1/users/profile/{uid}" \
 {"data":{"profiles":[ {"content":"Gus", "attributes":{}}, ... ]},"errno":0,"errmsg":""}
 ```
 </CodeGroup>
-</Accordion>
+</Accordion> */}
 
-3.  **Form a [personalized memory prompt](/features/context)**:
+2.  Get Personalized Context:
 
-<Accordion title="Example Personalized Prompt">
+<Accordion title="context API">
 <CodeGroup>
 
 ```python Python
@@ -425,10 +402,10 @@ u.context()
 ```typescript Node
 const context = await user.context();
 ```
-
+{/* 
 ```go Go
 context, err := user.Context(nil)
-```
+``` */}
 
 ```bash cURL
 curl -X GET "$YOUR_PROJECT_URL/api/v1/users/context/{uid}" \
@@ -447,6 +424,39 @@ Unless the user has relevant queries, do not actively mention those memories in 
 - Gus went to the gym [mentioned on 2024-01-02]
 - Gus had a coffee with his friend [mentioned on 2024-01-01]
 ...
+```
+</CodeGroup>
+</Accordion>
+
+3. Pack the context into your system prompt:
+<Accordion title="Insert personalized contex">
+
+
+<CodeGroup>
+```python Python
+from openai import OpenAI
+
+client = OpenAI(api_key=YOUR_API_KEY)
+
+SYSTEM_PROMPT = f"""You're a helpful assistant.
+Your job is to ...
+
+Below is the user's memory:
+{context}"""
+
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": "Who'am I?s"}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+```txt Output
+You're Gus! How can I help you today?
 ```
 </CodeGroup>
 </Accordion>

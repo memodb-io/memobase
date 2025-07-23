@@ -40,14 +40,13 @@ The [Profile API](/api-reference/profiles/profile) returns a structured JSON obj
 The [Context API](/api-reference/prompt/get_context) returns a pre-formatted string containing both the user's profile and recent events, ready to be injected directly into your system prompt. It uses a template like this:
 
 ```text
-<memory>
-# User Profile:
+# Memory
+Unless the user has relevant queries, do not actively mention those memories in the conversation.
+## User Background:
 {profile}
 
-# Recent Events:
+## Latest Events:
 {event}
-</memory>
-Use the information in the <memory> tag when relevant.
 ```
 
 ## Flushing the Memory Buffer
