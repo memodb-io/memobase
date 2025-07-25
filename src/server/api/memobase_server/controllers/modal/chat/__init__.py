@@ -50,7 +50,17 @@ async def process_blobs(
     p = await entry_chat_summary(user_id, project_id, blobs, project_profiles)
     if not p.ok():
         return p
-    user_memo_str = p.data()
+    user_memo_str = p.data().strip()
+
+    if not user_memo_str:
+        return Promise.resolve(
+            ChatModalResponse(
+                event_id=None,
+                add_profiles=[],
+                update_profiles=[],
+                delete_profiles=[],
+            )
+        )
 
     processing_results = await asyncio.gather(
         process_profile_res(user_id, project_id, user_memo_str, project_profiles),
