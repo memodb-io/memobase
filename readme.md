@@ -1,7 +1,7 @@
 <div align="center">
     <a href="https://memobase.io">
     <picture>
-      <img alt="Shows the Memobase logo" src="./assets/images/logo.png" width="80%">
+      <img alt="Memobase logo" src="./assets/images/logo.png" width="80%">
     </picture>
   </a>
   <h1>Memobase</h1>
@@ -77,12 +77,12 @@ Memobase can provide you structured profiles of users, check out the [result](./
     "major": "국어국문학과 (Korean Language and Literature)"
   },
   "interest": {
-    "games": 'User is interested in Cyberpunk 2077 and wants to create a game better than it',
-    'youtube_channels': "Kurzgesagt",
+    "games": "User is interested in Cyberpunk 2077 and wants to create a game better than it",
+    "youtube_channels": "Kurzgesagt",
     ...
   },
   "psychological": {...},
-  'work': {'working_industry': ..., 'title': ..., },
+  "work": {"working_industry": ..., "title": ..., },
   ...
 }
 ```
@@ -92,7 +92,7 @@ Memobase can provide you structured profiles of users, check out the [result](./
 ## 🎉 Recent Updates
 - `0.0.38`: we updated the workflows in Memobase, reducing the insert cost by 30%
 - `0.0.37`: we added fine-grained event gist, enabling the detailed search on users' timeline. [Re-ran the LOCOMO benchmark](./docs/experiments/locomo-benchmark) and we're SOTA!
-- `0.0.36`: we updated the search of `context` api, make the search between 500~1000ms(depends on the embedding API you're using). Also, you can [pass prompt template](https://docs.memobase.io/api-reference/prompt/get_context#parameter-customize-context-prompt) to `context` api to pack memories directly into prompt.
+- `0.0.36`: we updated the search of `context` api, making the search take between 500~1000ms (depending on the embedding API you're using). Also, you can [pass a prompt template](https://docs.memobase.io/api-reference/prompt/get_context#parameter-customize-context-prompt) to the `context` api to pack memories directly into prompt.
 
 
 
@@ -101,7 +101,7 @@ Memobase can provide you structured profiles of users, check out the [result](./
 - [Table of Contents](#table-of-contents)
 - [Core Features](#core-features)
 - [Get Started](#get-started)
-- [Step-by-step break down](#step-by-step-break-down)
+- [Step-by-step breakdown](#step-by-step-breakdown)
   - [1. Make sure you're connected](#1-make-sure-youre-connected)
   - [2. Manage Users](#2-manage-users)
   - [3. Insert Data](#3-insert-data)
@@ -126,13 +126,13 @@ Define and control exactly what user information your AI captures.
 
 📈 **SOTA**
 
-check out performance on [public benchmark](./docs/experiments/locomo-benchmark) against mem0, langmem, zep...
+Check out performance on [public benchmark](./docs/experiments/locomo-benchmark) against mem0, langmem, zep...
 
 📅 **Time-aware Memory**
 
-Memobase has more than user profiles, it also records [user event](https://docs.memobase.io/features/event/event). User event is essiential to answer time-related question, see how we can [improve temporal memory much better](./docs/experiments/locomo-benchmark/README.md#Result) than other memory solutions.
+Memobase has more than user profiles, it also records [user event](https://docs.memobase.io/features/event/event). User event is essential to answer time-related question, see how we can [improve temporal memory much better](./docs/experiments/locomo-benchmark/README.md#Result) than other memory solutions.
 
-**🖼️ Contorllable Memory**
+**🖼️ Controllable Memory**
 
 Among all types of memory, only some may enhance your product experience. Memobase offers a flexible configuration for you to [design the profile](https://docs.memobase.io/features/profile/profile).
 
@@ -152,7 +152,7 @@ Memobase is building with FastAPI, Postgres and Redis, supporting request cachin
 
 <div align="center">
     <picture>
-      <img alt="Shows the Memobase Workflow" src="./assets/images/starter.png" width="80%">
+      <img alt="Memobase Workflow" src="./assets/images/starter.png" width="80%">
     </picture>
   <p>How Memobase works?</p>
 </div>
@@ -184,7 +184,7 @@ https://github.com/user-attachments/assets/eb2eea30-48bc-4714-9706-e417ae1931df
 
 
 
-## Step-by-step break down
+## Step-by-step breakdown
 
 > [!TIP]
 >
@@ -219,7 +219,7 @@ print(u)
 
 ### 3. Insert Data
 
-> In Memobase, all types of data are blobs to a user that can insert, get and delete:
+> In Memobase, all types of data are blobs for a user, which can be inserted, retrieved, and deleted:
 
 ```python
 messages = [
@@ -238,7 +238,7 @@ print(u.get(bid)) # not found once you flush the memory.
 # u.delete(bid)
 ```
 
-> Be default, Memobase will remove the blobs once they're processed. This means that apart from the relevant memory, your data will not be stored with Memobase. You can persist the blobs by adjusting the [configuration file](https://docs.memobase.io/features/customization/full#storage-config).
+> By default, Memobase will remove the blobs once they're processed. This means that apart from the relevant memory, your data will not be stored with Memobase. You can persist the blobs by adjusting the [configuration file](https://docs.memobase.io/features/customization/full#storage-config).
 
 ### 4. Get your Memory
 
@@ -405,7 +405,7 @@ Join the community for support and discussions:
 
 - [Follow us on Twitter](https://x.com/memobase_io) 𝕏 
 
-Or Just [email us](mailto:contact@memobase.io) ❤️
+Or just [email us](mailto:contact@memobase.io) ❤️
 
 
 
