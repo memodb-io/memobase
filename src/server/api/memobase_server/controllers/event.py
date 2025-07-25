@@ -116,7 +116,7 @@ async def append_user_event(
         TRACE_LOG.info(
             project_id, user_id, f"Processing {len(event_gists)} event gists"
         )
-        if CONFIG.enable_event_embedding:
+        if CONFIG.enable_event_embedding and len(event_gists) > 0:
             event_gists_embedding = await get_embedding(
                 project_id,
                 event_gists,
