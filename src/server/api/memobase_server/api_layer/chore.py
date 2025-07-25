@@ -10,7 +10,6 @@ from ..llms import llm_sanity_check
 
 async def healthcheck() -> BaseResponse:
     """Check if your memobase is set up correctly"""
-    LOG.info("Healthcheck requested")
     if not db_health_check():
         raise HTTPException(
             status_code=CODE.INTERNAL_SERVER_ERROR.value,
