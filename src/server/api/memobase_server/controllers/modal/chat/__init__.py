@@ -5,9 +5,10 @@ from ....env import ProfileConfig, CONFIG, TRACE_LOG
 from ....utils import get_blob_str, get_encoded_tokens
 from ....models.blob import Blob
 from ....models.utils import Promise, CODE
-from ....models.response import IdsData, ChatModalResponse
+from ....models.response import IdsData, ChatModalResponse, UserProfilesData
 from ...profile import add_update_delete_user_profiles
 from ...event import append_user_event
+from ...profile import get_user_profiles
 from .extract import extract_topics
 from .merge import merge_or_valid_new_memos
 from .summary import re_summary
@@ -47,7 +48,14 @@ async def process_blobs(
         return p
     project_profiles = p.data()
 
-    p = await entry_chat_summary(user_id, project_id, blobs, project_profiles)
+    p = await get_user_profiles(user_id, project_id)
+    if not p.ok():
+        return p
+    current_user_profiles = p.data()
+
+    p = await entry_chat_summary(
+        user_id, project_id, blobs, project_profiles, current_user_profiles
+    )
     if not p.ok():
         return p
     user_memo_str = p.data().strip()
@@ -63,8 +71,12 @@ async def process_blobs(
         )
 
     processing_results = await asyncio.gather(
-        process_profile_res(user_id, project_id, user_memo_str, project_profiles),
-        process_event_res(user_id, project_id, user_memo_str, project_profiles),
+        process_profile_res(
+            user_id, project_id, user_memo_str, project_profiles, current_user_profiles
+        ),
+        process_event_res(
+            user_id, project_id, user_memo_str, project_profiles, current_user_profiles
+        ),
     )
 
     profile_results: Promise = processing_results[0]
@@ -109,9 +121,12 @@ async def process_profile_res(
     project_id: str,
     user_memo_str: str,
     project_profiles: ProfileConfig,
+    current_user_profiles: UserProfilesData,
 ) -> Promise[tuple[MergeAddResult, list[dict]]]:
 
-    p = await extract_topics(user_id, project_id, user_memo_str, project_profiles)
+    p = await extract_topics(
+        user_id, project_id, user_memo_str, project_profiles, current_user_profiles
+    )
     if not p.ok():
         return p
     extracted_data = p.data()
@@ -170,6 +185,7 @@ async def process_event_res(
     project_id: str,
     memo_str: str,
     config: ProfileConfig,
+    current_user_profiles: UserProfilesData,
 ) -> Promise[list | None]:
     p = await tag_event(project_id, config, memo_str)
     if not p.ok():

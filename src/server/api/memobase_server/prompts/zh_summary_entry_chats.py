@@ -32,7 +32,13 @@ SUMMARY_PROMPT = """你是一位从聊天记录中记录个人信息、日程安
 {attributes}
 </attributes>
 
-#### 输入对话
+## 输入格式
+### 已记录
+你会收到一系列的已记录信息，你留意需要记录可能和已记录信息相关的信息。
+已记录信息的组织形式如下:
+- TOPIC{separator}SUBTOPIC{separator}CONTENT... // maybe truncated
+
+### 输入对话
 - LOGGING[TIME INFO] // TYPE
 你将收到用户和助手之间的对话。对话格式为：
 - [TIME] NAME: MESSAGE
@@ -63,8 +69,11 @@ TIME是此消息发生的时间，因此你需要根据TIME转换消息中的日
 """
 
 
-def pack_input(chat_strs):
-    return f"""#### Chats
+def pack_input(already_logged_str: str, chat_strs: str):
+    return f"""### 已记录
+{already_logged_str}
+
+### 输入对话
 {chat_strs}
 """
 
@@ -76,6 +85,7 @@ def get_prompt(
         topics=topic_examples,
         attributes=attribute_examples,
         additional_requirements=additional_requirements,
+        separator=CONFIG.llm_tab_separator,
     )
 
 

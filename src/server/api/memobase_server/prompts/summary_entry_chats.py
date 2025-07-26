@@ -32,7 +32,14 @@ Below is the important attributes you should log from the chats.
 {attributes}
 </attributes>
 
-#### Input Chats
+
+## Input Format
+### Already Logged
+You will receive a list of previous logging result, you should also log the relevant infos that maybe related to those already logged.
+Pervious result in organized in Profile-format:
+- TOPIC{separator}SUBTOPIC{separator}CONTENT... // maybe truncated
+
+### Input Chats
 You will receive a conversation between the user and the assistant. The format of the conversation is:
 - [TIME] NAME: MESSAGE
 where NAME is ALIAS(ROLE) or just ROLE, when ALIAS is available, use ALIAS to refer user/assistant.
@@ -62,8 +69,10 @@ Now perform your task.
 """
 
 
-def pack_input(chat_strs):
-    return f"""#### Chats
+def pack_input(already_logged_str: str, chat_strs: str):
+    return f"""### Already Logged
+{already_logged_str}
+### Chats
 {chat_strs}
 """
 
@@ -75,6 +84,7 @@ def get_prompt(
         topics=topic_examples,
         attributes=attribute_examples,
         additional_requirements=additional_requirements,
+        separator=CONFIG.llm_tab_separator,
     )
 
 

@@ -182,17 +182,18 @@ async def handle_profile_merge_or_valid(
                 }
             )
     elif update_response["action"] == "ABORT":
+        oneline_response = r.data().replace("\n", " ")
         if runtime_profile is None:
             TRACE_LOG.info(
                 project_id,
                 user_id,
-                f"Invalid profile: {KEY}::{profile_content}, abort it\n<raw_response>\n{r.data()}\n</raw_response>",
+                f"Invalid profile: {KEY}::{profile_content}. <raw_response> {oneline_response} </raw_response>",
             )
         else:
             TRACE_LOG.info(
                 project_id,
                 user_id,
-                f"Invalid merge: {runtime_profile.attributes}, {profile_content}, abort it\n<raw_response>\n{r.data()}\n</raw_response>",
+                f"Invalid merge: {runtime_profile.attributes}, {profile_content}. <raw_response> {oneline_response} </raw_response>",
             )
             # session_merge_validate_results["delete"].append(runtime_profile.id)
         return Promise.resolve(None)
