@@ -41,12 +41,49 @@ Once configured, you can use the plugin's tools in your Dify workflows to:
 
 For detailed information on each tool, refer to the [Memobase API Reference](/api-reference/overview).
 
-### Example Workflow
+### Understanding Memobase's Buffer Mechanism
 
-Here is a conceptual example of a Dify workflow that uses the Memobase plugin to retrieve and store memory:
+Memobase uses a **buffer system** to optimize processing costs and efficiency:
 
-<Frame caption="A minimal Dify workflow demonstrating memory retrieval and storage.">
+-   **Buffered Processing**: Messages are not processed immediately. Instead, they are stored in a user buffer until it reaches **512 tokens** or other trigger conditions are met.
+-   **Automatic Flush**: When the buffer is full or remains idle for a certain period, Memobase automatically processes all buffered messages together.
+-   **Manual Flush**: You can trigger immediate processing using the **Flush Buffer** tool in the Dify plugin.
+
+#### When to Use Flush Buffer
+
+-   **Testing & Debugging**: Use flush after conversations to see immediate results during development.
+-   **Session End Detection**: Trigger flush when users leave the chat or close the session.
+-   **Critical Updates**: When immediate memory processing is required for important information.
+
+<Tip>Avoid flushing after every message as it increases token consumption significantly. Let Memobase handle automatic processing for optimal cost efficiency.</Tip>
+
+### Example Workflows
+
+#### Basic Memory Workflow
+
+Here is a basic Dify workflow that uses the Memobase plugin to store and retrieve memory without immediate processing:
+
+<Frame caption="A basic Dify workflow for memory storage and retrieval.">
   <img src="/images/dify_memobase_workflow.png" />
 </Frame>
+
+You can download the complete workflow file from: [memobase.yml](https://github.com/ACAne0320/dify-plugin-memobase/blob/main/_assets/memobase.yml)
+
+This workflow is suitable for most production scenarios where automatic buffer processing is sufficient.
+
+#### Memory Workflow with Buffer Flush
+
+For scenarios requiring immediate memory processing (testing, debugging, or session-end detection), use this enhanced workflow:
+
+<Frame caption="A Dify workflow with explicit buffer flush for immediate processing.">
+  <img src="/images/dify_memobase_flush_workflow.png" />
+</Frame>
+
+You can download the complete workflow file from: [memobase_flush_workflow.yml](https://github.com/ACAne0320/dify-plugin-memobase/blob/main/_assets/memobase_flush_workflow.yml)
+
+This workflow includes the **Flush Buffer** step to ensure conversation data is processed immediately. Use this pattern when:
+-   You need to see memory updates right away during testing
+-   The user is ending their session
+-   You're storing critical information that must be available immediately
 
 By integrating Memobase, you can build sophisticated AI applications that learn from and remember past interactions, leading to more engaging and personalized user experiences.
