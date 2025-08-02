@@ -39,7 +39,6 @@ SUMMARY_PROMPT = """你是一位从聊天记录中记录个人信息、日程安
 - TOPIC{separator}SUBTOPIC{separator}CONTENT... // maybe truncated
 
 ### 输入对话
-- LOGGING[TIME INFO] // TYPE
 你将收到用户和助手之间的对话。对话格式为：
 - [TIME] NAME: MESSAGE
 其中NAME是ALIAS(ROLE)或仅ROLE，当ALIAS可用时，使用ALIAS来指代用户/助手。

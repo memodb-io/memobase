@@ -72,7 +72,7 @@ Now perform your task.
 def pack_input(already_logged_str: str, chat_strs: str):
     return f"""### Already Logged
 {already_logged_str}
-### Chats
+### Input Chats
 {chat_strs}
 """
 
