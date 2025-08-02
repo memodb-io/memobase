@@ -20,6 +20,7 @@ class TranscriptStamp(BaseModel):
 
 class BlobType(StrEnum):
     chat = "chat"
+    summary = "summary"
     doc = "doc"
     image = "image"
     code = "code"
@@ -45,6 +46,11 @@ class Blob(BaseModel):
 class ChatBlob(Blob):
     messages: list[OpenAICompatibleMessage]
     type: Literal[BlobType.chat] = BlobType.chat
+
+
+class SummaryBlob(Blob):
+    summary: str
+    type: Literal[BlobType.summary] = BlobType.summary
 
 
 class DocBlob(Blob):
@@ -79,6 +85,10 @@ class BlobData(BaseModel):
     def to_blob(self) -> Blob:
         if self.blob_type == BlobType.chat:
             return ChatBlob(
+                **self.blob_data, fields=self.fields, created_at=self.created_at
+            )
+        elif self.blob_type == BlobType.summary:
+            return SummaryBlob(
                 **self.blob_data, fields=self.fields, created_at=self.created_at
             )
         elif self.blob_type == BlobType.doc:

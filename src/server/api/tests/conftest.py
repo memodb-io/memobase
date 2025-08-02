@@ -13,6 +13,7 @@ CONFIG.event_tags = [
 ]
 CONFIG.enable_event_embedding = True
 CONFIG.persistent_chat_blobs = True
+CONFIG.llm_api_key = None
 # @pytest.fixture(scope="session")
 # def event_loop():
 #     try:

@@ -6,7 +6,14 @@ from datetime import timezone, datetime
 from functools import wraps
 from pydantic import ValidationError
 from .env import ENCODER, LOG, CONFIG, ProfileConfig
-from .models.blob import Blob, BlobType, ChatBlob, DocBlob, OpenAICompatibleMessage
+from .models.blob import (
+    Blob,
+    BlobType,
+    ChatBlob,
+    DocBlob,
+    SummaryBlob,
+    OpenAICompatibleMessage,
+)
 from .models.database import GeneralBlob
 from .models.response import UserEventData, EventData
 from .models.utils import Promise, CODE
@@ -98,6 +105,8 @@ def pack_blob_from_db(blob: GeneralBlob, blob_type: BlobType) -> Blob:
             return ChatBlob(**blob_data, created_at=blob.created_at)
         case BlobType.doc:
             return DocBlob(**blob_data, created_at=blob.created_at)
+        case BlobType.summary:
+            return SummaryBlob(**blob_data, created_at=blob.created_at)
         case _:
             raise ValueError(f"Unsupported Blob Type: {blob_type}")
 
@@ -133,6 +142,10 @@ def get_blob_str(blob: Blob):
             )
         case BlobType.doc:
             return cast(DocBlob, blob).content
+        case BlobType.summary:
+            time_created = cast(SummaryBlob, blob).created_at or datetime.now()
+            clean_summary = cast(SummaryBlob, blob).summary.replace("\n", " ")
+            return f"- {clean_summary}[{time_created.strftime("%Y/%m/%d")}]"
         case _:
             raise ValueError(f"Unsupported Blob Type: {blob.type}")
 

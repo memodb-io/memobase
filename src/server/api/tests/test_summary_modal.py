@@ -143,12 +143,11 @@ def mock_event_get_embedding():
 
 
 @pytest.mark.asyncio
-async def test_chat_buffer_modal(
+async def test_summary_buffer_modal(
     db_env,
     mock_extract_llm_complete,
     mock_merge_llm_complete,
     mock_event_tag_llm_complete,
-    mock_entry_summary_llm_complete,
     mock_event_get_embedding,
 ):
     p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
@@ -156,31 +155,12 @@ async def test_chat_buffer_modal(
     u_id = p.data().id
 
     blob1 = res.BlobData(
-        blob_type=BlobType.chat,
-        blob_data={
-            "messages": [
-                {"role": "user", "content": "Hello, this is Gus, how are you?"},
-                {"role": "assistant", "content": "I am fine, thank you!"},
-            ]
-        },
+        blob_type=BlobType.summary,
+        blob_data={"summary": "User is a software engineer who works at Memobase...."},
     )
     blob2 = res.BlobData(
-        blob_type=BlobType.chat,
-        blob_data={
-            "messages": [
-                {"role": "user", "content": "Hi, nice to meet you, I am Gus"},
-                {
-                    "role": "assistant",
-                    "content": "Great! I'm Memobase Assistant, how can I help you?",
-                },
-                {"role": "user", "content": "I really dig into Chinese food"},
-                {"role": "assistant", "content": "Got it, Gus!"},
-                {
-                    "role": "user",
-                    "content": "write me a homework letter about my final exam, high school is really boring.",
-                },
-            ]
-        },
+        blob_type=BlobType.summary,
+        blob_data={"summary": "User is called Gus"},
         fields={"from": "happy"},
     )
     p = await controllers.blob.insert_blob(
@@ -205,11 +185,11 @@ async def test_chat_buffer_modal(
     )
 
     p = await controllers.buffer.get_buffer_capacity(
-        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+        u_id, DEFAULT_PROJECT_ID, BlobType.summary
     )
     assert p.ok() and p.data() == 2
 
-    await controllers.buffer.flush_buffer(u_id, DEFAULT_PROJECT_ID, BlobType.chat)
+    await controllers.buffer.flush_buffer(u_id, DEFAULT_PROJECT_ID, BlobType.summary)
 
     p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
@@ -225,13 +205,13 @@ async def test_chat_buffer_modal(
     assert len(p.data().events) == 1
 
     p = await controllers.buffer.get_buffer_capacity(
-        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+        u_id, DEFAULT_PROJECT_ID, BlobType.summary
     )
     assert p.ok() and p.data() == 0
 
     # persistent_chat_blobs default to True
     p = await controllers.user.get_user_all_blobs(
-        u_id, DEFAULT_PROJECT_ID, BlobType.chat
+        u_id, DEFAULT_PROJECT_ID, BlobType.summary
     )
     assert p.ok() and len(p.data().ids) == 2
 
@@ -239,140 +219,6 @@ async def test_chat_buffer_modal(
     assert p.ok()
 
     mock_extract_llm_complete.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_chat_merge_modal(
-    db_env,
-    mock_extract_llm_complete,
-    mock_merge_llm_complete,
-    mock_event_tag_llm_complete,
-    mock_entry_summary_llm_complete,
-    mock_event_get_embedding,
-):
-    p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
-    assert p.ok()
-    u_id = p.data().id
-
-    blob1 = res.BlobData(
-        blob_type=BlobType.chat,
-        blob_data={
-            "messages": [
-                {"role": "user", "content": "Hello, this is Gus, how are you?"},
-                {"role": "assistant", "content": "I am fine, thank you!"},
-                {"role": "user", "content": "I'm 25 now, how time flies!"},
-            ]
-        },
-    )
-    blob2 = res.BlobData(
-        blob_type=BlobType.chat,
-        blob_data={
-            "messages": [
-                {"role": "user", "content": "I really dig into Chinese food"},
-                {"role": "assistant", "content": "Got it, Gus!"},
-                {
-                    "role": "user",
-                    "content": "write me a homework letter about my final exam, high school is really boring.",
-                },
-            ]
-        },
-        fields={"from": "happy"},
-    )
-    p = await controllers.blob.insert_blob(
-        u_id,
-        DEFAULT_PROJECT_ID,
-        blob1,
-    )
-    assert p.ok()
-    b_id = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(
-        u_id, DEFAULT_PROJECT_ID, b_id, blob1.to_blob()
-    )
-    p = await controllers.blob.insert_blob(
-        u_id,
-        DEFAULT_PROJECT_ID,
-        blob2,
-    )
-    assert p.ok()
-    b_id2 = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(
-        u_id, DEFAULT_PROJECT_ID, b_id2, blob2.to_blob()
-    )
-
-    p = await controllers.profile.add_user_profiles(
-        u_id, DEFAULT_PROJECT_ID, PROFILES, PROFILE_ATTRS
-    )
-    assert p.ok()
-    await controllers.buffer.flush_buffer(u_id, DEFAULT_PROJECT_ID, BlobType.chat)
-
-    p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
-    assert p.ok() and len(p.data().profiles) == len(PROFILES) + 2
-    profiles = p.data().profiles
-    profiles = sorted(profiles, key=lambda x: x.content)
-
-    assert dict_contains(
-        profiles[-1].attributes, {"topic": "interest", "sub_topic": "sports"}
-    )
-    assert profiles[-1].content == "user likes to play basketball"
-    assert dict_contains(
-        profiles[-2].attributes, {"topic": "interest", "sub_topic": "foods"}
-    )
-    assert profiles[-2].content == "user likes Chinese and Japanese food"
-
-    p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
-    assert p.ok()
-
-    assert mock_extract_llm_complete.await_count == 1
     assert mock_merge_llm_complete.await_count == 4
-
-
-@pytest.mark.asyncio
-async def test_chat_organize_modal(
-    db_env,
-    mock_extract_llm_complete,
-    mock_merge_llm_complete,
-    mock_organize_llm_complete,
-    mock_event_tag_llm_complete,
-    mock_entry_summary_llm_complete,
-    mock_event_get_embedding,
-):
-    p = await controllers.user.create_user(res.UserData(), DEFAULT_PROJECT_ID)
-    assert p.ok()
-    u_id = p.data().id
-
-    blob1 = res.BlobData(
-        blob_type=BlobType.chat,
-        blob_data={
-            "messages": [
-                {"role": "user", "content": "Hello, this is Gus, how are you?"},
-                {"role": "assistant", "content": "I am fine, thank you!"},
-                {"role": "user", "content": "I'm 25 now, how time flies!"},
-            ]
-        },
-    )
-
-    p = await controllers.blob.insert_blob(
-        u_id,
-        DEFAULT_PROJECT_ID,
-        blob1,
-    )
-    assert p.ok()
-    b_id = p.data().id
-    await controllers.buffer.insert_blob_to_buffer(
-        u_id, DEFAULT_PROJECT_ID, b_id, blob1.to_blob()
-    )
-    p = await controllers.profile.add_user_profiles(
-        u_id, DEFAULT_PROJECT_ID, OVER_MAX_PROFILEs, OVER_MAX_PROFILE_ATTRS
-    )
-    assert p.ok()
-
-    await controllers.buffer.flush_buffer(u_id, DEFAULT_PROJECT_ID, BlobType.chat)
-
-    p = await controllers.profile.get_user_profiles(u_id, DEFAULT_PROJECT_ID)
-    assert p.ok()
-
-    p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
-    assert p.ok()
-    assert mock_extract_llm_complete.await_count == 1
-    assert mock_merge_llm_complete.await_count == 4
-    assert mock_organize_llm_complete.await_count == 1
+    mock_event_tag_llm_complete.assert_awaited_once()
+    assert mock_event_get_embedding.await_count == 2
