@@ -21,6 +21,7 @@ class TranscriptStamp(BaseModel):
 
 class BlobType(StrEnum):
     chat = "chat"
+    summary = "summary"
     doc = "doc"
     image = "image"
     code = "code"
@@ -53,6 +54,11 @@ class DocBlob(Blob):
     type: Literal[BlobType.doc] = BlobType.doc
 
 
+class SummaryBlob(Blob):
+    summary: str
+    type: Literal[BlobType.summary] = BlobType.summary
+
+
 class CodeBlob(Blob):
     content: str
     language: Optional[str] = None
@@ -80,6 +86,10 @@ class BlobData(BaseModel):
     def to_blob(self) -> Blob:
         if self.blob_type == BlobType.chat:
             return ChatBlob(
+                **self.blob_data, fields=self.fields, created_at=self.created_at
+            )
+        elif self.blob_type == BlobType.summary:
+            return SummaryBlob(
                 **self.blob_data, fields=self.fields, created_at=self.created_at
             )
         elif self.blob_type == BlobType.doc:
