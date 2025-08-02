@@ -1,0 +1,27 @@
+---
+title: 'SummaryBlob'
+---
+
+Summary is for a already summary of user infomation.
+Memobase will automatically understand and extract the summaries into structured profiles and events.
+
+An example of SummaryBlob is below:
+
+<Accordion title="Example to insert SummaryBlob">
+<CodeGroup>
+```python Python
+from memobase import SummaryBlob
+
+b = SummaryBlob(summary="User is a software engineer who works at Memobase....")
+
+
+u.insert(b)
+```
+```bash https
+curl -X POST "$PROJECT_URL/api/v1/blobs/insert/{uid}" \
+     -H "Authorization: Bearer $PROJECT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{ "blob_type": "summary", "blob_data": { "summary": "User is a software engineer who works at Memobase...." }}'
+```
+</CodeGroup>
+</Accordion>

@@ -119,7 +119,8 @@
                   {
                     "group": "Supported Blobs",
                     "pages": [
-                      "api-reference/blobs/modal/chat"
+                      "api-reference/blobs/modal/chat",
+                      "api-reference/blobs/modal/summary"
                     ]
                   },
                   "api-reference/blobs/get_all_data",
