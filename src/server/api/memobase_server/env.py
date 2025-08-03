@@ -257,33 +257,31 @@ class ProfileConfig:
         return overwrite_config
 
 
-# 1. Add logger
-LOG = logging.getLogger("memobase_server")
-LOG.setLevel(logging.INFO)
-
-
-# Add standard formatter and handler
 class Colors:
     BLUE = "\033[94m"
     BOLD = "\033[1m"
     GREEN = "\033[92m"
     END = "\033[0m"
 
+log_format = os.getenv("LOG_FORMAT", "json")
+if log_format == "json":
+    logger = structlog.get_logger()
+    LOG = logger.bind(app_name="memobase_server")
+else:
+    LOG = logging.getLogger("memobase_server")
+    LOG.setLevel(logging.INFO)
 
-formatter = logging.Formatter(
-    f"{Colors.BOLD}{Colors.BLUE}%(name)s |{Colors.END}  %(levelname)s - %(asctime)s  -  %(message)s"
-)
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-LOG.addHandler(handler)
+    formatter = logging.Formatter(
+        f"{Colors.BOLD}{Colors.BLUE}%(name)s |{Colors.END}  %(levelname)s - %(asctime)s  -  %(message)s"
+    )
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    LOG.addHandler(handler)
 
-# 2. Add encoder for tokenize strings
+
 ENCODER = tiktoken.encoding_for_model("gpt-4o")
 
-
-# 3. Load config
 CONFIG = Config.load_config()
-
 
 class ProjectLogger:
     def __init__(self, logger: logging.Logger):
@@ -321,10 +319,7 @@ class ProjectLogger:
         )
 
 
-log_format = os.getenv("LOG_FORMAT", "json")
 if log_format == "json":
-    logger = structlog.get_logger()
-    LOG = logger.bind(app_name="memobase_server")
     TRACE_LOG = ProjectStructLogger(LOG)
 else:
     TRACE_LOG = ProjectLogger(LOG)

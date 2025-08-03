@@ -290,6 +290,10 @@ router.post(
     # openapi_extra=API_X_CODE_DOCS["POST /users/roleplay/proactive/{user_id}"],
 )(api_layer.roleplay.infer_proactive_topics)
 
+@app.middleware("http")
+async def logging_middleware(request, call_next):
+    return await api_layer.middleware.logging_middleware(request, call_next)
+
 app.include_router(router)
 app.add_middleware(api_layer.middleware.AuthMiddleware)
 

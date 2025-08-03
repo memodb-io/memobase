@@ -1,23 +1,63 @@
 import structlog
 from contextlib import contextmanager
 import structlog.contextvars
+import logging
 
-def configure_logger(enable_json_logs: bool = True):
+def configure_logger():
+    shared_processors = [
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.stdlib.ExtraAdder(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.CallsiteParameterAdder([
+            structlog.processors.CallsiteParameter.LINENO,
+            structlog.processors.CallsiteParameter.PATHNAME,
+        ]),
+        
+    ]
+    
+    structlog_processors = shared_processors + [
+        structlog.processors.dict_tracebacks,
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ]
+   
     structlog.configure(
+        processors=structlog_processors,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
+
+    formatter = structlog.stdlib.ProcessorFormatter(
+        foreign_pre_chain=shared_processors,
         processors=[
-            structlog.contextvars.merge_contextvars,
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.add_log_level,
-            structlog.processors.CallsiteParameterAdder(
-                [
-                    structlog.processors.CallsiteParameter.LINENO,
-                    structlog.processors.CallsiteParameter.PATHNAME,
-                ]
-            ),
-            structlog.processors.dict_tracebacks,
-            structlog.dev.ConsoleRenderer() if not enable_json_logs else structlog.processors.JSONRenderer(),
-        ]
-)
+            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            structlog.processors.JSONRenderer(),
+        ],
+    )
+
+    formatter = structlog.stdlib.ProcessorFormatter(
+        # These run ONLY on `logging` entries that do NOT originate within
+        # structlog.
+        foreign_pre_chain=shared_processors,
+        # These run on ALL entries after the pre_chain is done.
+        processors=[
+            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            structlog.processors.JSONRenderer(),
+        ],
+    )
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+
+    root_logger = logging.getLogger()
+    root_logger.addHandler(handler)
+    root_logger.setLevel(logging.INFO)
+
+    for _log in ["uvicorn", "uvicorn.error", "uvicorn.access"]:
+        logging.getLogger(_log).handlers.clear()
+        logging.getLogger(_log).propagate = True
 
 configure_logger()
 
