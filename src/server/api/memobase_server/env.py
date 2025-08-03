@@ -15,7 +15,9 @@ from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
 from datetime import timezone
 from typeguard import check_type
+import structlog
 from .types import UserProfileTopic
+from .struct_logger import ProjectStructLogger
 
 load_dotenv()
 
@@ -319,4 +321,10 @@ class ProjectLogger:
         )
 
 
-TRACE_LOG = ProjectLogger(LOG)
+log_format = os.getenv("LOG_FORMAT", "json")
+if log_format == "json":
+    logger = structlog.get_logger()
+    LOG = logger.bind(app_name="memobase_server")
+    TRACE_LOG = ProjectStructLogger(LOG)
+else:
+    TRACE_LOG = ProjectLogger(LOG)
