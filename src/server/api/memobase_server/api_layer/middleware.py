@@ -5,7 +5,7 @@ import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
 from uvicorn.protocols.utils import get_path_with_query_string
-from ..env import ProjectStatus, TRACE_LOG
+from ..env import ProjectStatus, LOG
 from ..models.database import DEFAULT_PROJECT_ID
 from ..models.utils import Promise
 from ..telemetry import (
@@ -56,17 +56,20 @@ async def logging_middleware(request, call_next):
     http_version = request.scope["http_version"]
     status_code = response.status_code
 
-    TRACE_LOG.info(
+
+    LOG.info(
         f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
-        http={
+        extra={
+            "http": {
             "url": str(request.url),
             "status_code": status_code,
             "method": http_method,
             "request_id": req_id,
             "version": http_version,
-        },
-        network={"client": {"ip": client_host, "port": client_port}},
-        duration=process_time / 10 ** 6, # convert to ms
+            },
+            "network": {"client": {"ip": client_host, "port": client_port}},
+            "duration": process_time / 10 ** 9, # convert to s
+        }
     )
     response.headers["X-Process-Time"] = str(process_time / 10 ** 9)
 
