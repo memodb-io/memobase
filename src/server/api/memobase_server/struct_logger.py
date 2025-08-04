@@ -2,6 +2,7 @@ import structlog
 from contextlib import contextmanager
 import structlog.contextvars
 import logging
+import sys
 
 def configure_logger():
     shared_processors = [
@@ -37,18 +38,7 @@ def configure_logger():
         ],
     )
 
-    formatter = structlog.stdlib.ProcessorFormatter(
-        # These run ONLY on `logging` entries that do NOT originate within
-        # structlog.
-        foreign_pre_chain=shared_processors,
-        # These run on ALL entries after the pre_chain is done.
-        processors=[
-            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.processors.JSONRenderer(),
-        ],
-    )
-
-    handler = logging.StreamHandler()
+    handler = logging.StreamHandler(stream=sys.stdout)
     handler.setFormatter(formatter)
 
     root_logger = logging.getLogger()

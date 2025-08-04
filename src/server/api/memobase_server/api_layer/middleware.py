@@ -56,7 +56,6 @@ async def logging_middleware(request, call_next):
     http_version = request.scope["http_version"]
     status_code = response.status_code
 
-    # Recreate the Uvicorn access log format, but add all parameters as structured information
     LOG.info(
         f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
         http={
