@@ -17,7 +17,7 @@ from datetime import timezone
 from typeguard import check_type
 import structlog
 from .types import UserProfileTopic
-from .struct_logger import ProjectStructLogger
+from .struct_logger import ProjectStructLogger, configure_logger
 
 load_dotenv()
 
@@ -265,6 +265,7 @@ class Colors:
 
 log_format = os.getenv("LOG_FORMAT", "json")
 if log_format == "json":
+    configure_logger()
     logger = structlog.get_logger()
     LOG = logger.bind(app_name="memobase_server")
 else:

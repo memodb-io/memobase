@@ -59,7 +59,6 @@ def configure_logger():
         logging.getLogger(_log).handlers.clear()
         logging.getLogger(_log).propagate = True
 
-configure_logger()
 
 @contextmanager
 def bound_context(**kwargs):
