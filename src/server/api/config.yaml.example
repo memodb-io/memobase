@@ -1,1 +1,13 @@
 llm_api_key: YOUR-OPENAI-KEY
+
+# If you use the lstudio embedded provider, you can refer to the configuration below
+
+# embedding_provider: lmstudio
+# embedding_api_key: lm_XXX
+# embedding_model: text-embedding-qwen3-embedding-8b
+# If you start with docker and access lmstudio or 127.0.0.1 via localhost, you can refer to the following base url config
+# embedding_base_url: http://host.docker.internal:1234/v1
+# embedding_base_url: http://127.0.0.1:1234/v1
+# embedding_dim: 4096
+
+# language: zh
