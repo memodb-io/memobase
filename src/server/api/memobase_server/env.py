@@ -263,7 +263,8 @@ class Colors:
     GREEN = "\033[92m"
     END = "\033[0m"
 
-log_format = os.getenv("LOG_FORMAT", "json")
+
+log_format = os.getenv("LOG_FORMAT", "plain")
 if log_format == "json":
     configure_logger()
     logger = structlog.get_logger()
@@ -283,6 +284,7 @@ else:
 ENCODER = tiktoken.encoding_for_model("gpt-4o")
 
 CONFIG = Config.load_config()
+
 
 class ProjectLogger:
     def __init__(self, logger: logging.Logger):
