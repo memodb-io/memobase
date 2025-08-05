@@ -1,4 +1,5 @@
 from httpx import AsyncClient
+import uuid
 
 from ..models.response import BillingData, BaseResponse
 from ..models.utils import Promise, CODE
@@ -11,7 +12,12 @@ async def get_project_usage(project_id: str) -> Promise[BillingData]:
     async with AsyncClient(
         base_url=ADMIN_URL, headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
     ) as client:
-        response = await client.get(f"/api/v1/billing/project/{project_id}", timeout=10)
+        request_id = str(uuid.uuid4())
+        response = await client.get(
+            f"/api/v1/billing/project/{project_id}",
+            timeout=10,
+            headers={"X-Request-ID": request_id},
+        )
 
         if response.status_code != 200:
             return Promise.reject(
@@ -35,9 +41,11 @@ async def cost_project_usage(
     async with AsyncClient(
         base_url=ADMIN_URL, headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
     ) as client:
+        request_id = str(uuid.uuid4())
         response = await client.put(
             f"/api/v1/billing/project/{project_id}",
             json={"usage": input_tokens + output_tokens},
+            headers={"X-Request-ID": request_id},
         )
         if response.status_code != 200:
             return Promise.reject(

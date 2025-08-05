@@ -21,29 +21,8 @@ from memobase_server.api_layer.docs import API_X_CODE_DOCS
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 
-def configure_logging():
-    # Configure uvicorn's loggers to use your format
-    uvicorn_access = logging.getLogger("uvicorn.access")
-    uvicorn_error = logging.getLogger("uvicorn.error")
-
-    # Clear existing handlers
-    uvicorn_access.handlers.clear()
-
-    uvicorn_access.name = "memobase_server"
-
-    # Add your custom handler to uvicorn loggers
-    custom_handler = LOG.handlers[0] if LOG.handlers else None
-    if custom_handler:
-        uvicorn_access.addHandler(custom_handler)
-
-    # Set log levels
-    uvicorn_access.setLevel(logging.INFO)
-    uvicorn_error.setLevel(logging.CRITICAL)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    configure_logging()
     init_redis_pool()
     await check_embedding_sanity()
     await llm_sanity_check()
@@ -310,6 +289,10 @@ router.post(
     tags=["roleplay"],
     # openapi_extra=API_X_CODE_DOCS["POST /users/roleplay/proactive/{user_id}"],
 )(api_layer.roleplay.infer_proactive_topics)
+
+@app.middleware("http")
+async def logging_middleware(request, call_next):
+    return await api_layer.middleware.logging_middleware(request, call_next)
 
 app.include_router(router)
 app.add_middleware(api_layer.middleware.AuthMiddleware)

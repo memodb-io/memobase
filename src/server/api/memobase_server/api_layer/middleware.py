@@ -1,9 +1,11 @@
 import os
 import time
+import uuid
+import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
-
-from ..env import ProjectStatus
+from uvicorn.protocols.utils import get_path_with_query_string
+from ..env import ProjectStatus, LOG
 from ..models.database import DEFAULT_PROJECT_ID
 from ..models.utils import Promise
 from ..telemetry import (
@@ -32,6 +34,46 @@ PATH_MAPPINGS = [
     "/api/v1/blobs",
 ]
 
+
+async def logging_middleware(request, call_next):
+    req_id = request.headers.get("X-Request-ID")
+    if req_id is None:
+        req_id = str(uuid.uuid4())
+
+    structlog.contextvars.clear_contextvars()
+    structlog.contextvars.bind_contextvars(
+        request_id=req_id,
+    )
+
+    start_time = time.perf_counter_ns()
+    response = await call_next(request)
+
+    process_time = time.perf_counter_ns() - start_time
+    url = get_path_with_query_string(request.scope)
+    client_host = request.client.host
+    client_port = request.client.port
+    http_method = request.method
+    http_version = request.scope["http_version"]
+    status_code = response.status_code
+
+
+    LOG.info(
+        f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
+        extra={
+            "http": {
+            "url": str(request.url),
+            "status_code": status_code,
+            "method": http_method,
+            "request_id": req_id,
+            "version": http_version,
+            },
+            "network": {"client": {"ip": client_host, "port": client_port}},
+            "duration": process_time / 10 ** 9, # convert to s
+        }
+    )
+    response.headers["X-Process-Time"] = str(process_time / 10 ** 9)
+
+    return response
 
 class AuthMiddleware(BaseHTTPMiddleware):
     def normalize_path(self, path: str) -> str:
