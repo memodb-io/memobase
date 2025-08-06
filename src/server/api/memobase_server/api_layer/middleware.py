@@ -65,7 +65,7 @@ async def global_wrapper_middleware(request: Request, call_next):
     except Exception as e:
         status_code = 500
         errmsg = f"Sorry, we have encountered an unknown error: \n{e}\nPlease report this issue to https://github.com/memodb-io/memobase/issues"
-        traceback_str = traceback.format_exc()
+        traceback_str = traceback.format_exc().replace("\n", "<br>")
         response = JSONResponse(
             content={
                 "data": None,
