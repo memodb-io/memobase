@@ -5,6 +5,7 @@
 - Support SummaryBlob, where you can just upload the user summary to Memobase.
 - Update logger to handle unknown errors
 - Fix thining parameters in `llm_complete`
+- JSON Logging
 
 ### [0.0.38] - 2025/7/15
 
