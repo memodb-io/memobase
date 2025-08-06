@@ -47,10 +47,6 @@ def configure_logger():
     root_logger.addHandler(handler)
     root_logger.setLevel(logging.INFO)
 
-    for _log in ["uvicorn", "uvicorn.error", "uvicorn.access"]:
-        logging.getLogger(_log).handlers.clear()
-        # logging.getLogger(_log).propagate = True
-
 
 @contextmanager
 def bound_context(**kwargs):

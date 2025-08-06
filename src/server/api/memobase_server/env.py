@@ -264,6 +264,11 @@ class Colors:
     END = "\033[0m"
 
 
+# remove default uvicorn loggers cause we have our own
+for _log in ["uvicorn", "uvicorn.error", "uvicorn.access"]:
+    logging.getLogger(_log).handlers.clear()
+    # logging.getLogger(_log).propagate = True
+
 log_format = os.getenv("LOG_FORMAT", "plain")
 if log_format == "json":
     configure_logger()
