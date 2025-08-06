@@ -2,12 +2,14 @@ import os
 import time
 import uuid
 import structlog
+import traceback
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from uvicorn.protocols.utils import get_path_with_query_string
 from ..env import ProjectStatus, LOG
 from ..models.database import DEFAULT_PROJECT_ID
+from ..models.response import BaseResponse
 from ..models.utils import Promise
 from ..telemetry import (
     telemetry_manager,
@@ -37,7 +39,7 @@ PATH_MAPPINGS = [
 ]
 
 
-async def logging_middleware(request: Request, call_next):
+async def global_wrapper_middleware(request: Request, call_next):
     req_id = request.headers.get("X-Request-ID")
     if req_id is None:
         req_id = str(uuid.uuid4())
@@ -47,18 +49,37 @@ async def logging_middleware(request: Request, call_next):
         request_id=req_id, project_id=project_id, memobase_version=__version__
     )
 
-    start_time = time.perf_counter_ns()
-    response = await call_next(request)
-
-    process_time = time.perf_counter_ns() - start_time
     url = get_path_with_query_string(request.scope)
     client_host = request.client.host
     client_port = request.client.port
     http_method = request.method
     http_version = request.scope["http_version"]
-    status_code = response.status_code
 
-    LOG.info(
+    start_time = time.perf_counter_ns()
+
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        errmsg = None
+        traceback_str = None
+    except Exception as e:
+        status_code = 500
+        errmsg = f"Sorry, we have encountered an unknown error: \n{e}\nPlease report this issue to https://github.com/memodb-io/memobase/issues"
+        traceback_str = traceback.format_exc()
+        response = JSONResponse(
+            content={
+                "data": None,
+                "errno": 500,
+                "errmsg": errmsg,
+            },
+        )
+    process_time = time.perf_counter_ns() - start_time
+
+    if status_code != 200:
+        _log_f = LOG.error
+    else:
+        _log_f = LOG.info
+    _log_f(
         f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
         extra={
             "http": {
@@ -70,6 +91,8 @@ async def logging_middleware(request: Request, call_next):
             "network": {"client": {"ip": client_host, "port": client_port}},
             "duration": process_time / 10**9,  # convert to s
             "type": "access",
+            "errmsg": errmsg,
+            "__internal_traceback": traceback_str,
         },
     )
     response.headers["X-Process-Time"] = str(process_time / 10**9)

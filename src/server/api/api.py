@@ -2,11 +2,8 @@ import memobase_server.env
 import os
 
 # Done setting up env
-import logging
-import traceback
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, APIRouter
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from memobase_server.connectors import (
@@ -86,22 +83,6 @@ def custom_openapi():
 
 
 app.openapi = custom_openapi
-
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    project_id = getattr(request.state, "memobase_project_id", "unknown")
-    traceback_str = traceback.format_exc().replace("\n", "<br>")
-    TRACE_LOG.error(
-        project_id, "", f"Unknown Error: {exc}. Traceback: '{traceback_str}'"
-    )
-    return JSONResponse(
-        content={
-            "data": None,
-            "errno": 500,
-            "errmsg": f"Sorry, we have encountered an unknown error: \n{exc}\nPlease report this issue to https://github.com/memodb-io/memobase/issues",
-        },
-    )
 
 
 router = APIRouter(prefix="/api/v1")
@@ -290,9 +271,11 @@ router.post(
     # openapi_extra=API_X_CODE_DOCS["POST /users/roleplay/proactive/{user_id}"],
 )(api_layer.roleplay.infer_proactive_topics)
 
+
 @app.middleware("http")
-async def logging_middleware(request, call_next):
-    return await api_layer.middleware.logging_middleware(request, call_next)
+async def global_wrapper_middleware(request, call_next):
+    return await api_layer.middleware.global_wrapper_middleware(request, call_next)
+
 
 app.include_router(router)
 app.add_middleware(api_layer.middleware.AuthMiddleware)
