@@ -3,6 +3,7 @@ import time
 import uuid
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from uvicorn.protocols.utils import get_path_with_query_string
 from ..env import ProjectStatus, LOG
@@ -13,6 +14,7 @@ from ..telemetry import (
     CounterMetricName,
     HistogramMetricName,
 )
+from .. import __version__
 from ..models.response import BaseResponse, CODE
 from ..auth.token import (
     parse_project_id,
@@ -35,14 +37,14 @@ PATH_MAPPINGS = [
 ]
 
 
-async def logging_middleware(request, call_next):
+async def logging_middleware(request: Request, call_next):
     req_id = request.headers.get("X-Request-ID")
     if req_id is None:
         req_id = str(uuid.uuid4())
-
+    project_id = getattr(request.state, "memobase_project_id", None)
     structlog.contextvars.clear_contextvars()
     structlog.contextvars.bind_contextvars(
-        request_id=req_id,
+        request_id=req_id, project_id=project_id, memobase_version=__version__
     )
 
     start_time = time.perf_counter_ns()
@@ -56,24 +58,24 @@ async def logging_middleware(request, call_next):
     http_version = request.scope["http_version"]
     status_code = response.status_code
 
-
     LOG.info(
         f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
         extra={
             "http": {
-            "url": str(request.url),
-            "status_code": status_code,
-            "method": http_method,
-            "request_id": req_id,
-            "version": http_version,
+                "url": str(request.url),
+                "status_code": status_code,
+                "method": http_method,
+                "version": http_version,
             },
             "network": {"client": {"ip": client_host, "port": client_port}},
-            "duration": process_time / 10 ** 9, # convert to s
-        }
+            "duration": process_time / 10**9,  # convert to s
+            "type": "access",
+        },
     )
-    response.headers["X-Process-Time"] = str(process_time / 10 ** 9)
+    response.headers["X-Process-Time"] = str(process_time / 10**9)
 
     return response
+
 
 class AuthMiddleware(BaseHTTPMiddleware):
     def normalize_path(self, path: str) -> str:

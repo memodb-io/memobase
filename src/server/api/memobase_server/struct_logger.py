@@ -4,6 +4,7 @@ import structlog.contextvars
 import logging
 import sys
 
+
 def configure_logger():
     shared_processors = [
         structlog.contextvars.merge_contextvars,
@@ -12,18 +13,19 @@ def configure_logger():
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.stdlib.ExtraAdder(),
         structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.CallsiteParameterAdder([
-            structlog.processors.CallsiteParameter.LINENO,
-            structlog.processors.CallsiteParameter.PATHNAME,
-        ]),
-        
+        structlog.processors.CallsiteParameterAdder(
+            [
+                structlog.processors.CallsiteParameter.LINENO,
+                structlog.processors.CallsiteParameter.PATHNAME,
+            ]
+        ),
     ]
-    
+
     structlog_processors = shared_processors + [
         structlog.processors.dict_tracebacks,
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
     ]
-   
+
     structlog.configure(
         processors=structlog_processors,
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -47,13 +49,14 @@ def configure_logger():
 
     for _log in ["uvicorn", "uvicorn.error", "uvicorn.access"]:
         logging.getLogger(_log).handlers.clear()
-        logging.getLogger(_log).propagate = True
+        # logging.getLogger(_log).propagate = True
 
 
 @contextmanager
 def bound_context(**kwargs):
     with structlog.contextvars.bound_contextvars(**kwargs):
         yield
+
 
 class ProjectStructLogger:
     def __init__(self, logger):
