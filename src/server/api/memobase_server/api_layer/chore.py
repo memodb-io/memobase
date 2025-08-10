@@ -27,26 +27,27 @@ async def root_running_status_check(request: Request) -> BaseResponse:
     """Check if your memobase is set up correctly"""
     project_id = request.state.memobase_project_id
     if project_id != DEFAULT_PROJECT_ID:
-        return BaseResponse(
-            errno=CODE.METHOD_NOT_ALLOWED, errmsg="Only Root can access this"
+        raise HTTPException(
+            status_code=CODE.METHOD_NOT_ALLOWED.value,
+            detail="Only Root can access this",
+        )
+    if not db_health_check():
+        raise HTTPException(
+            status_code=CODE.INTERNAL_SERVER_ERROR.value,
+            detail="Database not available",
+        )
+    if not await redis_health_check():
+        raise HTTPException(
+            status_code=CODE.INTERNAL_SERVER_ERROR.value,
+            detail="Redis not available",
         )
     try:
-        if not db_health_check():
-            return BaseResponse(
-                errno=CODE.INTERNAL_SERVER_ERROR,
-                errmsg="Database not available",
-            )
-        if not await redis_health_check():
-            return BaseResponse(
-                errno=CODE.INTERNAL_SERVER_ERROR,
-                errmsg="Redis not available",
-            )
         await check_embedding_sanity()
         await llm_sanity_check()
     except Exception as e:
-        return BaseResponse(
-            errno=CODE.INTERNAL_SERVER_ERROR,
-            errmsg=f"Occuring Error when status checking: {e}\n{traceback.format_exc()}",
+        raise HTTPException(
+            status_code=CODE.INTERNAL_SERVER_ERROR.value,
+            detail=f"Root status checking failed: {e}",
         )
 
     return BaseResponse()
