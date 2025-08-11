@@ -1,7 +1,7 @@
 from .utils import pack_merge_action_into_string
 from ..env import CONFIG
 
-ADD_KWARGS = {"prompt_id": "zh_merge_profile"}
+ADD_KWARGS = {"prompt_id": "zh_merge_profile_yolo"}
 
 MERGE_FACTS_PROMPT = """你负责用户的备忘录的维护。
 你的工作是判断新的补充信息如何与当前备忘录合并。
@@ -73,12 +73,13 @@ THOUGHT
 
 其中:
 - `THOUGHT`是你的思考过程
+- 思考和Action之间使用`---`隔开
 - `N. ACTION{tab}...`是你对于第N个补充信息的操作(memo_id=N)
 
 
 
 ## 举例
-### 输入
+### 输入距离
 {{
     "memo_id": "1",
     "new_info": "准备期末考试[提及于2025/06/01]",
@@ -94,15 +95,24 @@ THOUGHT
     "topic": "学习",
     "subtopic": "使用软件",
 }}
+{{
+    "memo_id": "3",
+    "new_info": "用户喜欢吃火锅",
+    "current_memo": "",
+    "topic": "兴趣",
+    "subtopic": "运动",
+}}
 
-### 输出
+### 输出举例
+```
 补充信息中提到了用户当前的学习目标是准备期末考试，当前主题描述记录的是用户的学习目标，符合要求。同时注意到期末考试和期中考试的冲突，所以需要移除期中考试的目标，更新为期末考试。
 同时用户提到了他正在使用多邻国进行语言的学习，符合学习软件的需求，由于id为2的补充信息中当前备忘录为空，直接添加即可。
+喜欢吃火锅并不属于兴趣/学习的爱好，也无法从这个信息中得到他潜在的爱好，所以放弃合并。
 ---
 1. UPDATE{tab}准备期末考试中[提及于2025/06/01];
 2. APPEND{tab}APPEND
-
-以上就是举例说明
+3. ABORT{tab}ABORT
+```
 
 你需要遵循以下要求：
 - 严格遵守正确的输出格式。

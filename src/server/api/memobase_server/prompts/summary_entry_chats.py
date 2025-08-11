@@ -64,7 +64,6 @@ Remember, make sure your logging is pure and concise, any time info should move 
 - You need to list all possible user info, schedule and events
 - {additional_requirements}
 
-Finally, The logging result should use the same language as the chats. English in, English out. Chinese in, Chinese out.
 Now perform your task.
 """
 

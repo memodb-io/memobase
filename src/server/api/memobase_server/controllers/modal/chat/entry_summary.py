@@ -53,8 +53,8 @@ async def entry_chat_summary(
         **prompt.get_kwargs(),
     )
 
-    print(
-        prompt.pack_input(CURRENT_PROFILE_INFO["already_topics_prompt"], blob_strs),
-        r.data(),
-    )
+    # print(
+    #     prompt.pack_input(CURRENT_PROFILE_INFO["already_topics_prompt"], blob_strs),
+    #     r.data(),
+    # )
     return r

@@ -56,15 +56,15 @@ async def extract_topics(
     if not p.ok():
         return p
     results = p.data()
-    print(
-        PROMPTS[USE_LANGUAGE]["extract"].pack_input(
-            CURRENT_PROFILE_INFO["already_topics_prompt"],
-            user_memo,
-            strict_mode=STRICT_MODE,
-        )
-    )
-    print("-------------------------------")
-    print(results)
+    # print(
+    #     PROMPTS[USE_LANGUAGE]["extract"].pack_input(
+    #         CURRENT_PROFILE_INFO["already_topics_prompt"],
+    #         user_memo,
+    #         strict_mode=STRICT_MODE,
+    #     )
+    # )
+    # print("-------------------------------")
+    # print(results)
     parsed_facts: AIUserProfiles = parse_string_into_profiles(results)
     new_facts: list[FactResponse] = parsed_facts.model_dump()["facts"]
     if not len(new_facts):

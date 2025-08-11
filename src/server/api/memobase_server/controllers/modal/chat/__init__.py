@@ -10,7 +10,9 @@ from ...profile import add_update_delete_user_profiles
 from ...event import append_user_event
 from ...profile import get_user_profiles
 from .extract import extract_topics
-from .merge import merge_or_valid_new_memos
+
+# from .merge import merge_or_valid_new_memos
+from .merge_yolo import merge_or_valid_new_memos
 from .summary import re_summary
 from .organize import organize_profiles
 from .types import MergeAddResult
