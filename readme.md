@@ -50,13 +50,19 @@
 
 
 
-Memobase is a **user profile-based memory system** designed to bring long-term user memory to your Generative AI (GenAI) applications. Whether you're building virtual companions, educational tools, or personalized assistants, Memobase empowers your AI to **remember**,  **understand**, and **evolve** with your users.
+Memobase is a **user profile-based memory system** designed to bring long-term user memory to your LLM applications. Whether you're building virtual companions, educational tools, or personalized assistants, Memobase empowers your AI to **remember**,  **understand**, and **evolve** with your users.
 
 
 
-Memobase can provide you structured profiles of users, check out the [result](./docs/experiments/900-chats/readme.md) (compared with [mem0](https://github.com/mem0ai/mem0)) from a 900-turns real-world chatting:
+Memobase offers the perfect balance for your product among various memory solutions. At Memobase, we focus on three key metrics simultaneously:
+
+- **Performance**: Although Memobase is not specifically designed for RAG/search tasks, it still achieves top-tier search performance in the LOCOMO benchmark.
+- **LLM Cost**: Memobase includes a built-in buffer for each user to batch-process their chats, allowing the overhead to be distributed efficiently. Additionally, we carefully design our prompts and workflows, ensuring there are no "agents" in the system that could lead to excessive costs.
+- **Latency**: Memobase works similarly to the memory system behind ChatGPT: for each user, there is always a user profile and event timeline available. This allows you to access the most important memories of a user without any pre-processing, but only few SQL operations, keeping online latency under 100ms.
 
 
+
+Check out the profile [result](./docs/experiments/900-chats/readme.md) (compared with [mem0](https://github.com/mem0ai/mem0)) from a 900-turns real-world chatting:
 
 <details>
 <summary>Partial Profile Output</summary>
