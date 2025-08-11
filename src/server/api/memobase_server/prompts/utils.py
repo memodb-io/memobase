@@ -254,13 +254,7 @@ def parse_line_into_subtopic(line: str) -> dict:
 if __name__ == "__main__":
     print(
         parse_string_into_merge_yolo_action(
-            """1. 补充信息“用户名叫林悦 [mention 2025/08/11]”符合basic_info主题下name子主题，且当前备忘录为空，直接添加
-。
-2. 补充信息“用户可能是上海本地人（待确认） [mention 2025/08/11]”符合demographics主题下residence子主题，当
-前备忘录为空，直接添加。
-3. 补充信息“用户在2025年8月11日提到上周得了口腔溃疡，感觉很疼 [mention 2025/08/11, event happened in 2025
-/08/04 to 2025/08/10]”符合health主题下oral_health子主题，当前备忘录为空，直接添加。
-
+            """TTTTT
 ---
 1. APPEND::APPEND
 2. APPEND::APPEND

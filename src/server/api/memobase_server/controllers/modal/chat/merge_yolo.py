@@ -6,7 +6,6 @@ from ....llms import llm_complete
 from ....prompts.utils import (
     parse_string_into_merge_yolo_action,
 )
-from rich import print
 from ....prompts.profile_init_utils import UserProfileTopic
 from ....types import SubTopic
 from .types import UpdateResponse, PROMPTS, AddProfile, UpdateProfile, MergeAddResult
@@ -100,7 +99,6 @@ async def merge_or_valid_new_memos(
             f"Failed to merge profiles: {r.msg()}",
         )
         return r
-    print(new_memos_input, r.data())
     memo_actions = parse_string_into_merge_yolo_action(r.data())
     for i, m in enumerate(new_memos):
         update_response = memo_actions.get(i + 1, None)
@@ -180,5 +178,4 @@ async def merge_or_valid_new_memos(
                 f"Unkown merge action: {update_response['action']}",
             )
             continue
-    print(profile_session_results)
     return Promise.resolve(profile_session_results)
