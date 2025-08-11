@@ -90,7 +90,7 @@ Memobase can provide you structured profiles of users, check out the [result](./
 </details>
 
 ## 🎉 Recent Updates
-- `0.0.38`: we updated the workflows in Memobase, reducing the insert cost by 30%
+- `0.0.40`: we updated the internal workflows in Memobase, reducing the number of LLM calls in a single run from approximately 3-10 times to a fixed 3 times, which reduces token costs by approximately 40-50%. (Consider updating your Memobase version!)
 - `0.0.37`: we added fine-grained event gist, enabling the detailed search on users' timeline. [Re-ran the LOCOMO benchmark](./docs/experiments/locomo-benchmark) and we're SOTA!
 - `0.0.36`: we updated the search of `context` api, making the search take between 500~1000ms (depending on the embedding API you're using). Also, you can [pass a prompt template](https://docs.memobase.io/api-reference/prompt/get_context#parameter-customize-context-prompt) to the `context` api to pack memories directly into prompt.
 
