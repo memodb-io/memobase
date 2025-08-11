@@ -1,13 +1,22 @@
 import re
 import json
 import difflib
+from typing import TypedDict
 from ..env import LOG, CONFIG
 from ..types import attribute_unify
 from ..models.response import AIUserProfiles, AIUserProfile
 from ..models.blob import ChatBlob
 from ..utils import get_blob_str
 
+UpdateResponse = TypedDict("UpdateResponse", {"action": str, "memo": str})
 
+
+ORDER_LIST_PATTERN = r"^(\d+)\.(.*)"
+MERGE_ACTION_SPACE = {
+    "APPEND",
+    "UPDATE",
+    "ABORT",
+}
 EXCLUDE_PROFILE_VALUES = [
     # Chinese variations
     "无",
@@ -156,6 +165,27 @@ def parse_string_into_merge_action(results: str) -> dict | None:
     }
 
 
+def parse_string_into_merge_yolo_action(results: str) -> dict[int, UpdateResponse]:
+    action_section = results
+    memo_results = {}
+    lines = [l.strip() for l in action_section.split("\n") if l.strip()]
+    for l in lines:
+        m = re.match(ORDER_LIST_PATTERN, l)
+        if not m:
+            continue
+        order = int(m.group(1))
+        clean_line = m.group(2).strip()
+        parse_line = clean_line.split(CONFIG.llm_tab_separator)
+        if len(parse_line) < 2:
+            continue
+        action = parse_line[0].upper().strip()
+        memo = CONFIG.llm_tab_separator.join(parse_line[1:]).strip()
+        if action not in MERGE_ACTION_SPACE:
+            continue
+        memo_results[order] = UpdateResponse(action=action, memo=memo)
+    return memo_results
+
+
 def pack_profiles_into_string(profiles: AIUserProfiles) -> str:
     lines = [
         f"- {attribute_unify(p.topic)}{CONFIG.llm_tab_separator}{attribute_unify(p.sub_topic)}{CONFIG.llm_tab_separator}{p.memo.strip()}"
@@ -223,9 +253,21 @@ def parse_line_into_subtopic(line: str) -> dict:
 
 if __name__ == "__main__":
     print(
-        parse_string_into_merge_action(
-            """The topic description requires the value to be the user's academic stage such as 'Senior One', 'Junior Three', 'Ph.D.'. The provided value is '博士' which is a valid academic stage and matches the description.
+        parse_string_into_merge_yolo_action(
+            """TTT
 ---
-- REVISE::博士"""
+1. ABORT::ABORT
+2. ABORT::ABORT
+3. ABORT::ABORT
+4. ABORT::ABORT
+5. ABORT::ABORT
+6. ABORT::ABORT
+7. ABORT::ABORT
+8. ABORT::ABORT
+9. ABORT::ABORT
+10. APPEND::APPEND
+11. APPEND::APPEND
+12. APPEND::APPEND
+13. APPEND::APPEND"""
         )
     )

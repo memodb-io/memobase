@@ -49,10 +49,12 @@ def mock_llm_complete():
 
 @pytest.fixture
 def mock_llm_validate_complete():
-    with patch("memobase_server.controllers.modal.chat.merge.llm_complete") as mock_llm:
+    with patch(
+        "memobase_server.controllers.modal.chat.merge_yolo.llm_complete"
+    ) as mock_llm:
         mock_client1 = AsyncMock()
         mock_client1.ok = Mock(return_value=True)
-        mock_client1.data = Mock(return_value="- UPDATE::Gus")
+        mock_client1.data = Mock(return_value="1. UPDATE::Gus")
 
         mock_llm.side_effect = [mock_client1]
         yield mock_llm

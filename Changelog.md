@@ -1,4 +1,14 @@
-### [0.0.39] - unreleased
+### [0.0.40] - unreleased
+
+Added:
+
+- Use YOLO profile merge instead of multiple profile merges, reduce tokens cost ~30%
+
+Fixed:
+
+- Randomly Chinese Profile problem
+
+### [0.0.39] - 2025/8/9
 
 **Added**
 

@@ -92,7 +92,6 @@ def export_user_profile_to_yaml(profiles: list[UserProfileTopic]):
                 {"name": sp["name"], "description": sp["description"]}
             )
         final_results["profiles"].append(res)
-    print(final_results)
     return yaml.dump(final_results, allow_unicode=True)
 
 

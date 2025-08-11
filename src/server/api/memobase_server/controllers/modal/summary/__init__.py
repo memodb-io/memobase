@@ -1,8 +1,9 @@
 import asyncio
 
 from sqlalchemy.sql.functions import user
-from ....models.blob import Blob, SummaryBlob
 from ...project import get_project_profile_config
+from ...profile import get_user_profiles
+from ....models.blob import Blob, SummaryBlob
 from ....utils import get_blob_str, get_encoded_tokens
 from ....models.blob import Blob
 from ....models.utils import Promise, CODE
@@ -29,12 +30,21 @@ async def process_blobs(user_id: str, project_id: str, blobs: list[Blob]):
     if not p.ok():
         return p
     project_profiles = p.data()
+
+    p = await get_user_profiles(user_id, project_id)
+    if not p.ok():
+        return p
+    current_user_profiles = p.data()
+
     user_memo_str = pack_summary(blobs)
-    print(user_memo_str)
 
     processing_results = await asyncio.gather(
-        process_profile_res(user_id, project_id, user_memo_str, project_profiles),
-        process_event_res(user_id, project_id, user_memo_str, project_profiles),
+        process_profile_res(
+            user_id, project_id, user_memo_str, project_profiles, current_user_profiles
+        ),
+        process_event_res(
+            user_id, project_id, user_memo_str, project_profiles, current_user_profiles
+        ),
     )
 
     profile_results: Promise = processing_results[0]
