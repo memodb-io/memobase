@@ -92,6 +92,7 @@ async def merge_or_valid_new_memos(
         temperature=0.2,  # precise
         **PROMPTS[USE_LANGUAGE]["merge_yolo"].get_kwargs(),
     )
+    oneline_response = r.data().replace("\n", "<br/>")
     if not r.ok():
         TRACE_LOG.warning(
             project_id,
@@ -100,14 +101,15 @@ async def merge_or_valid_new_memos(
         )
         return r
     memo_actions = parse_string_into_merge_yolo_action(r.data())
+
+    abort_infos = []
     for i, m in enumerate(new_memos):
         update_response = memo_actions.get(i + 1, None)
         if update_response is None:
-            oneline_response = r.data().replace("\n", "<br/>")
             TRACE_LOG.warning(
                 project_id,
                 user_id,
-                f"No Corresponding Merge Action: {m[0]}, <raw_response> {oneline_response} </raw_response>",
+                f"No Corresponding Merge Action: {new_memos_input[i]}, <raw_response> {oneline_response} </raw_response>",
             )
             continue
         f_c, f_a = m[1], m[2]
@@ -166,12 +168,7 @@ async def merge_or_valid_new_memos(
                     }
                 )
         elif update_response["action"] == "ABORT":
-            oneline_response = r.data().replace("\n", "<br/>")
-            TRACE_LOG.info(
-                project_id,
-                user_id,
-                f"Invalid merge: {m[0]}. <raw_response> {oneline_response} </raw_response>",
-            )
+            abort_infos.append(new_memos_input[i])
         else:
             TRACE_LOG.warning(
                 project_id,
@@ -179,4 +176,11 @@ async def merge_or_valid_new_memos(
                 f"Unkown merge action: {update_response['action']}",
             )
             continue
+
+    if len(abort_infos):
+        TRACE_LOG.info(
+            project_id,
+            user_id,
+            f"Invalid merge: {abort_infos}. <raw_response> {oneline_response} </raw_response>",
+        )
     return Promise.resolve(profile_session_results)
