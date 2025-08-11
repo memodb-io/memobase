@@ -103,10 +103,11 @@ async def merge_or_valid_new_memos(
     for i, m in enumerate(new_memos):
         update_response = memo_actions.get(i + 1, None)
         if update_response is None:
+            oneline_response = r.data().replace("\n", "<br/>")
             TRACE_LOG.warning(
                 project_id,
                 user_id,
-                f"No Corresponding Merge Action: {m}",
+                f"No Corresponding Merge Action: {m[0]}, <raw_response> {oneline_response} </raw_response>",
             )
             continue
         f_c, f_a = m[1], m[2]
@@ -169,7 +170,7 @@ async def merge_or_valid_new_memos(
             TRACE_LOG.info(
                 project_id,
                 user_id,
-                f"Invalid merge: {KEY}::{f_c}. <raw_response> {oneline_response} </raw_response>",
+                f"Invalid merge: {m[0]}. <raw_response> {oneline_response} </raw_response>",
             )
         else:
             TRACE_LOG.warning(

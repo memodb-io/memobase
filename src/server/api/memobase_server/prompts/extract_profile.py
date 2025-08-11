@@ -14,71 +14,6 @@ EXAMPLES = [
     ),
     (
         """
-- User is married to SiLei [mention 2025/01/15, happen at 2025/01/01]
-""",
-        AIUserProfiles(
-            **{
-                "facts": [
-                    {
-                        "topic": "demographics",
-                        "sub_topic": "marital_status",
-                        "memo": "married",
-                    },
-                    {
-                        "topic": "life_event",
-                        "sub_topic": "Marriage",
-                        "memo": "married to SiLei [mention 2025/01/15, the marriage at 2025/01/01]",
-                    },
-                ]
-            }
-        ),
-    ),
-    (
-        """
-- User had a meeting with John at 3pm [mention 2024/10/11, the meeting at 2024/10/10]
-- User is starting a project with John [mention 2024/10/11]
-""",
-        AIUserProfiles(
-            **{
-                "facts": [
-                    {
-                        "topic": "work",
-                        "sub_topic": "collaboration",
-                        "memo": "user is starting a project with John [mention 2024/10/11] and already met once [mention 2024/10/10]",
-                    }
-                ]
-            }
-        ),
-    ),
-    (
-        """
-- User is a software engineer at Memobase [mention 2025/01/01]
-- User's name is John [mention 2025/01/01]
-""",
-        AIUserProfiles(
-            **{
-                "facts": [
-                    {
-                        "topic": "basic_info",
-                        "sub_topic": "Name",
-                        "memo": "John",
-                    },
-                    {
-                        "topic": "work",
-                        "sub_topic": "Title",
-                        "memo": "user is a Software engineer [mention 2025/01/01]",
-                    },
-                    {
-                        "topic": "work",
-                        "sub_topic": "Company",
-                        "memo": "user works at Memobase [mention 2025/01/01]",
-                    },
-                ]
-            }
-        ),
-    ),
-    (
-        """
 - User's favorite movies are Inception and Interstellar [mention 2025/01/01]
 - User's favorite movie is Tenet [mention 2025/01/02]
 """,
@@ -87,7 +22,7 @@ EXAMPLES = [
                 "facts": [
                     {
                         "topic": "interest",
-                        "sub_topic": "Movie",
+                        "sub_topic": "movie",
                         "memo": "Inception, Interstellar[mention 2025/01/01]; favorite movie is Tenet [mention 2025/01/02]",
                     },
                     {

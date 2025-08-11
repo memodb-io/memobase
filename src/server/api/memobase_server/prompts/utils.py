@@ -11,7 +11,7 @@ from ..utils import get_blob_str
 UpdateResponse = TypedDict("UpdateResponse", {"action": str, "memo": str})
 
 
-ORDER_LIST_PATTERN = r"^(\d+)\."
+ORDER_LIST_PATTERN = r"^(\d+)\.(.*)"
 MERGE_ACTION_SPACE = {
     "APPEND",
     "UPDATE",
@@ -174,7 +174,7 @@ def parse_string_into_merge_yolo_action(results: str) -> dict[int, UpdateRespons
         if not m:
             continue
         order = int(m.group(1))
-        clean_line = l[2:].strip()
+        clean_line = m.group(2).strip()
         parse_line = clean_line.split(CONFIG.llm_tab_separator)
         if len(parse_line) < 2:
             continue
@@ -254,10 +254,20 @@ def parse_line_into_subtopic(line: str) -> dict:
 if __name__ == "__main__":
     print(
         parse_string_into_merge_yolo_action(
-            """TTTTT
+            """TTT
 ---
-1. APPEND::APPEND
-2. APPEND::APPEND
-3. APPEND::APPEND"""
+1. ABORT::ABORT
+2. ABORT::ABORT
+3. ABORT::ABORT
+4. ABORT::ABORT
+5. ABORT::ABORT
+6. ABORT::ABORT
+7. ABORT::ABORT
+8. ABORT::ABORT
+9. ABORT::ABORT
+10. APPEND::APPEND
+11. APPEND::APPEND
+12. APPEND::APPEND
+13. APPEND::APPEND"""
         )
     )
