@@ -5,12 +5,13 @@ from ..controllers import full as controllers
 from ..models.response import CODE
 from ..models.utils import Promise
 from ..models import response as res
-from fastapi import Request
+from fastapi import Request, Response
 from fastapi import Path, Query
 
 
 async def get_user_context(
     request: Request,
+    response: Response,
     user_id: str = Path(..., description="The ID of the user"),
     max_token_size: int = Query(
         1000,
@@ -99,9 +100,9 @@ Unless the user has relevant queries, do not actively mention those memories in 
         topic_limits = res.StrIntData(data=json.loads(topic_limits_json)).data
         chats = res.MessageData(data=json.loads(chats_str)).data
     except Exception as e:
-        return Promise.reject(CODE.BAD_REQUEST, f"Invalid JSON: {e}").to_response(
-            res.UserContextDataResponse
-        )
+        p = Promise.reject(CODE.BAD_REQUEST, f"Invalid JSON: {e}")
+        response.status_code = p.code()
+        return p.to_response(res.UserContextDataResponse)
     p = await controllers.context.get_user_context(
         user_id,
         project_id,
@@ -119,4 +120,8 @@ Unless the user has relevant queries, do not actively mention those memories in 
         full_profile_and_only_search_event=full_profile_and_only_search_event,
         fill_window_with_events=fill_window_with_events,
     )
+    if p.ok():
+        response.status_code = 200
+    else:
+        response.status_code = p.code()
     return p.to_response(res.UserContextDataResponse)

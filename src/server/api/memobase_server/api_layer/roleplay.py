@@ -4,12 +4,13 @@ from ..controllers.modal.roleplay import proactive_topics
 from ..models.blob import BlobType
 from ..models.utils import Promise, CODE
 from ..models import response as res
-from fastapi import Request
+from fastapi import Request, Response
 from fastapi import Body, Path, Query
 
 
 async def infer_proactive_topics(
     request: Request,
+    response: Response,
     user_id: str = Path(..., description="The ID of the user"),
     topk: int = Query(
         None, description="Number of profiles to retrieve, default is all"
@@ -42,9 +43,11 @@ async def infer_proactive_topics(
     try:
         topic_limits = res.StrIntData(data=json.loads(topic_limits_json)).data
     except Exception as e:
-        return Promise.reject(
+        p = Promise.reject(
             CODE.BAD_REQUEST, f"Invalid JSON requests: {e}"
-        ).to_response(res.UserProfileResponse)
+        )
+        response.status_code = p.code()
+        return p.to_response(res.UserProfileResponse)
     p = await proactive_topics.process_messages(
         user_id,
         project_id,
@@ -57,4 +60,8 @@ async def infer_proactive_topics(
         max_subtopic_size,
         topic_limits,
     )
+    if p.ok():
+        response.status_code = 200
+    else:
+        response.status_code = p.code()
     return p.to_response(res.ProactiveTopicResponse)

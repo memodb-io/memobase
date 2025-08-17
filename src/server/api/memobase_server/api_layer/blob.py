@@ -1,4 +1,4 @@
-from fastapi import BackgroundTasks, Request
+from fastapi import BackgroundTasks, Request, Response
 from fastapi import Path, Body, Query
 import traceback
 
@@ -13,6 +13,7 @@ from ..telemetry.capture_key import capture_int_key
 
 async def insert_blob(
     request: Request,
+    response: Response,
     user_id: str = Path(..., description="The ID of the user to insert the blob for"),
     wait_process: bool = Query(
         False, description="Whether to wait for the blob to be processed"
@@ -27,6 +28,7 @@ async def insert_blob(
 
     p = await controllers.billing.get_project_billing(project_id)
     if not p.ok():
+        response.status_code = p.code()
         return p.to_response(res.IdResponse)
     billing = p.data()
 
@@ -37,13 +39,16 @@ async def insert_blob(
             f"Left: {billing.token_left}, this project used: {billing.project_token_cost_month}. "
             f"Your quota will be refilled on {billing.next_refill_at}. "
             "\nhttps://www.memobase.io/pricing for more information.",
-        ).to_response(res.IdResponse)
+        )
+        response.status_code = p.code()
+        return p.to_response(res.IdResponse)
 
     try:
         insert_result = await controllers.blob.insert_blob(
             user_id, project_id, blob_data
         )
         if not insert_result.ok():
+            response.status_code = insert_result.code()
             return insert_result.to_response(res.BaseResponse)
         bid = insert_result.data().id
 
@@ -51,12 +56,14 @@ async def insert_blob(
             user_id, project_id, bid, blob_data.to_blob()
         )
         if not pb.ok():
+            response.status_code = pb.code()
             return pb.to_response(res.BaseResponse)
 
         process_ids = await controllers.buffer.detect_buffer_full_or_not(
             user_id, project_id, blob_data.blob_type
         )
         if not process_ids.ok():
+            response.status_code = process_ids.code()
             return process_ids.to_response(res.BaseResponse)
 
         final_results = []
@@ -68,6 +75,7 @@ async def insert_blob(
                     user_id, project_id, blob_data.blob_type, process_ids.data().ids
                 )
                 if not p.ok():
+                    response.status_code = p.code()
                     return p.to_response(res.BaseResponse)
                 if p.data() is not None:
                     final_results.append(p.data())
@@ -84,15 +92,18 @@ async def insert_blob(
         TRACE_LOG.error(
             project_id, user_id, f"Error inserting blob: {e}, {traceback.format_exc()}"
         )
-        return Promise.reject(
+        p = Promise.reject(
             CODE.INTERNAL_SERVER_ERROR, f"Error inserting blob: {e}"
-        ).to_response(res.BaseResponse)
+        )
+        response.status_code = p.code()
+        return p.to_response(res.BaseResponse)
 
     background_tasks.add_task(
         capture_int_key,
         TelemetryKeyName.insert_blob_success_request,
         project_id=project_id,
     )
+    response.status_code = 200
     return res.BlobInsertResponse(
         data={**insert_result.data().model_dump(), "chat_results": final_results}
     )
@@ -100,19 +111,29 @@ async def insert_blob(
 
 async def get_blob(
     request: Request,
+    response: Response,
     user_id: str = Path(..., description="The ID of the user"),
     blob_id: str = Path(..., description="The ID of the blob to retrieve"),
 ) -> res.BlobDataResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.blob.get_blob(user_id, project_id, blob_id)
+    if p.ok():
+        response.status_code = 200
+    else:
+        response.status_code = p.code()
     return p.to_response(res.BlobDataResponse)
 
 
 async def delete_blob(
     request: Request,
+    response: Response,
     user_id: str = Path(..., description="The ID of the user"),
     blob_id: str = Path(..., description="The ID of the blob to delete"),
 ) -> res.BaseResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.blob.remove_blob(user_id, project_id, blob_id)
+    if p.ok():
+        response.status_code = 200
+    else:
+        response.status_code = p.code()
     return p.to_response(res.BaseResponse)

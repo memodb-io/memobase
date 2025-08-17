@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import TypeVar, Optional, Type, Generic
 from pydantic import ValidationError
+from fastapi import Response
 from .response import CODE, BaseResponse
 from ..env import LOG
 

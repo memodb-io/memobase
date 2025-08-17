@@ -4,12 +4,13 @@ from ..models.response import IdsData, IdsResponse
 from ..models.blob import BlobType
 from ..models import response as res
 from typing import Literal
-from fastapi import Request, Query, BackgroundTasks
+from fastapi import Request, Query, BackgroundTasks, Response
 from fastapi import Path
 
 
 async def flush_buffer(
     request: Request,
+    response: Response,
     user_id: str = Path(..., description="The ID of the user"),
     buffer_type: BlobType = Path(..., description="The type of buffer to flush"),
     wait_process: bool = Query(
@@ -27,16 +28,20 @@ async def flush_buffer(
         user_id, project_id, buffer_type
     )
     if not p.ok():
+        response.status_code = p.code()
         return p.to_response(res.BaseResponse)
     if not len(p.data().ids):
+        response.status_code = 200
         return res.ChatModalAPIResponse(data=[])
     if wait_process:
         p = await controllers.buffer.flush_buffer_by_ids(
             user_id, project_id, buffer_type, p.data().ids
         )
         if not p.ok():
+            response.status_code = p.code()
             return p.to_response(res.BaseResponse)
         if p.data() is not None:
+            response.status_code = 200
             return res.ChatModalAPIResponse(data=[p.data()])
     else:
         background_tasks.add_task(
@@ -46,11 +51,13 @@ async def flush_buffer(
             buffer_type,
             p.data().ids,
         )
+        response.status_code = 200
         return res.ChatModalAPIResponse(data=None)
 
 
 async def get_processing_buffer_ids(
     request: Request,
+    response: Response,
     user_id: str = Path(..., description="The ID of the user"),
     buffer_type: BlobType = Path(..., description="The type of buffer to flush"),
     status: Literal["idle", "processing", "failed", "done"] = Query(
@@ -62,4 +69,8 @@ async def get_processing_buffer_ids(
     p = await controllers.buffer.get_unprocessed_buffer_ids(
         user_id, project_id, buffer_type, select_status=status
     )
+    if p.ok():
+        response.status_code = 200
+    else:
+        response.status_code = p.code()
     return p.to_response(IdsResponse)
