@@ -3,7 +3,7 @@ from collections import defaultdict
 from .types import MergeAddResult, PROMPTS, AddProfile
 from ....prompts.profile_init_utils import get_specific_subtopics
 from ....prompts.utils import parse_string_into_subtopics, attribute_unify
-from ....models.utils import Promise
+from ....models.utils import Promise, CODE
 from ....models.response import ProfileData
 from ....env import CONFIG, TRACE_LOG, ProfileConfig, ContanstTable
 from ....llms import llm_complete
@@ -41,7 +41,9 @@ async def organize_profiles(
     )
     if not all([p.ok() for p in ps]):
         errmsg = "\n".join([p.msg() for p in ps if not p.ok()])
-        return Promise.reject(f"Failed to organize profiles: {errmsg}")
+        return Promise.reject(
+            CODE.INTERNAL_SERVER_ERROR, f"Failed to organize profiles: {errmsg}"
+        )
 
     delete_profile_ids = []
     for gs in need_to_organize_topics.values():
@@ -113,7 +115,8 @@ async def organize_profiles_by_topic(
     ]
     if len(reorganized_profiles) == 0:
         return Promise.reject(
-            "Failed to organize profiles, left profiles is 0 so maybe it's the LLM error"
+            CODE.SERVER_PARSE_ERROR,
+            "Failed to organize profiles, left profiles is 0 so maybe it's the LLM error",
         )
     # forcing the number of subtopics to be less than max_profile_subtopics // 2 + 1
     reorganized_profiles = reorganized_profiles[: CONFIG.max_profile_subtopics // 2 + 1]

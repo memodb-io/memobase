@@ -1,5 +1,5 @@
 import asyncio
-from ....models.utils import Promise
+from ....models.utils import Promise, CODE
 from ....env import CONFIG, TRACE_LOG
 from ....utils import get_blob_str, get_encoded_tokens, truncate_string
 from ....llms import llm_complete
@@ -20,7 +20,9 @@ async def re_summary(
     update_tasks = [summary_memo(user_id, project_id, up) for up in update_profile]
     ps = await asyncio.gather(*update_tasks)
     if not all([p.ok() for p in ps]):
-        return Promise.reject("Failed to re-summary profiles")
+        return Promise.reject(
+            CODE.INTERNAL_SERVER_ERROR, "Failed to re-summary profiles"
+        )
     return Promise.resolve(None)
 
 
