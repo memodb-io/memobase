@@ -74,7 +74,6 @@ Remember the following:
 - Prioritize the most important subtopics at the front.
 
 Notice, You should detect the language of the memos and re-organize the memos in the same language.
-请注意，你需要和输入的memo保持相同的语言输出新的memos.
 """
 
 
