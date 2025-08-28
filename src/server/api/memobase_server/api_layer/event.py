@@ -1,12 +1,13 @@
 from ..controllers import full as controllers
 from ..models import response as res
+from ..models.response import UUID
 from fastapi import Request
 from fastapi import Path, Query, Body
 
 
 async def get_user_events(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
+    user_id: UUID = Path(..., description="The ID of the user"),
     topk: int = Query(10, description="Number of events to retrieve, default is 10"),
     max_token_size: int = Query(
         None,
@@ -29,8 +30,8 @@ async def get_user_events(
 
 async def delete_user_event(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
-    event_id: str = Path(..., description="The ID of the event"),
+    user_id: UUID = Path(..., description="The ID of the user"),
+    event_id: UUID = Path(..., description="The ID of the event"),
 ) -> res.BaseResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.event.delete_user_event(user_id, project_id, event_id)
@@ -39,8 +40,8 @@ async def delete_user_event(
 
 async def update_user_event(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
-    event_id: str = Path(..., description="The ID of the event"),
+    user_id: UUID = Path(..., description="The ID of the user"),
+    event_id: UUID = Path(..., description="The ID of the event"),
     event_data: res.EventData = Body(..., description="Event data to update"),
 ) -> res.BaseResponse:
     project_id = request.state.memobase_project_id
@@ -52,7 +53,7 @@ async def update_user_event(
 
 async def search_user_events(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
+    user_id: UUID = Path(..., description="The ID of the user"),
     query: str = Query(..., description="The query to search for"),
     topk: int = Query(10, description="Number of events to retrieve, default is 10"),
     similarity_threshold: float = Query(
@@ -71,7 +72,7 @@ async def search_user_events(
 
 async def search_user_event_gists(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
+    user_id: UUID = Path(..., description="The ID of the user"),
     query: str = Query(..., description="The query to search for"),
     topk: int = Query(10, description="Number of events to retrieve, default is 10"),
     similarity_threshold: float = Query(
