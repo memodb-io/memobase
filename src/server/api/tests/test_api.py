@@ -604,3 +604,28 @@ async def test_api_event_search(
     d = response.json()
     assert response.status_code == 200
     assert d["errno"] == 0
+
+
+@pytest.mark.asyncio
+async def test_api_non_uuid_access(client, db_env):
+
+    fake_uid = "fake"
+
+    response = client.post(
+        f"{PREFIX}/blobs/insert/{fake_uid}",
+        json={
+            "blob_type": "chat",
+            "blob_data": {
+                "messages": [
+                    {"role": "user", "content": "hello, I'm Gus"},
+                    {"role": "assistant", "content": "hi"},
+                ]
+            },
+        },
+    )
+    assert response.status_code == 422
+
+    response = client.get(
+        f"{PREFIX}/users/{fake_uid}",
+    )
+    assert response.status_code == 422
