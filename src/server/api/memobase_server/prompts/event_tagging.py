@@ -60,7 +60,6 @@ Here are some few shot examples:
 - Return the new event tags in a list format as shown above.
 - Strick to the exact tag name, don't change the tag name.
 - If some tags are not mentioned in the summary, you should not include them in the result.
-- You should detect the language of the event summary and extract the event tags's value in the same language.
 
 Now, please extract the event tags for the following event summary:
 """

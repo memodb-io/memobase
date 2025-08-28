@@ -72,8 +72,6 @@ Remember the following:
 - The final result should have no more than {max_subtopics} sub_topics.
 - You can discard some memos if they're not relevant to the topic.
 - Prioritize the most important subtopics at the front.
-
-Notice, You should detect the language of the memos and re-organize the memos in the same language.
 """
 
 

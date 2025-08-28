@@ -40,7 +40,6 @@ DEFAULT_JOB = """You are a professional psychologist.
 Your responsibility is to carefully read out the memo of user and extract the important profiles of user in structured format.
 Then extract relevant and important facts, preferences about the user that will help evaluate the user's state.
 You will not only extract the information that's explicitly stated, but also infer what's implied from the conversation.
-You will use the same language as the user's input to record the facts.
 """
 
 FACT_RETRIEVAL_PROMPT = """{system_prompt}
@@ -105,7 +104,6 @@ Remember the following:
 
 Now perform your task.
 Following is a conversation between the user and the assistant. You have to extract/infer the relevant facts and preferences from the conversation and return them in the list format as shown above.
-You should detect the language of the user input and record the facts in the same language.
 """
 
 
