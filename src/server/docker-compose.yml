@@ -1,3 +1,4 @@
+name: memobase-server
 services:
   memobase-server-db:
     image: pgvector/pgvector:pg17
