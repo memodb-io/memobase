@@ -1,4 +1,4 @@
-### [0.0.40] - unreleased
+### [0.0.40] - 2025/8/28
 
 Added:
 
@@ -7,6 +7,7 @@ Added:
 Fixed:
 
 - Randomly Chinese Profile problem
+- Add uuid validation before API
 
 ### [0.0.39] - 2025/8/9
 
