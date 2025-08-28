@@ -10,10 +10,12 @@ from ..models.utils import Promise
 from ..models import response as res
 from ..telemetry.capture_key import capture_int_key
 
+import uuid
+
 
 async def insert_blob(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user to insert the blob for"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user to insert the blob for"),
     wait_process: bool = Query(
         False, description="Whether to wait for the blob to be processed"
     ),
@@ -100,8 +102,8 @@ async def insert_blob(
 
 async def get_blob(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
-    blob_id: str = Path(..., description="The ID of the blob to retrieve"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user"),
+    blob_id: uuid.UUID = Path(..., description="The ID of the blob to retrieve"),
 ) -> res.BlobDataResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.blob.get_blob(user_id, project_id, blob_id)
@@ -110,8 +112,8 @@ async def get_blob(
 
 async def delete_blob(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
-    blob_id: str = Path(..., description="The ID of the blob to delete"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user"),
+    blob_id: uuid.UUID = Path(..., description="The ID of the blob to delete"),
 ) -> res.BaseResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.blob.remove_blob(user_id, project_id, blob_id)

@@ -6,6 +6,8 @@ from ..models import response as res
 from fastapi import Request
 from fastapi import Path, Query, Body
 
+import uuid
+
 
 async def create_user(
     request: Request,
@@ -21,7 +23,7 @@ async def create_user(
 
 async def get_user(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user to retrieve"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user to retrieve"),
 ) -> res.UserDataResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.user.get_user(user_id, project_id)
@@ -30,7 +32,7 @@ async def get_user(
 
 async def update_user(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user to update"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user to update"),
     user_data: dict = Body(..., description="Updated user data"),
 ) -> res.IdResponse:
     project_id = request.state.memobase_project_id
@@ -40,7 +42,7 @@ async def update_user(
 
 async def delete_user(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user to delete"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user to delete"),
 ) -> BaseResponse:
     project_id = request.state.memobase_project_id
     p = await controllers.user.delete_user(user_id, project_id)
@@ -49,7 +51,7 @@ async def delete_user(
 
 async def get_user_all_blobs(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user to fetch blobs for"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user to fetch blobs for"),
     blob_type: BlobType = Path(..., description="The type of blobs to retrieve"),
     page: int = Query(0, description="Page number for pagination, starting from 0"),
     page_size: int = Query(10, description="Number of items per page, default is 10"),

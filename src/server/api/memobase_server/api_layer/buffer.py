@@ -7,10 +7,12 @@ from typing import Literal
 from fastapi import Request, Query, BackgroundTasks
 from fastapi import Path
 
+import uuid
+
 
 async def flush_buffer(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user"),
     buffer_type: BlobType = Path(..., description="The type of buffer to flush"),
     wait_process: bool = Query(
         False, description="Whether to wait for the buffer to be processed"
@@ -51,7 +53,7 @@ async def flush_buffer(
 
 async def get_processing_buffer_ids(
     request: Request,
-    user_id: str = Path(..., description="The ID of the user"),
+    user_id: uuid.UUID = Path(..., description="The ID of the user"),
     buffer_type: BlobType = Path(..., description="The type of buffer to flush"),
     status: Literal["idle", "processing", "failed", "done"] = Query(
         "processing", description="The status of the buffer to get"
