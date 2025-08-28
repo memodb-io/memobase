@@ -2,18 +2,16 @@ import json
 
 from ..controllers import full as controllers
 
-from ..models.response import CODE
+from ..models.response import CODE, UUID
 from ..models.utils import Promise
 from ..models import response as res
 from fastapi import Request
 from fastapi import Path, Query
 
-import uuid
-
 
 async def get_user_context(
     request: Request,
-    user_id: uuid.UUID = Path(..., description="The ID of the user"),
+    user_id: UUID = Path(..., description="The ID of the user"),
     max_token_size: int = Query(
         1000,
         description="Max token size of returned Context",

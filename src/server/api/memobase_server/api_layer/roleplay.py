@@ -3,16 +3,15 @@ from ..controllers import full as controllers
 from ..controllers.modal.roleplay import proactive_topics
 from ..models.blob import BlobType
 from ..models.utils import Promise, CODE
+from ..models.response import UUID
 from ..models import response as res
 from fastapi import Request
 from fastapi import Body, Path, Query
 
-import uuid
-
 
 async def infer_proactive_topics(
     request: Request,
-    user_id: uuid.UUID = Path(..., description="The ID of the user"),
+    user_id: UUID = Path(..., description="The ID of the user"),
     topk: int = Query(
         None, description="Number of profiles to retrieve, default is all"
     ),

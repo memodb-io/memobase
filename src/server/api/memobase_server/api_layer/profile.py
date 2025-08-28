@@ -5,17 +5,15 @@ from datetime import datetime
 from ..controllers import full as controllers
 from ..controllers.post_process.profile import filter_profiles_with_chats
 
-from ..models.response import CODE
+from ..models.response import CODE, UUID
 from ..models.utils import Promise
 from ..models.blob import BlobType
 from ..models import response as res
 
-import uuid
-
 
 async def get_user_profile(
     request: Request,
-    user_id: uuid.UUID = Path(..., description="The ID of the user to get profiles for"),
+    user_id: UUID = Path(..., description="The ID of the user to get profiles for"),
     topk: int = Query(
         None, description="Number of profiles to retrieve, default is all"
     ),
@@ -84,8 +82,8 @@ async def get_user_profile(
 
 async def delete_user_profile(
     request: Request,
-    user_id: uuid.UUID = Path(..., description="The ID of the user"),
-    profile_id: uuid.UUID = Path(..., description="The ID of the profile to delete"),
+    user_id: UUID = Path(..., description="The ID of the user"),
+    profile_id: UUID = Path(..., description="The ID of the profile to delete"),
 ) -> res.BaseResponse:
     """Delete a profile"""
     project_id = request.state.memobase_project_id
@@ -95,8 +93,8 @@ async def delete_user_profile(
 
 async def update_user_profile(
     request: Request,
-    user_id: uuid.UUID = Path(..., description="The ID of the user"),
-    profile_id: uuid.UUID = Path(..., description="The ID of the profile to update"),
+    user_id: UUID = Path(..., description="The ID of the user"),
+    profile_id: UUID = Path(..., description="The ID of the profile to update"),
     content: res.ProfileDelta = Body(
         ..., description="The content of the profile to update"
     ),
@@ -113,7 +111,7 @@ async def update_user_profile(
 
 async def add_user_profile(
     request: Request,
-    user_id: uuid.UUID = Path(..., description="The ID of the user"),
+    user_id: UUID = Path(..., description="The ID of the user"),
     content: res.ProfileDelta = Body(
         ..., description="The content of the profile to add"
     ),
@@ -132,7 +130,7 @@ async def add_user_profile(
 
 async def import_user_context(
     request: Request,
-    user_id: uuid.UUID = Path(..., description="The ID of the user"),
+    user_id: UUID = Path(..., description="The ID of the user"),
     content: res.UserContextImport = Body(
         ..., description="The content of the user context to import"
     ),
