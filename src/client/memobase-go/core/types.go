@@ -40,3 +40,32 @@ type UserEventData struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 	Similarity float64   `json:"similarity,omitempty"`
 }
+
+// UserGistEventData represents a gist event with minimal data
+type UserGistEventData struct {
+	ID         uuid.UUID `json:"id"`
+	GistData   struct {
+		Content string `json:"content"`
+	} `json:"gist_data"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	Similarity float64   `json:"similarity,omitempty"`
+}
+
+// BufferStatus represents the status of buffer operations
+type BufferStatus string
+
+const (
+	BufferStatusPending BufferStatus = "pending"
+	BufferStatusProcessing BufferStatus = "processing"
+	BufferStatusCompleted BufferStatus = "completed"
+	BufferStatusFailed    BufferStatus = "failed"
+)
+
+// BufferCapacity represents buffer capacity information
+type BufferCapacity struct {
+	IDs     []string     `json:"ids"`
+	Status  BufferStatus `json:"status"`
+	Count   int          `json:"count"`
+	Capacity int          `json:"capacity"`
+}

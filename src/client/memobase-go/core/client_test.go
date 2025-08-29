@@ -1,6 +1,7 @@
 package core
 
 import (
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -12,18 +13,29 @@ const (
 	TestAPIKey     = "secret"
 )
 
+func skipIfNoServer(t *testing.T) {
+	if os.Getenv("MEMOBASE_TEST_SERVER") != "true" {
+		t.Skip("Skipping test that requires live server - set MEMOBASE_TEST_SERVER=true to run")
+	}
+}
+
 func TestNewMemoBaseClient(t *testing.T) {
 	client, err := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
+	assert.Equal(t, TestProjectURL, client.ProjectURL)
+	assert.Equal(t, TestAPIKey, client.APIKey)
+	assert.Equal(t, "api/v1", client.APIVersion)
 }
 
 func TestPing(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	assert.True(t, client.Ping())
 }
 
 func TestConfig(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	config := "language: en"
 	err := client.UpdateConfig(config)
@@ -35,6 +47,7 @@ func TestConfig(t *testing.T) {
 }
 
 func TestUserCRUD(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 
 	// Add User
@@ -67,6 +80,7 @@ func TestUserCRUD(t *testing.T) {
 }
 
 func TestGetOrCreateUser(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	userID := uuid.New().String()
 
@@ -86,8 +100,9 @@ func TestGetOrCreateUser(t *testing.T) {
 }
 
 func TestGetAllUsers(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
-		userID, err := client.AddUser(map[string]interface{}{}, "")
+	userID, err := client.AddUser(map[string]interface{}{}, "")
 
 	users, err := client.GetAllUsers("", "updated_at", true, 10, 0)
 	assert.NoError(t, err)
@@ -97,6 +112,7 @@ func TestGetAllUsers(t *testing.T) {
 }
 
 func TestGetUsage(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	usage, err := client.GetUsage()
 	assert.NoError(t, err)
@@ -104,6 +120,7 @@ func TestGetUsage(t *testing.T) {
 }
 
 func TestGetDailyUsage(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	usage, err := client.GetDailyUsage(7)
 	assert.NoError(t, err)

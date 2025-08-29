@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// Insert the blob
-	blobID, err := user.Insert(chatBlob)
+	blobID, err := user.Insert(chatBlob, false)
 	if err != nil {
 		log.Fatalf("Failed to insert blob: %v", err)
 	}
@@ -79,10 +79,10 @@ func main() {
 	fmt.Printf("Found %d chat blobs\n", len(blobIDs))
 
 	// Flush all blobs to get the latest profile
-	user.Flush(blob.ChatType)
+	user.Flush(blob.ChatType, false)
 
 	// Get user profile
-	profiles, err := user.Profile()
+	profiles, err := user.Profile(nil)
 	if err != nil {
 		log.Fatalf("Failed to get user profile: %v", err)
 	}
@@ -99,7 +99,7 @@ func main() {
 	}
 
 	// Delete a profile
-	err = user.DeleteProfile(profiles[0].ID)
+	err = user.DeleteProfile(profiles[0].ID.String())
 	if err != nil {
 		log.Fatalf("Failed to delete profile: %v", err)
 	}

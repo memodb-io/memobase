@@ -228,11 +228,11 @@ func (u *User) Buffer(blobType blob.BlobType, status string) ([]string, error) {
 }
 
 type ProfileOptions struct {
-	MaxTokenSize    int                    `json:"max_token_size,omitempty"`
-	PreferTopics    []string               `json:"prefer_topics,omitempty"`
-	OnlyTopics      []string               `json:"only_topics,omitempty"`
-	MaxSubtopicSize *int                   `json:"max_subtopic_size,omitempty"`
-	TopicLimits     map[string]int         `json:"topic_limits,omitempty"`
+	MaxTokenSize    int                            `json:"max_token_size,omitempty"`
+	PreferTopics    []string                       `json:"prefer_topics,omitempty"`
+	OnlyTopics      []string                       `json:"only_topics,omitempty"`
+	MaxSubtopicSize *int                           `json:"max_subtopic_size,omitempty"`
+	TopicLimits     map[string]int                 `json:"topic_limits,omitempty"`
 	Chats           []blob.OpenAICompatibleMessage `json:"chats,omitempty"`
 }
 
@@ -536,16 +536,70 @@ func (u *User) SearchEvent(query string, topk int, similarityThreshold float64, 
 	return result, nil
 }
 
+// SearchEventGist searches for event gists with similarity threshold
+func (u *User) SearchEventGist(query string, topk int, similarityThreshold float64, timeRangeInDays int) ([]UserGistEventData, error) {
+	params := url.Values{}
+	params.Add("query", query)
+	params.Add("topk", fmt.Sprintf("%d", topk))
+	params.Add("similarity_threshold", fmt.Sprintf("%f", similarityThreshold))
+	params.Add("time_range_in_days", fmt.Sprintf("%d", timeRangeInDays))
+
+	resp, err := u.ProjectClient.HTTPClient.Get(
+		fmt.Sprintf("%s/users/event_gist/search/%s?%s", u.ProjectClient.BaseURL, u.UserID, params.Encode()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	baseResp, err := network.UnpackResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	dataMap, ok := baseResp.Data.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("unexpected response format for SearchEventGist")
+	}
+
+	events, ok := dataMap["events"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("unexpected response format for events")
+	}
+
+	var result []UserGistEventData
+	for _, e := range events {
+		eventMap, ok := e.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		var event UserGistEventData
+		jsonData, err := json.Marshal(eventMap)
+		if err != nil {
+			continue
+		}
+		if err := json.Unmarshal(jsonData, &event); err != nil {
+			fmt.Printf("Error unmarshaling event gist: %v\nData: %s\n", err, jsonData)
+			continue
+		}
+
+		result = append(result, event)
+	}
+
+	return result, nil
+}
+
 type ContextOptions struct {
-	MaxTokenSize        int                    `json:"max_token_size,omitempty"`
-	PreferTopics        []string               `json:"prefer_topics,omitempty"`
-	OnlyTopics          []string               `json:"only_topics,omitempty"`
-	MaxSubtopicSize     *int                   `json:"max_subtopic_size,omitempty"`
-	TopicLimits         map[string]int         `json:"topic_limits,omitempty"`
-	ProfileEventRatio   *float64               `json:"profile_event_ratio,omitempty"`
-	RequireEventSummary *bool                  `json:"require_event_summary,omitempty"`
-	Chats               []blob.OpenAICompatibleMessage `json:"chats,omitempty"`
-	EventSimilarityThreshold *float64 `json:"event_similarity_threshold,omitempty"`
+	MaxTokenSize             int                            `json:"max_token_size,omitempty"`
+	PreferTopics             []string                       `json:"prefer_topics,omitempty"`
+	OnlyTopics               []string                       `json:"only_topics,omitempty"`
+	MaxSubtopicSize          *int                           `json:"max_subtopic_size,omitempty"`
+	TopicLimits              map[string]int                 `json:"topic_limits,omitempty"`
+	ProfileEventRatio        *float64                       `json:"profile_event_ratio,omitempty"`
+	RequireEventSummary      *bool                          `json:"require_event_summary,omitempty"`
+	Chats                    []blob.OpenAICompatibleMessage `json:"chats,omitempty"`
+	EventSimilarityThreshold *float64                       `json:"event_similarity_threshold,omitempty"`
 }
 
 func (u *User) Context(options *ContextOptions) (string, error) {

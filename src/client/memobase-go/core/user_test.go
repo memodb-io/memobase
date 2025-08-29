@@ -8,6 +8,7 @@ import (
 )
 
 func TestBlobCRUD(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	userID, _ := client.AddUser(nil, "")
 	user, _ := client.GetUser(userID, false)
@@ -46,6 +47,7 @@ func TestBlobCRUD(t *testing.T) {
 }
 
 func TestProfileCRUD(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	userID, _ := client.AddUser(nil, "")
 	user, _ := client.GetUser(userID, false)
@@ -84,6 +86,7 @@ func TestProfileCRUD(t *testing.T) {
 }
 
 func TestEventCRUD(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	userID, _ := client.AddUser(nil, "")
 	user, _ := client.GetUser(userID, false)
@@ -130,6 +133,7 @@ func TestEventCRUD(t *testing.T) {
 }
 
 func TestContext(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	userID, _ := client.AddUser(nil, "")
 	user, _ := client.GetUser(userID, false)
@@ -153,6 +157,7 @@ func TestContext(t *testing.T) {
 }
 
 func TestSearchEvent(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	userID, _ := client.AddUser(nil, "")
 	user, _ := client.GetUser(userID, false)
@@ -178,7 +183,99 @@ func TestSearchEvent(t *testing.T) {
 	client.DeleteUser(userID)
 }
 
+func TestSearchEventGist(t *testing.T) {
+	skipIfNoServer(t)
+	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
+	userID, _ := client.AddUser(nil, "")
+	user, _ := client.GetUser(userID, false)
+
+	// Insert chat to generate event
+	chat := &blob.ChatBlob{
+		BaseBlob: blob.BaseBlob{Type: blob.ChatType},
+		Messages: []blob.OpenAICompatibleMessage{
+			{Role: "user", Content: "I work as a software engineer"},
+			{Role: "assistant", Content: "That's interesting"},
+		},
+	}
+	_, err := user.Insert(chat, false)
+	assert.NoError(t, err)
+
+	err = user.Flush(blob.ChatType, true)
+	assert.NoError(t, err)
+
+	// Search for event gists
+	gistEvents, err := user.SearchEventGist("software engineer", 10, 0.2, 7)
+	// Note: This might return empty results in test environment, so we check for no error
+	assert.NoError(t, err)
+	assert.NotNil(t, gistEvents)
+
+	client.DeleteUser(userID)
+}
+
+func TestContextOptions(t *testing.T) {
+	skipIfNoServer(t)
+	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
+	userID, _ := client.AddUser(nil, "")
+	user, _ := client.GetUser(userID, false)
+
+	// Insert chat to generate context
+	chat := &blob.ChatBlob{
+		BaseBlob: blob.BaseBlob{Type: blob.ChatType},
+		Messages: []blob.OpenAICompatibleMessage{
+			{Role: "user", Content: "My name is John"},
+			{Role: "assistant", Content: "Nice to meet you John"},
+		},
+	}
+	_, err := user.Insert(chat, true)
+	assert.NoError(t, err)
+
+	// Test context with options
+	options := &ContextOptions{
+		MaxTokenSize:        500,
+		PreferTopics:        []string{"personal"},
+		RequireEventSummary: &[]bool{true}[0],
+	}
+
+	context, err := user.Context(options)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, context)
+
+	client.DeleteUser(userID)
+}
+
+func TestAsyncOperations(t *testing.T) {
+	skipIfNoServer(t)
+	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
+	userID, _ := client.AddUser(nil, "")
+	user, _ := client.GetUser(userID, false)
+
+	// Test async insert
+	doc := &blob.DocBlob{
+		BaseBlob: blob.BaseBlob{Type: blob.DocType},
+		Content:  "async test content",
+	}
+
+	// Test sync vs async insert
+	syncBlobID, err := user.Insert(doc, true) // sync
+	assert.NoError(t, err)
+	assert.NotEmpty(t, syncBlobID)
+
+	asyncBlobID, err := user.Insert(doc, false) // async
+	assert.NoError(t, err)
+	assert.NotEmpty(t, asyncBlobID)
+
+	// Test async flush
+	err = user.Flush(blob.DocType, false) // async
+	assert.NoError(t, err)
+
+	err = user.Flush(blob.DocType, true) // sync
+	assert.NoError(t, err)
+
+	client.DeleteUser(userID)
+}
+
 func TestBuffer(t *testing.T) {
+	skipIfNoServer(t)
 	client, _ := NewMemoBaseClient(TestProjectURL, TestAPIKey)
 	userID, _ := client.AddUser(nil, "")
 	user, _ := client.GetUser(userID, false)
