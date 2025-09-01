@@ -285,4 +285,66 @@ u.flush(sync=True)
 events = u.search_event_gist('query')
 print(events)"""
     ),
+    go_code(
+        """
+import (
+    "fmt"
+    "log"
+
+    "github.com/memodb-io/memobase/src/client/memobase-go/core"
+    "github.com/memodb-io/memobase/src/client/memobase-go/blob"
+)
+
+func main() {
+    projectURL := "YOUR_PROJECT_URL"
+    apiKey := "YOUR_API_KEY"
+    // Initialize the client
+    client, err := core.NewMemoBaseClient(
+        projectURL,
+        apiKey,
+    )
+    if err != nil {
+        log.Fatalf("Failed to create client: %v", err)
+    }
+
+    // Get a user
+    userID := "EXISTING_USER_ID" // Replace with an actual user ID
+    user, err := client.GetUser(userID, false)
+    if err != nil {
+        log.Fatalf("Failed to get user: %v", err)
+    }
+
+    // Insert chat to generate event
+    chat := &blob.ChatBlob{
+        BaseBlob: blob.BaseBlob{Type: blob.ChatType},
+        Messages: []blob.OpenAICompatibleMessage{
+            {Role: "user", Content: "Hi, I'm here again"},
+            {Role: "assistant", Content: "Hi, Gus! How can I help you?"},
+        },
+    }
+    _, err = user.Insert(chat, false)
+    if err != nil {
+        log.Fatalf("Failed to insert chat: %v", err)
+    }
+
+    // Flush to process the chat
+    err = user.Flush(blob.ChatType, true)
+    if err != nil {
+        log.Fatalf("Failed to flush: %v", err)
+    }
+
+    // Search for event gists
+    gistEvents, err := user.SearchEventGist("query")
+    if err != nil {
+        log.Fatalf("Failed to search event gists: %v", err)
+    }
+
+    fmt.Printf("Found %d event gists\\n", len(gistEvents))
+    for _, event := range gistEvents {
+        fmt.Printf("Event ID: %s, Content: %s, Similarity: %.2f\\n", 
+            event.ID, event.GistData.Content, event.Similarity)
+    }
+}
+"""
+    ),
 )
