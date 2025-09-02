@@ -64,9 +64,9 @@ async def search_user_events(
         180, description="Only allow events within the past few days, default is 180"
     ),
     use_gists: bool = Query(
-        True, description="Whether to search event gists (default) or full events"
+        True, description="Whether to search event gists (default) or event tip"
     ),
-) -> res.UserEventsDataResponse | res.UserEventGistsDataResponse:
+) -> res.UserEventGistsDataResponse |res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
     
     if use_gists:
