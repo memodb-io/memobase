@@ -2058,11 +2058,11 @@
 			  "required": false,
 			  "schema": {
 				"type": "boolean",
-				"description": "Whether to search event gists (default) or full events",
+				"description": "Whether to search event gists (default) or event tip",
 				"default": true,
 				"title": "Use Gists"
 			  },
-			  "description": "Whether to search event gists (default) or full events"
+			  "description": "Whether to search event gists (default) or event tip"
 			}
 		  ],
 		  "responses": {
@@ -2073,10 +2073,10 @@
 				  "schema": {
 					"anyOf": [
 					  {
-						"$ref": "#/components/schemas/UserEventsDataResponse"
+						"$ref": "#/components/schemas/UserEventGistsDataResponse"
 					  },
 					  {
-						"$ref": "#/components/schemas/UserEventGistsDataResponse"
+						"$ref": "#/components/schemas/UserEventsDataResponse"
 					  }
 					],
 					"title": "Response Search User Events Api V1 Users Event Search  User Id  Get"
