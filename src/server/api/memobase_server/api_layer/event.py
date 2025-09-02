@@ -1,4 +1,5 @@
 from ..controllers import full as controllers
+from ..controllers import event_gist
 from ..models import response as res
 from ..models.response import UUID
 from fastapi import Request
@@ -62,12 +63,22 @@ async def search_user_events(
     time_range_in_days: int = Query(
         180, description="Only allow events within the past few days, default is 180"
     ),
-) -> res.UserEventsDataResponse:
+    use_gists: bool = Query(
+        True, description="Whether to search event gists (default) or full events"
+    ),
+) -> res.UserEventsDataResponse | res.UserEventGistsDataResponse:
     project_id = request.state.memobase_project_id
-    p = await controllers.event.search_user_events(
-        user_id, project_id, query, topk, similarity_threshold, time_range_in_days
-    )
-    return p.to_response(res.UserEventsDataResponse)
+    
+    if use_gists:
+        p = await controllers.event_gist.search_user_event_gists(
+            user_id, project_id, query, topk, similarity_threshold, time_range_in_days
+        )
+        return p.to_response(res.UserEventGistsDataResponse)
+    else:
+        p = await controllers.event.search_user_events(
+            user_id, project_id, query, topk, similarity_threshold, time_range_in_days
+        )
+        return p.to_response(res.UserEventsDataResponse)
 
 
 async def search_user_event_gists(
