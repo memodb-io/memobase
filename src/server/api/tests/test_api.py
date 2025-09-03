@@ -592,7 +592,7 @@ async def test_api_event_search(
     assert response.status_code == 200
     assert response.json()["errno"] == 0
 
-    response = client.get(f"{PREFIX}/users/event/search/{u_id}?query=hello")
+    response = client.get(f"{PREFIX}/users/event/search/{u_id}?query=hello&use_gists=false")
     d = response.json()
     assert response.status_code == 200
     assert d["errno"] == 0
