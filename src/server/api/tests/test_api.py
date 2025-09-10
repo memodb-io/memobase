@@ -607,6 +607,96 @@ async def test_api_event_search(
 
 
 @pytest.mark.asyncio
+async def test_api_event_search_by_tags(
+    client,
+    db_env,
+    mock_llm_complete,
+    mock_llm_validate_complete,
+    mock_event_summary_llm_complete,
+    mock_entry_summary_llm_complete,
+    mock_event_get_embedding,
+):
+    # Create a user
+    response = client.post(f"{PREFIX}/users", json={})
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    u_id = d["data"]["id"]
+
+    # Insert a chat blob that will create an event with tags
+    response = client.post(
+        f"{PREFIX}/blobs/insert/{u_id}",
+        json={
+            "blob_type": "chat",
+            "blob_data": {
+                "messages": [
+                    {"role": "user", "content": "I'm feeling happy today"},
+                    {"role": "assistant", "content": "That's wonderful!"},
+                ]
+            },
+        },
+    )
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+    # Process the buffer to create the event
+    response = client.post(f"{PREFIX}/users/buffer/{u_id}/chat")
+    assert response.status_code == 200
+    assert response.json()["errno"] == 0
+
+    # Test 1: Search by single tag name
+    response = client.get(f"{PREFIX}/users/event_tags/search/{u_id}?tags=emotion")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 1
+    assert d["data"]["events"][0]["event_data"]["event_tags"][0]["tag"] == "emotion"
+    assert d["data"]["events"][0]["event_data"]["event_tags"][0]["value"] == "happy"
+
+    # Test 2: Search by multiple tag names (comma-separated)
+    response = client.get(f"{PREFIX}/users/event_tags/search/{u_id}?tags=emotion,nonexistent")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 0  # Should be empty since "nonexistent" tag doesn't exist
+
+    # Test 3: Search by tag value
+    response = client.get(f"{PREFIX}/users/event_tags/search/{u_id}?tag_values=emotion=happy")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 1
+
+    # Test 4: Search by wrong tag value
+    response = client.get(f"{PREFIX}/users/event_tags/search/{u_id}?tag_values=emotion=sad")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 0
+
+    # Test 5: Search with topk parameter
+    response = client.get(f"{PREFIX}/users/event_tags/search/{u_id}?tags=emotion&topk=5")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) <= 5
+
+    # Test 6: Search with both tags and tag_values
+    response = client.get(f"{PREFIX}/users/event_tags/search/{u_id}?tags=emotion&tag_values=emotion=happy")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+    assert len(d["data"]["events"]) == 1
+
+    # Clean up
+    response = client.delete(f"{PREFIX}/users/{u_id}")
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+
+@pytest.mark.asyncio
 async def test_api_non_uuid_access(client, db_env):
 
     fake_uid = "fake"

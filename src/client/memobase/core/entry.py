@@ -311,6 +311,47 @@ class User:
         )
         return [UserEventGistData.model_validate(e) for e in r.data["gists"]]
 
+    def search_event_by_tags(
+        self,
+        tags: Optional[list[str]] = None,
+        tag_values: Optional[dict[str, str]] = None,
+        topk: int = 10,
+    ) -> list[UserEventData]:
+        """
+        Search user events by tags.
+        
+        Args:
+            tags: List of tag names that events must have (AND condition)
+            tag_values: Dict of tag=value pairs for exact matches (AND condition)
+            topk: Number of events to retrieve, default is 10
+        
+        Examples:
+            - search_event_by_tags(tags=["emotion", "romance"])
+              Returns events that have both 'emotion' AND 'romance' tags (with any value)
+            
+            - search_event_by_tags(tag_values={"emotion": "happy", "topic": "work"})
+              Returns events where emotion tag equals 'happy' AND topic tag equals 'work'
+            
+            - search_event_by_tags(tags=["emotion"], tag_values={"topic": "work"})
+              Returns events that have 'emotion' tag (any value) AND topic tag equals 'work'
+        """
+        params = f"?topk={topk}"
+        
+        if tags:
+            tags_str = ",".join(tags)
+            params += f"&tags={tags_str}"
+        
+        if tag_values:
+            tag_values_str = ",".join([f"{k}={v}" for k, v in tag_values.items()])
+            params += f"&tag_values={tag_values_str}"
+        
+        r = unpack_response(
+            self.project_client.client.get(
+                f"/users/event_tags/search/{self.user_id}{params}"
+            )
+        )
+        return [UserEventData.model_validate(e) for e in r.data["events"]]
+
     def context(
         self,
         max_token_size: int = 1000,

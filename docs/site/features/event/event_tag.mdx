@@ -39,7 +39,7 @@ for event in events:
 
 ## Searching Events by Tag
 
-You can also search for events that have specific tags applied.
+You can search for events that have specific tags applied using the `search_event_by_tags` method.
 
 ```python
 from memobase import MemoBaseClient
@@ -47,9 +47,10 @@ from memobase import MemoBaseClient
 client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
 user = client.get_user('some_user_id')
 
-# Find all events tagged with 'emotion'
-events = user.search_event(tags=["emotion"])
+# Find events with specific tags (AND condition)
+events = user.search_event_by_tags(tags=["emotion", "romance"])
 print(events)
 ```
 
-For more details, see the [API Reference](/api-reference/events/search_events).
+
+For more details, see the [API Reference](/api-reference/events/search_events_by_tags).

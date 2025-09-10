@@ -259,6 +259,12 @@ router.get(
 )(api_layer.event.search_user_event_gists)
 
 router.get(
+    "/users/event_tags/search/{user_id}",
+    tags=["event"],
+    openapi_extra=API_X_CODE_DOCS["GET /users/event_tags/search/{user_id}"],
+)(api_layer.event.search_user_events_by_tags)
+
+router.get(
     "/users/context/{user_id}",
     tags=["context"],
     openapi_extra=API_X_CODE_DOCS["GET /users/context/{user_id}"],

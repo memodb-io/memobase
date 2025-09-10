@@ -258,6 +258,29 @@ func main() {
 )
 
 
+# Search user events by tags
+add_api_code_docs(
+    "GET",
+    "/users/event_tags/search/{user_id}",
+    py_code(
+        """
+from memobase import MemoBaseClient
+
+client = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')
+u = client.get_user(uid)
+
+# Search for events with specific tags
+events = u.search_event_by_tags(tags=["emotion", "romance"])
+
+# Search for events with specific tag values
+events = u.search_event_by_tags(tag_values={"emotion": "happy", "topic": "work"})
+
+# Combine both filters
+events = u.search_event_by_tags(tags=["emotion"], tag_values={"topic": "work"})
+"""
+    ),
+)
+
 add_api_code_docs(
     "GET",
     "/users/event_gist/search/{user_id}",
