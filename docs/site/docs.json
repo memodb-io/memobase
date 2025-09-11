@@ -150,6 +150,7 @@
                   "api-reference/events/get_events",
                   "api-reference/events/search_events",
                   "api-reference/events/search_event_gists",
+                  "api-reference/events/search_events_by_tags",
                   "api-reference/events/update_event",
                   "api-reference/events/delete_event"
                 ]

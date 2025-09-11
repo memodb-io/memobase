@@ -2221,6 +2221,100 @@
 		  ]
 		}
 	  },
+	  "/api/v1/users/event_tags/search/{user_id}": {
+		"get": {
+		  "tags": [
+			"event"
+		  ],
+		  "summary": "Search User Events By Tags",
+		  "operationId": "search_user_events_by_tags_api_v1_users_event_tags_search__user_id__get",
+		  "parameters": [
+			{
+			  "name": "user_id",
+			  "in": "path",
+			  "required": true,
+			  "schema": {
+				"anyOf": [
+				  {
+					"type": "string",
+					"format": "uuid4"
+				  },
+				  {
+					"type": "string",
+					"format": "uuid5"
+				  }
+				],
+				"description": "The ID of the user",
+				"title": "User Id"
+			  },
+			  "description": "The ID of the user"
+			},
+			{
+			  "name": "tags",
+			  "in": "query",
+			  "required": false,
+			  "schema": {
+				"type": "string",
+				"description": "Comma-separated list of tag names that events must have (e.g.'emotion,romance')",
+				"title": "Tags"
+			  },
+			  "description": "Comma-separated list of tag names that events must have (e.g.'emotion,romance')"
+			},
+			{
+			  "name": "tag_values",
+			  "in": "query",
+			  "required": false,
+			  "schema": {
+				"type": "string",
+				"description": "Comma-separated tag=value pairs for exact matches (e.g., 'emotion=happy,topic=work')",
+				"title": "Tag Values"
+			  },
+			  "description": "Comma-separated tag=value pairs for exact matches (e.g., 'emotion=happy,topic=work')"
+			},
+			{
+			  "name": "topk",
+			  "in": "query",
+			  "required": false,
+			  "schema": {
+				"type": "integer",
+				"description": "Number of events to retrieve, default is 10",
+				"default": 10,
+				"title": "Topk"
+			  },
+			  "description": "Number of events to retrieve, default is 10"
+			}
+		  ],
+		  "responses": {
+			"200": {
+			  "description": "Successful Response",
+			  "content": {
+				"application/json": {
+				  "schema": {
+					"$ref": "#/components/schemas/UserEventsDataResponse"
+				  }
+				}
+			  }
+			},
+			"422": {
+			  "description": "Validation Error",
+			  "content": {
+				"application/json": {
+				  "schema": {
+					"$ref": "#/components/schemas/HTTPValidationError"
+				  }
+				}
+			  }
+			}
+		  },
+		  "x-code-samples": [
+			{
+			  "lang": "python",
+			  "source": "# To use the Python SDK, install the package:\n# pip install memobase\n\nfrom memobase import MemoBaseClient\n\nclient = MemoBaseClient(project_url='PROJECT_URL', api_key='PROJECT_TOKEN')\nu = client.get_user(uid)\n\n# Search for events with specific tags\nevents = u.search_event_by_tags(tags=[\"emotion\", \"romance\"])\n\n# Search for events with specific tag values\nevents = u.search_event_by_tags(tag_values={\"emotion\": \"happy\", \"topic\": \"work\"})\n\n# Combine both filters\nevents = u.search_event_by_tags(tags=[\"emotion\"], tag_values={\"topic\": \"work\"})\n\n",
+			  "label": "Python"
+			}
+		  ]
+		}
+	  },
 	  "/api/v1/users/context/{user_id}": {
 		"get": {
 		  "tags": [
