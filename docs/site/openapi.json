@@ -2063,6 +2063,40 @@
 				"title": "Use Gists"
 			  },
 			  "description": "Whether to search event gists (default) or event tip"
+			},
+			{
+			  "name": "use_tag",
+			  "in": "query",
+			  "required": false,
+			  "schema": {
+				"type": "boolean",
+				"description": "Whether to search by tags instead of query",
+				"default": false,
+				"title": "Use Tag"
+			  },
+			  "description": "Whether to search by tags instead of query"
+			},
+			{
+			  "name": "tags",
+			  "in": "query",
+			  "required": false,
+			  "schema": {
+				"type": "string",
+				"description": "Comma-separated list of tag names that events must have (e.g.'emotion,romance')",
+				"title": "Tags"
+			  },
+			  "description": "Comma-separated list of tag names that events must have (e.g.'emotion,romance')"
+			},
+			{
+			  "name": "tag_values",
+			  "in": "query",
+			  "required": false,
+			  "schema": {
+				"type": "string",
+				"description": "Comma-separated tag=value pairs for exact matches (e.g., 'emotion=happy,topic=work')",
+				"title": "Tag Values"
+			  },
+			  "description": "Comma-separated tag=value pairs for exact matches (e.g., 'emotion=happy,topic=work')"
 			}
 		  ],
 		  "responses": {
