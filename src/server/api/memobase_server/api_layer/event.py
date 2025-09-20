@@ -6,6 +6,33 @@ from fastapi import Request
 from fastapi import Path, Query, Body
 
 
+async def _search_user_events_by_tags_internal(
+    user_id: UUID,
+    project_id: str,
+    tags: str = None,
+    tag_values: str = None,
+    topk: int = 10,
+) -> res.UserEventsDataResponse:
+    """Internal function to search user events by tags."""
+    has_event_tag = None
+    if tags:
+        has_event_tag = [tag.strip() for tag in tags.split(",") if tag.strip()]
+    
+    event_tag_equal = None
+    if tag_values:
+        event_tag_equal = {}
+        for pair in tag_values.split(","):
+            if "=" in pair:
+                tag_name, tag_value = pair.split("=", 1)
+                event_tag_equal[tag_name.strip()] = tag_value.strip()
+    
+    p = await controllers.event.filter_user_events(
+        user_id, project_id, has_event_tag, event_tag_equal, topk
+    )
+    
+    return p.to_response(res.UserEventsDataResponse)
+
+
 async def get_user_events(
     request: Request,
     user_id: UUID = Path(..., description="The ID of the user"),
@@ -66,10 +93,19 @@ async def search_user_events(
     use_gists: bool = Query(
         True, description="Whether to search event gists (default) or event tip"
     ),
-) -> res.UserEventGistsDataResponse |res.UserEventsDataResponse:
+    use_tag: bool = Query(
+        False, description="Whether to search by tags instead of query"
+    ),
+    tags: str = Query(None, description="Comma-separated list of tag names that events must have (e.g.'emotion,romance')"),
+    tag_values: str = Query(None, description="Comma-separated tag=value pairs for exact matches (e.g., 'emotion=happy,topic=work')"),
+) -> res.UserEventGistsDataResponse | res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
     
-    if use_gists:
+    if use_tag:
+        return await _search_user_events_by_tags_internal(
+            user_id, project_id, tags, tag_values, topk
+        )
+    elif use_gists:
         p = await controllers.event_gist.search_user_event_gists(
             user_id, project_id, query, topk, similarity_threshold, time_range_in_days
         )
@@ -108,21 +144,6 @@ async def search_user_events_by_tags(
     topk: int = Query(10, description="Number of events to retrieve, default is 10"),
 ) -> res.UserEventsDataResponse:
     project_id = request.state.memobase_project_id
-    
-    has_event_tag = None
-    if tags:
-        has_event_tag = [tag.strip() for tag in tags.split(",") if tag.strip()]
-    
-    event_tag_equal = None
-    if tag_values:
-        event_tag_equal = {}
-        for pair in tag_values.split(","):
-            if "=" in pair:
-                tag_name, tag_value = pair.split("=", 1)
-                event_tag_equal[tag_name.strip()] = tag_value.strip()
-    
-    p = await controllers.event.filter_user_events(
-        user_id, project_id, has_event_tag, event_tag_equal, topk
+    return await _search_user_events_by_tags_internal(
+        user_id, project_id, tags, tag_values, topk
     )
-    
-    return p.to_response(res.UserEventsDataResponse)
