@@ -341,6 +341,7 @@ class AsyncUser:
         chats: list[OpenAICompatibleMessage] = None,
         event_similarity_threshold: float = None,
         customize_context_prompt: str = None,
+        time_range_in_days: int = None,
         full_profile_and_only_search_event: bool = None,
         fill_window_with_events: bool = None,
     ) -> str:
@@ -375,6 +376,8 @@ class AsyncUser:
             params += (
                 f"&customize_context_prompt={quote_plus(customize_context_prompt)}"
             )
+        if time_range_in_days:
+            params += f"&time_range_in_days={time_range_in_days}"
         if full_profile_and_only_search_event is not None:
             params += f"&full_profile_and_only_search_event={'true' if full_profile_and_only_search_event else 'false'}"
         if fill_window_with_events is not None:
