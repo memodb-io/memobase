@@ -1,0 +1,11 @@
+llm_api_key: XXX
+llm_base_url: https://api.openai.com/v1/
+best_llm_model: gpt-4o
+
+embedding_provider: ollama
+embedding_api_key: ollama
+embedding_base_url: "http://127.0.0.1:11434/" # WITHOUT "v1" at the end
+embedding_model: "qwen3-embedding:4b-q4_K_M"
+embedding_dim: 2560
+
+language: en
