@@ -102,7 +102,7 @@ class Config:
     summary_llm_model: str = None
 
     enable_event_embedding: bool = True
-    embedding_provider: Literal["openai", "jina"] = "openai"
+    embedding_provider: Literal["openai", "jina", "ollama"] = "openai"
     embedding_api_key: str = None
     embedding_base_url: str = None
     embedding_dim: int = 1536
