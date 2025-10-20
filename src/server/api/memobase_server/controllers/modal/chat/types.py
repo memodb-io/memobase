@@ -11,6 +11,11 @@ from ....prompts import (
     zh_merge_profile,
     zh_summary_entry_chats,
     zh_merge_profile_yolo,
+    ja_user_profile_topics,
+    ja_extract_profile,
+    ja_merge_profile,
+    ja_summary_entry_chats,
+    ja_merge_profile_yolo,
 )
 from ....models.response import ProfileData
 
@@ -50,6 +55,14 @@ PROMPTS = {
         "extract": zh_extract_profile,
         "merge": zh_merge_profile,
         "merge_yolo": zh_merge_profile_yolo,
+        "organize": organize_profile,
+    },
+    "ja": {
+        "entry_summary": ja_summary_entry_chats,
+        "profile": ja_user_profile_topics,
+        "extract": ja_extract_profile,
+        "merge": ja_merge_profile,
+        "merge_yolo": ja_merge_profile_yolo,
         "organize": organize_profile,
     },
 }
