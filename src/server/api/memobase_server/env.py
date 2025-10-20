@@ -91,7 +91,7 @@ class Config:
     cache_user_profiles_ttl: int = 60 * 20  # 20 minutes
 
     # LLM
-    language: Literal["en", "zh"] = "en"
+    language: Literal["en", "zh", "ja"] = "en"
     llm_style: Literal["openai", "doubao_cache"] = "openai"
     llm_base_url: str = None
     llm_api_key: str = None
@@ -227,7 +227,7 @@ class Config:
 
 @dataclass
 class ProfileConfig:
-    language: Literal["en", "zh"] = None
+    language: Literal["en", "zh", "ja"] = None
     profile_strict_mode: bool | None = None
     profile_validate_mode: bool | None = None
     additional_user_profiles: list[dict] = field(default_factory=list)
@@ -237,7 +237,7 @@ class ProfileConfig:
     event_tags: list[dict] = None
 
     def __post_init__(self):
-        if self.language not in ["en", "zh"]:
+        if self.language not in ["en", "zh", "ja"]:
             self.language = None
         if self.additional_user_profiles:
             [UserProfileTopic(**up) for up in self.additional_user_profiles]

@@ -13,4 +13,5 @@ PROMPTS = {
         "detect_interest": zh_detect_interest,
         "infer_plot": zh_infer_plot,
     },
+    "ja": {},
 }
