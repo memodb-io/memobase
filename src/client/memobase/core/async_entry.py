@@ -323,7 +323,7 @@ class AsyncUser:
     ) -> list[UserEventData]:
         params = f"?query={query}&topk={topk}&similarity_threshold={similarity_threshold}&time_range_in_days={time_range_in_days}"
         r = unpack_response(
-            self.project_client.client.get(
+            await self.project_client.client.get(
                 f"/users/event_gist/search/{self.user_id}{params}"
             )
         )
