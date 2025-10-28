@@ -29,7 +29,7 @@ Memobase uses a single  `config.yaml` to initialize the server. It contains the 
 By default, Memobase enables user profile and event memory with filter ability. That means running a Memobase server requires you to have below things:
 
 - **LLM API**: You must fill the OpenAI API Key in `llm_api_key` of `config.yaml`.Or you can change `llm_base_url` to any OpenAI-SDK-Compatible service(via [vllm](https://github.com/vllm-project/vllm), [Ollama](../../assets/tutorials/ollama+memobase/readme.md),...). Alternatively, you can set `llm_api_key` and `llm_base_url` using environment variables `MEMOBASE_LLM_API_KEY` and `MEMOBASE_LLM_BASE_URL`
-- **Embedding API**: Memobase supports OpenAI-Compatible SDK and [Jina Embedding](https://jina.ai/models/jina-embeddings-v3/). Memobase uses embedding API to retrieve related user events. If you don't have a embedding API, you can set `enable_event_embedding: false` in `config.yaml`
+- **Embedding API**: Memobase supports OpenAI-Compatible SDK, [Jina Embedding](https://jina.ai/models/jina-embeddings-v3/) and [Ollama Embedding](https://docs.ollama.com/api#generate-embeddings). Memobase uses embedding API to retrieve related user events. If you don't have a embedding API, you can set `enable_event_embedding: false` in `config.yaml`
 
 We have some example `config.yaml` in `examplel_config`:
 
@@ -37,6 +37,7 @@ We have some example `config.yaml` in `examplel_config`:
 - [`event_tag`](./api/example_config/event_tag) is a feature to tracking temporal attributes of users. [doc](https://docs.memobase.io/features/event/event_tag)
 - [`only_strict_profile`](./api/example_config/only_strict_profile): disable all other features, only collect the profiles you design.
 - [`jina_embedding`](./api/example_config/jina_embedding) uses Jina exmbedding for event search.
+- [`ollama_embedding`](./api/example_config/ollama_embedding) uses Ollama exmbedding for event search.
 
 
 
