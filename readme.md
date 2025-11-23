@@ -37,14 +37,14 @@
     <a href="https://discord.gg/YdgwU4d9NB">
       <img src="https://dcbadge.limes.pink/api/server/YdgwU4d9NB?style=flat">
     </a>
-    <a href="https://github.com/memodb-io/memobase/issues/61">
-       <img src="https://img.shields.io/badge/群聊-wechat-green">
-    </a>
   </p>
 </div>
 
 
 
+## News
+
+- 🚀 Meet [Acontext](https://github.com/memodb-io/Acontext), Context Data Platform that Improves your Agent with Experiences.
 
 
 
