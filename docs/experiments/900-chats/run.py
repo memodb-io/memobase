@@ -53,8 +53,8 @@ u.flush(sync=True)
 print("Cost time(s)", time() - start)
 
 while True:
-    left = len(u.buffer("chat", "processing"))
-    if len(left):
+    left = u.buffer("chat", "processing")
+    if left:
         print(f"Left {len(left)} chats")
         sleep(1)
     else:
