@@ -24,7 +24,6 @@ async def llm_complete(
     history_messages=[],
     json_mode=False,
     model=None,
-    max_tokens=1024,
     **kwargs,
 ) -> Promise[str | dict]:
     use_model = model or CONFIG.best_llm_model
@@ -37,7 +36,6 @@ async def llm_complete(
             prompt,
             system_prompt=system_prompt,
             history_messages=history_messages,
-            max_tokens=max_tokens,
             **kwargs,
         )
         latency = (time.time() - start_time) * 1000
