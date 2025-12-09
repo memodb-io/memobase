@@ -153,10 +153,16 @@ class UserProfilesData(BaseModel):
 
 class UserEventsData(BaseModel):
     events: list[UserEventData] = Field(..., description="List of user events")
+    gists: list[UserEventGistData] = Field(
+        default_factory=list, description="List of user event gists"
+    )
 
 
 class UserEventGistsData(BaseModel):
     gists: list[UserEventGistData] = Field(..., description="List of user event gists")
+    events: list[UserEventData] = Field(
+        default_factory=list, description="List of user events"
+    )
 
 
 class StrIntData(BaseModel):

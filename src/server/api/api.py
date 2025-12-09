@@ -11,7 +11,7 @@ from memobase_server.connectors import (
     init_redis_pool,
 )
 from memobase_server import api_layer
-from memobase_server.env import LOG, TRACE_LOG
+from memobase_server.env import LOG
 from memobase_server.llms.embeddings import check_embedding_sanity
 from memobase_server.llms import llm_sanity_check
 from memobase_server.api_layer.docs import API_X_CODE_DOCS

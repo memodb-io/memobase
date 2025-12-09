@@ -2,7 +2,7 @@ from functools import partial
 from ..models.utils import Promise, CODE
 from ..models.response import ContextData, OpenAICompatibleMessage, UserEventGistsData
 from ..prompts.chat_context_pack import CONTEXT_PROMPT_PACK
-from ..utils import get_encoded_tokens, event_str_repr
+from ..utils import get_encoded_tokens
 from ..env import CONFIG, TRACE_LOG
 from .project import get_project_profile_config
 from .profile import get_user_profiles, truncate_profiles
