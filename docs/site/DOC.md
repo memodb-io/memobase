@@ -2145,7 +2145,7 @@ minimum_chats_token_size_for_event_summary: 256
 - `use_timezone`: string, default to `null`. Options include `"UTC"`, `"America/New_York"`, `"Europe/London"`, `"Asia/Tokyo"`, and `"Asia/Shanghai"`. If not set, the system's local timezone is used.
 
 ### LLM Configuration
-- `language`: string, default to `"en"`, available options `{"en", "zh"}`. The prompt language of Memobase.
+- `language`: string, default to `"en"`, available options `{"en", "zh", "ja"}`. The prompt language of Memobase.
 - `llm_style`: string, default to `"openai"`, available options `{"openai", "doubao_cache"}`. The LLM provider style.
 - `llm_base_url`: string, default to `null`. The base URL of any OpenAI-Compatible API.
 - `llm_api_key`: string, required. Your LLM API key.
