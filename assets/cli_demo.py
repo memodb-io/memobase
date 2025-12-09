@@ -27,19 +27,27 @@ SYS_PROMPT_EN = '''You are an intelligent assistant aiming to provide personaliz
 4. **Avoid Repetition**: Provide new information or in-depth content, avoiding repetition of what the user already knows.
 5. **Flexible Adjustment**: Dynamically adjust your response style based on user feedback and the context of the conversation.'''
 
+SYS_PROMPT_JA = '''あなたは、パーソナライズされた、親しみやすく、役立つサービスを提供することを目的とした知的なアシスタントです。以下の原則を遵守してください:
+1. **パーソナライゼーション**：ユーザーの興味や背景（例: ${user_interests}）に基づいて提案を行ってください。ただし、プライバシー侵害は避けてください。
+2. **友好的な対話**: 忍耐強く温かい口調を保ち、ユーザーが尊重されサポートされていると感じられるようにしてください。
+3. **関連性のある提案**: 適切なタイミングで、ユーザーの興味に関連する有益な提案や話題（例: 食物、旅行）を共有してください。
+4. **繰り返しの回避**：ユーザーが既に知っている情報の繰り返しを避け、新しい情報や深い内容を提供してください。
+5. **柔軟な調整**：ユーザーのフィードバックや会話の文脈に基づき、応答スタイルを動的に調整してください。'''
+
 _WELCOME_MSG = """Welcome to Memobase, a user profile-based memory system. Type text to chat, :h for help.
-(欢迎使用 Memobase，基于用户档案的记忆系统。输入内容开始对话，:h 获取帮助。)"""
+(欢迎使用 Memobase，基于用户档案的记忆系统。输入内容开始对话，:h 获取帮助。)
+(ユーザープロファイルベースのメモリシステム、Memobaseへようこそ。テキストを入力してチャット、:h でヘルプを表示。)"""
 _HELP_MSG = """\
 Commands:
-    :help / :h              Show this help message              显示帮助信息
-    :exit / :quit / :q      Exit the demo                       退出Demo
-    :clear / :cl            Clear screen                        清屏
-    :clear-history / :clh   Clear history                       清除对话历史
-    :history / :his         Show history                        显示对话历史
-    :user                   Show user id                        显示用户ID
-    :user <id>              Set user id                         设置用户ID
-    :profile / :pf          Show user profile                   显示用户已有的配置信息
-    :flush / :fl            Flush buffer                        刷新缓冲区
+    :help / :h              Show this help message   显示帮助信息             ヘルプを表示
+    :exit / :quit / :q      Exit the demo            退出Demo                 デモを終了
+    :clear / :cl            Clear screen             清屏                     ターミナルをクリア
+    :clear-history / :clh   Clear history            清除对话历史             ヒストリーを表示
+    :history / :his         Show history             显示对话历史             ヒストリーを表示
+    :user                   Show user id             显示用户ID               ユーザIDを表示
+    :user <id>              Set user id              设置用户ID               ユーザIDを設定
+    :profile / :pf          Show user profile        显示用户已有的配置信息   ユーザのプロファイルを表示
+    :flush / :fl            Flush buffer             刷新缓冲区               バッファをフラッシュ
 """
 _ALL_COMMAND_NAMES = [
     "help",
@@ -107,6 +115,8 @@ def _get_args():
             print("You should set OPENAI_API_KEY environment variable or pass --openai-api-key argument.")
     if args.language == 'zh':
         args.sys_prompt = SYS_PROMPT_ZH
+    elif args.language == 'ja':
+        args.sys_prompt = SYS_PROMPT_JA
     else:
         args.sys_prompt = SYS_PROMPT_EN
     return args
@@ -232,7 +242,7 @@ def _launch_demo(args):
         base_url=args.openai_base_url,
     )
     mb_client = MemoBaseClient(
-        args.memobase_endpoint,
+        project_url=args.memobase_endpoint,
         api_key=args.memobase_token
     )
     client = openai_memory(client, mb_client)

@@ -29,7 +29,21 @@ def zh_context_prompt(profile_section: str, event_section: str) -> str:
 """
 
 
+def ja_context_prompt(profile_section: str, event_section: str) -> str:
+    return f"""---
+# メモリ
+ユーザーから関連する質問がない限り、これらのメモリについて会話の中で積極的に言及しないでください。
+## ユーザーの現在のプロフィール:
+{profile_section}
+
+## 過去のイベント:
+{event_section}
+---
+"""
+
+
 CONTEXT_PROMPT_PACK: dict[str, ContextPromptFunc] = {
     "en": en_context_prompt,
     "zh": zh_context_prompt,
+    "ja": ja_context_prompt,
 }
