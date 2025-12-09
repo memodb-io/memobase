@@ -3,30 +3,7 @@ title: Searching Events
 ---
 
 User events in Memobase are stored as a sequence of experiences, each enriched with [tags](/features/event/event_tag). By default, events are retrieved in chronological order, but Memobase also provides a powerful search function to find events based on a query.
-
 ## Semantic Search
-
-You can perform a semantic search to find events related to a specific topic or concept.
-
-```python
-# To use the Python SDK, first install the package:
-# pip install memobase
-
-from memobase import MemoBaseClient
-
-client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
-user = client.get_user('some_user_id')
-
-# Search for events related to the user's emotions
-events = user.search_event("Anything about my emotions")
-print(events)
-```
-
-This query will return events where the user discussed their emotions, events that were automatically [tagged](/features/event/event_tag) with an `emotion` tag, or events that updated profile slots related to emotion.
-
-For a detailed list of search parameters, please refer to the [API documentation](/api-reference/events/search_events).
-
-## Search Event Gists
 
 A user event is a group of user infos happened in a period of time.
 So when you need to search for specific facts or infos, you may need a more fine-grained search.
@@ -56,3 +33,29 @@ print(events)
 </CodeGroup>
 
 For detail API, please refer to [Search Event Gists](/api-reference/events/search_event_gists).
+
+## Search Packed Events with Tags
+
+You can perform a semantic search to find events related to a specific topic or concept.
+
+Different from `search_event_gist`, the return elements of `search_event` are packed gists of user events(happened in a period of time).
+
+We recommend more to use `search_event_gist` to retrieve fine-grained events.
+
+```python
+# To use the Python SDK, first install the package:
+# pip install memobase
+
+from memobase import MemoBaseClient
+
+client = MemoBaseClient(project_url='YOUR_PROJECT_URL', api_key='YOUR_API_KEY')
+user = client.get_user('some_user_id')
+
+# Search for events related to the user's emotions
+events = user.search_event("Anything about my emotions")
+print(events)
+```
+
+This query will return events where the user discussed their emotions, events that were automatically [tagged](/features/event/event_tag) with an `emotion` tag, or events that updated profile slots related to emotion.
+
+For a detailed list of search parameters, please refer to the [API documentation](/api-reference/events/search_events).
