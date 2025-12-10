@@ -393,6 +393,11 @@ class BufferZone(Base):
             "blob_type",
             "status",
         ),
+        Index(
+            "idx_buffer_zones_blob_id_project_id",
+            "blob_id",
+            "project_id",
+        ),
         ForeignKeyConstraint(
             ["user_id", "project_id"],
             ["users.id", "users.project_id"],
