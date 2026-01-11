@@ -91,7 +91,7 @@ async def llm_complete(
 
 async def llm_sanity_check():
     r = await llm_complete(
-        DEFAULT_PROJECT_ID, "Test", max_tokens=1, prompt_id="__test__"
+        DEFAULT_PROJECT_ID, "Test", max_tokens=16, prompt_id="__test__"
     )
     if not r.ok():
         raise ValueError(f"LLM sanity check failed: {r.msg()}")
