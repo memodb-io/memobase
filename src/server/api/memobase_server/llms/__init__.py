@@ -37,6 +37,7 @@ async def llm_complete(
             prompt,
             system_prompt=system_prompt,
             history_messages=history_messages,
+            thinking_enable=CONFIG.thinking_enabled,
             max_tokens=max_tokens,
             **kwargs,
         )

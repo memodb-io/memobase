@@ -99,6 +99,7 @@ class Config:
     llm_openai_default_header: dict[str, str] = None
     best_llm_model: str = "gpt-4o-mini"
     thinking_llm_model: str = "o4-mini"
+    thinking_enabled: Optional[bool] = None
     summary_llm_model: str = None
 
     enable_event_embedding: bool = True
