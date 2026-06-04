@@ -24,6 +24,11 @@ dependencies = [
     "volcengine-python-sdk[ark]>=4.0.6",
 ]
 
+[project.optional-dependencies]
+litellm = [
+    "litellm>=1.80.0,<1.87.0",
+]
+
 [dependency-groups]
 dev = [
     "alembic>=1.16.4",

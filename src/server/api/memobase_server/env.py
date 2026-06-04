@@ -92,7 +92,7 @@ class Config:
 
     # LLM
     language: Literal["en", "zh"] = "en"
-    llm_style: Literal["openai", "doubao_cache"] = "openai"
+    llm_style: Literal["openai", "doubao_cache", "litellm"] = "openai"
     llm_base_url: str = None
     llm_api_key: str = None
     llm_openai_default_query: dict[str, str] = None
@@ -102,7 +102,7 @@ class Config:
     summary_llm_model: str = None
 
     enable_event_embedding: bool = True
-    embedding_provider: Literal["openai", "jina", "ollama"] = "openai"
+    embedding_provider: Literal["openai", "jina", "ollama", "litellm"] = "openai"
     embedding_api_key: str = None
     embedding_base_url: str = None
     embedding_dim: int = 1536
@@ -197,6 +197,11 @@ class Config:
                 self.llm_style == self.embedding_provider == "openai"
             ):
                 # default to llm config if embedding_api_key is not set
+                self.embedding_api_key = self.llm_api_key
+                self.embedding_base_url = self.llm_base_url
+            if self.embedding_api_key is None and (
+                self.llm_style == self.embedding_provider == "litellm"
+            ):
                 self.embedding_api_key = self.llm_api_key
                 self.embedding_base_url = self.llm_base_url
             assert (
