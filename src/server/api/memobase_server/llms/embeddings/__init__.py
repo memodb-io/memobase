@@ -10,10 +10,17 @@ from .jina_embedding import jina_embedding
 from .openai_embedding import openai_embedding
 from .lmstudio_embedding import lmstudio_embedding
 from .ollama_embedding import ollama_embedding
+from .litellm_embedding import litellm_embedding
 from ...telemetry import telemetry_manager, HistogramMetricName, CounterMetricName
 from ...utils import get_encoded_tokens
 
-FACTORIES = {"openai": openai_embedding, "jina": jina_embedding, "lmstudio": lmstudio_embedding, "ollama": ollama_embedding}
+FACTORIES = {
+    "openai": openai_embedding,
+    "jina": jina_embedding,
+    "lmstudio": lmstudio_embedding,
+    "ollama": ollama_embedding,
+    "litellm": litellm_embedding,
+}
 assert (
     CONFIG.embedding_provider in FACTORIES
 ), f"Unsupported embedding provider: {CONFIG.embedding_provider}"
