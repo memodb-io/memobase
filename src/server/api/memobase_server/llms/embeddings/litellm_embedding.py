@@ -11,8 +11,6 @@ async def litellm_embedding(
     embedding_kwargs = {"drop_params": True}
     if CONFIG.embedding_api_key:
         embedding_kwargs["api_key"] = CONFIG.embedding_api_key
-    if CONFIG.embedding_base_url:
-        embedding_kwargs["api_base"] = CONFIG.embedding_base_url
     if CONFIG.embedding_dim:
         embedding_kwargs["dimensions"] = CONFIG.embedding_dim
 

@@ -203,7 +203,6 @@ class Config:
                 self.llm_style == self.embedding_provider == "litellm"
             ):
                 self.embedding_api_key = self.llm_api_key
-                self.embedding_base_url = self.llm_base_url
             assert (
                 self.embedding_api_key is not None
             ), "embedding_api_key is required for event embedding"

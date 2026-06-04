@@ -19,8 +19,6 @@ async def litellm_complete(
     completion_kwargs = {"drop_params": True, **kwargs}
     if CONFIG.llm_api_key:
         completion_kwargs["api_key"] = CONFIG.llm_api_key
-    if CONFIG.llm_base_url:
-        completion_kwargs["api_base"] = CONFIG.llm_base_url
 
     response = await litellm.acompletion(
         model=model, messages=messages, timeout=120, **completion_kwargs
