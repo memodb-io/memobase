@@ -1,5 +1,5 @@
 from .utils import exclude_special_kwargs
-from ..env import LOG, CONFIG
+from ..env import LOG
 
 
 async def litellm_complete(
@@ -17,8 +17,6 @@ async def litellm_complete(
     messages.append({"role": "user", "content": prompt})
 
     completion_kwargs = {"drop_params": True, **kwargs}
-    if CONFIG.llm_api_key:
-        completion_kwargs["api_key"] = CONFIG.llm_api_key
 
     response = await litellm.acompletion(
         model=model, messages=messages, timeout=120, **completion_kwargs

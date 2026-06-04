@@ -191,7 +191,8 @@ class Config:
         return overwrite_config
 
     def __post_init__(self):
-        assert self.llm_api_key is not None, "llm_api_key is required"
+        if self.llm_style != "litellm":
+            assert self.llm_api_key is not None, "llm_api_key is required"
         if self.enable_event_embedding:
             if self.embedding_api_key is None and (
                 self.llm_style == self.embedding_provider == "openai"
@@ -199,13 +200,10 @@ class Config:
                 # default to llm config if embedding_api_key is not set
                 self.embedding_api_key = self.llm_api_key
                 self.embedding_base_url = self.llm_base_url
-            if self.embedding_api_key is None and (
-                self.llm_style == self.embedding_provider == "litellm"
-            ):
-                self.embedding_api_key = self.llm_api_key
-            assert (
-                self.embedding_api_key is not None
-            ), "embedding_api_key is required for event embedding"
+            if self.embedding_provider != "litellm":
+                assert (
+                    self.embedding_api_key is not None
+                ), "embedding_api_key is required for event embedding"
 
             if self.embedding_provider == "jina":
                 self.embedding_base_url = (
