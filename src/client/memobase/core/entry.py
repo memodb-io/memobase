@@ -34,9 +34,10 @@ class MemoBaseClient:
 
     def __post_init__(self):
         self.api_key = self.api_key or os.getenv("MEMOBASE_API_KEY")
-        assert (
-            self.api_key is not None
-        ), "api_key of memobase client is required, pass it as argument or set it as environment variable(MEMOBASE_API_KEY)"
+        if not self.api_key:
+            raise ValueError(
+                "api_key cannot be empty - set MEMOBASE_API_KEY or pass api_key= explicitly."
+            )
         self.base_url = str(HttpUrl(self.project_url)) + self.api_version.strip("/")
 
         self._client = httpx.Client(
