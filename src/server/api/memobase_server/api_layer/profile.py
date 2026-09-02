@@ -1,4 +1,5 @@
 import json
+import time
 from fastapi import Request
 from fastapi import Path, Query, Body
 from datetime import datetime
@@ -9,6 +10,8 @@ from ..models.response import CODE, UUID
 from ..models.utils import Promise
 from ..models.blob import BlobType
 from ..models import response as res
+from ..telemetry.tracing import memory_span
+from ..telemetry.open_telemetry import telemetry_manager, CounterMetricName, HistogramMetricName
 
 
 async def get_user_profile(
@@ -53,31 +56,43 @@ async def get_user_profile(
         return Promise.reject(
             CODE.BAD_REQUEST, f"Invalid JSON requests: {e}"
         ).to_response(res.UserProfileResponse)
-    p = await controllers.profile.get_user_profiles(user_id, project_id)
-    if not p.ok():
-        return p.to_response(res.UserProfileResponse)
-    total_profiles = p.data()
-    if chats:
-        p = await filter_profiles_with_chats(
-            user_id,
-            project_id,
+    _t0 = time.monotonic()
+    with memory_span(
+        "memory.profile.query",
+        attributes={"user.id": str(user_id), "project.id": str(project_id), "topk": str(topk)},
+    ) as span:
+        p = await controllers.profile.get_user_profiles(user_id, project_id)
+        if not p.ok():
+            return p.to_response(res.UserProfileResponse)
+        total_profiles = p.data()
+        if chats:
+            p = await filter_profiles_with_chats(
+                user_id,
+                project_id,
+                total_profiles,
+                chats,
+                only_topics=only_topics,
+                # max_filter_num=topk,
+            )
+            if p.ok():
+                total_profiles.profiles = p.data()["profiles"]
+        p = await controllers.profile.truncate_profiles(
             total_profiles,
-            chats,
+            prefer_topics=prefer_topics,
+            topk=topk,
+            max_token_size=max_token_size,
             only_topics=only_topics,
-            # max_filter_num=topk,
+            max_subtopic_size=max_subtopic_size,
+            topic_limits=topic_limits,
         )
-        if p.ok():
-            total_profiles.profiles = p.data()["profiles"]
-    p = await controllers.profile.truncate_profiles(
-        total_profiles,
-        prefer_topics=prefer_topics,
-        topk=topk,
-        max_token_size=max_token_size,
-        only_topics=only_topics,
-        max_subtopic_size=max_subtopic_size,
-        topic_limits=topic_limits,
-    )
-    return p.to_response(res.UserProfileResponse)
+        result = p.to_response(res.UserProfileResponse)
+        _query_ms = (time.monotonic() - _t0) * 1000
+        telemetry_manager.record_histogram_metric(HistogramMetricName.MEMORY_QUERY_LATENCY_MS, _query_ms)
+        if p.ok() and p.data() is not None:
+            profile_count = len(p.data().profiles) if hasattr(p.data(), "profiles") else 0
+            span.set_attribute("memory.result.count", profile_count)
+            telemetry_manager.record_histogram_metric(HistogramMetricName.MEMORY_PROFILE_COUNT, profile_count)
+    return result
 
 
 async def delete_user_profile(
@@ -87,7 +102,8 @@ async def delete_user_profile(
 ) -> res.BaseResponse:
     """Delete a profile"""
     project_id = request.state.memobase_project_id
-    p = await controllers.profile.delete_user_profile(user_id, project_id, profile_id)
+    with memory_span("memory.profile.delete", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.profile.delete_user_profile(user_id, project_id, profile_id)
     return p.to_response(res.IdResponse)
 
 
@@ -101,10 +117,12 @@ async def update_user_profile(
 ) -> res.BaseResponse:
     """Update the real-time user profiles for long term memory"""
     project_id = request.state.memobase_project_id
-    p = await controllers.profile.update_user_profiles(
-        user_id, project_id, [profile_id], [content.content], [content.attributes]
-    )
+    with memory_span("memory.profile.update", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.profile.update_user_profiles(
+            user_id, project_id, [profile_id], [content.content], [content.attributes]
+        )
     if p.ok():
+        telemetry_manager.increment_counter_metric(CounterMetricName.MEMORY_PROFILES_UPDATED)
         return Promise.resolve(None).to_response(res.BaseResponse)
     return Promise.reject(p.code(), p.msg()).to_response(res.BaseResponse)
 
@@ -118,10 +136,12 @@ async def add_user_profile(
 ) -> res.IdResponse:
     """Add the real-time user profiles for long term memory"""
     project_id = request.state.memobase_project_id
-    p = await controllers.profile.add_user_profiles(
-        user_id, project_id, [content.content], [content.attributes]
-    )
+    with memory_span("memory.profile.add", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.profile.add_user_profiles(
+            user_id, project_id, [content.content], [content.attributes]
+        )
     if p.ok():
+        telemetry_manager.increment_counter_metric(CounterMetricName.MEMORY_PROFILES_UPDATED)
         return Promise.resolve(res.IdData(id=p.data().ids[0])).to_response(
             res.IdResponse
         )

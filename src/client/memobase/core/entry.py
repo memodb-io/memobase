@@ -14,6 +14,19 @@ from ..error import ServerError
 from ..utils import LOG
 
 
+def _otel_inject_request(request) -> None:
+    """httpx request hook: propagate the active OpenTelemetry trace context
+    (W3C traceparent) to the Memobase server so client + server spans join a
+    single end-to-end trace. No-op when OpenTelemetry is not installed or no
+    span is active."""
+    try:
+        from opentelemetry.propagate import inject
+
+        inject(request.headers)
+    except Exception:
+        pass
+
+
 def profiles_to_json(profiles: list[UserProfile]) -> dict:
     results = defaultdict(dict)
     for p in profiles:
@@ -45,6 +58,7 @@ class MemoBaseClient:
                 "Authorization": f"Bearer {self.api_key}",
             },
             timeout=60,
+            event_hooks={"request": [_otel_inject_request]},
         )
 
     @property

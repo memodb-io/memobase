@@ -1,3 +1,4 @@
+import time
 from fastapi import BackgroundTasks, Request
 from fastapi import Path, Body, Query
 import traceback
@@ -9,6 +10,8 @@ from ..models.response import CODE, UUID
 from ..models.utils import Promise
 from ..models import response as res
 from ..telemetry.capture_key import capture_int_key
+from ..telemetry.tracing import memory_span
+from ..telemetry.open_telemetry import telemetry_manager, CounterMetricName, HistogramMetricName
 
 
 async def insert_blob(
@@ -40,12 +43,24 @@ async def insert_blob(
         ).to_response(res.IdResponse)
 
     try:
-        insert_result = await controllers.blob.insert_blob(
-            user_id, project_id, blob_data
-        )
-        if not insert_result.ok():
-            return insert_result.to_response(res.BaseResponse)
-        bid = insert_result.data().id
+        _t0 = time.monotonic()
+        with memory_span(
+            "memory.blob.insert",
+            attributes={
+                "user.id": str(user_id),
+                "project.id": str(project_id),
+                "blob.type": str(blob_data.blob_type),
+            },
+        ):
+            insert_result = await controllers.blob.insert_blob(
+                user_id, project_id, blob_data
+            )
+            if not insert_result.ok():
+                return insert_result.to_response(res.BaseResponse)
+            bid = insert_result.data().id
+        _insert_ms = (time.monotonic() - _t0) * 1000
+        telemetry_manager.record_histogram_metric(HistogramMetricName.MEMORY_INSERT_LATENCY_MS, _insert_ms)
+        telemetry_manager.increment_counter_metric(CounterMetricName.MEMORY_BLOBS_INSERTED)
 
         pb = await controllers.buffer.insert_blob_to_buffer(
             user_id, project_id, bid, blob_data.to_blob()
@@ -104,7 +119,8 @@ async def get_blob(
     blob_id: UUID = Path(..., description="The ID of the blob to retrieve"),
 ) -> res.BlobDataResponse:
     project_id = request.state.memobase_project_id
-    p = await controllers.blob.get_blob(user_id, project_id, blob_id)
+    with memory_span("memory.blob.get", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.blob.get_blob(user_id, project_id, blob_id)
     return p.to_response(res.BlobDataResponse)
 
 
@@ -114,5 +130,8 @@ async def delete_blob(
     blob_id: UUID = Path(..., description="The ID of the blob to delete"),
 ) -> res.BaseResponse:
     project_id = request.state.memobase_project_id
-    p = await controllers.blob.remove_blob(user_id, project_id, blob_id)
+    with memory_span("memory.blob.delete", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.blob.remove_blob(user_id, project_id, blob_id)
+    if p.ok():
+        telemetry_manager.increment_counter_metric(CounterMetricName.MEMORY_BLOBS_DELETED)
     return p.to_response(res.BaseResponse)

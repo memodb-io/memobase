@@ -1,3 +1,4 @@
+import time
 from ..controllers import full as controllers
 from ..models.response import UUID, IdsResponse
 from ..models.blob import BlobType
@@ -5,6 +6,8 @@ from ..models import response as res
 from typing import Literal
 from fastapi import Request, Query, BackgroundTasks
 from fastapi import Path
+from ..telemetry.tracing import memory_span
+from ..telemetry.open_telemetry import telemetry_manager, HistogramMetricName
 
 
 async def flush_buffer(
@@ -18,34 +21,48 @@ async def flush_buffer(
 ) -> res.ChatModalAPIResponse:
     """Flush unprocessed blobs into Memory"""
     project_id = request.state.memobase_project_id
-    # p = await controllers.buffer.wait_insert_done_then_flush(
-    #     user_id, project_id, buffer_type
-    # )
+    _t0 = time.monotonic()
+    with memory_span(
+        "memory.buffer.flush",
+        attributes={"user.id": str(user_id), "buffer.type": str(buffer_type)},
+    ):
+        # p = await controllers.buffer.wait_insert_done_then_flush(
+        #     user_id, project_id, buffer_type
+        # )
 
-    p = await controllers.buffer.get_unprocessed_buffer_ids(
-        user_id, project_id, buffer_type
-    )
-    if not p.ok():
-        return p.to_response(res.BaseResponse)
-    if not len(p.data().ids):
-        return res.ChatModalAPIResponse(data=[])
-    if wait_process:
-        p = await controllers.buffer.flush_buffer_by_ids(
-            user_id, project_id, buffer_type, p.data().ids
+        p = await controllers.buffer.get_unprocessed_buffer_ids(
+            user_id, project_id, buffer_type
         )
         if not p.ok():
             return p.to_response(res.BaseResponse)
-        if p.data() is not None:
-            return res.ChatModalAPIResponse(data=[p.data()])
-    else:
-        background_tasks.add_task(
-            controllers.buffer_background.flush_buffer_by_ids_in_background,
-            user_id,
-            project_id,
-            buffer_type,
-            p.data().ids,
-        )
-        return res.ChatModalAPIResponse(data=None)
+        if not len(p.data().ids):
+            telemetry_manager.record_histogram_metric(
+                HistogramMetricName.MEMORY_FLUSH_LATENCY_MS, (time.monotonic() - _t0) * 1000
+            )
+            return res.ChatModalAPIResponse(data=[])
+        if wait_process:
+            p = await controllers.buffer.flush_buffer_by_ids(
+                user_id, project_id, buffer_type, p.data().ids
+            )
+            if not p.ok():
+                return p.to_response(res.BaseResponse)
+            telemetry_manager.record_histogram_metric(
+                HistogramMetricName.MEMORY_FLUSH_LATENCY_MS, (time.monotonic() - _t0) * 1000
+            )
+            if p.data() is not None:
+                return res.ChatModalAPIResponse(data=[p.data()])
+        else:
+            background_tasks.add_task(
+                controllers.buffer_background.flush_buffer_by_ids_in_background,
+                user_id,
+                project_id,
+                buffer_type,
+                p.data().ids,
+            )
+            telemetry_manager.record_histogram_metric(
+                HistogramMetricName.MEMORY_FLUSH_LATENCY_MS, (time.monotonic() - _t0) * 1000
+            )
+            return res.ChatModalAPIResponse(data=None)
 
 
 async def get_processing_buffer_ids(

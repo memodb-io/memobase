@@ -3,7 +3,7 @@ from typing import Dict
 import os
 import socket
 from prometheus_client import start_http_server
-from opentelemetry import metrics
+from opentelemetry import metrics, trace
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics._internal.instrument import (
@@ -12,6 +12,8 @@ from opentelemetry.sdk.metrics._internal.instrument import (
     Gauge,
 )
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource, DEPLOYMENT_ENVIRONMENT
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from functools import wraps
 from ..env import LOG, CONFIG
 
@@ -36,6 +38,11 @@ class CounterMetricName(Enum):
     LLM_TOKENS_INPUT = "llm_input_tokens_total"
     LLM_TOKENS_OUTPUT = "llm_output_tokens_total"
     EMBEDDING_TOKENS = "embedding_tokens_total"
+    MEMORY_BLOBS_INSERTED = "memory_blobs_inserted_total"
+    MEMORY_BLOBS_DELETED = "memory_blobs_deleted_total"
+    MEMORY_PROFILES_UPDATED = "memory_profiles_updated_total"
+    MEMORY_USERS_CREATED = "memory_users_created_total"
+    MEMORY_USERS_DELETED = "memory_users_deleted_total"
 
     def get_description(self) -> str:
         """Get the description for this metric."""
@@ -46,6 +53,11 @@ class CounterMetricName(Enum):
             CounterMetricName.LLM_TOKENS_INPUT: "Total number of input tokens",
             CounterMetricName.LLM_TOKENS_OUTPUT: "Total number of output tokens",
             CounterMetricName.EMBEDDING_TOKENS: "Total number of embedding tokens",
+            CounterMetricName.MEMORY_BLOBS_INSERTED: "Total number of memory blobs inserted",
+            CounterMetricName.MEMORY_BLOBS_DELETED: "Total number of memory blobs deleted",
+            CounterMetricName.MEMORY_PROFILES_UPDATED: "Total number of memory profiles updated",
+            CounterMetricName.MEMORY_USERS_CREATED: "Total number of memory users created",
+            CounterMetricName.MEMORY_USERS_DELETED: "Total number of memory users deleted",
         }
         return descriptions[self]
 
@@ -60,6 +72,10 @@ class HistogramMetricName(Enum):
     LLM_LATENCY_MS = "llm_latency"
     EMBEDDING_LATENCY_MS = "embedding_latency"
     REQUEST_LATENCY_MS = "request_latency"
+    MEMORY_QUERY_LATENCY_MS = "memory_query_latency"
+    MEMORY_INSERT_LATENCY_MS = "memory_insert_latency"
+    MEMORY_FLUSH_LATENCY_MS = "memory_flush_latency"
+    MEMORY_PROFILE_COUNT = "memory_profile_result_count"
 
     def get_description(self) -> str:
         """Get the description for this metric."""
@@ -67,8 +83,18 @@ class HistogramMetricName(Enum):
             HistogramMetricName.LLM_LATENCY_MS: "Latency of the LLM in milliseconds",
             HistogramMetricName.EMBEDDING_LATENCY_MS: "Latency of the embedding in milliseconds",
             HistogramMetricName.REQUEST_LATENCY_MS: "Latency of the request in milliseconds",
+            HistogramMetricName.MEMORY_QUERY_LATENCY_MS: "Latency of memory profile queries in milliseconds",
+            HistogramMetricName.MEMORY_INSERT_LATENCY_MS: "Latency of memory blob insert operations in milliseconds",
+            HistogramMetricName.MEMORY_FLUSH_LATENCY_MS: "Latency of memory buffer flush operations in milliseconds",
+            HistogramMetricName.MEMORY_PROFILE_COUNT: "Number of profiles returned per query",
         }
         return descriptions[self]
+
+    def get_unit(self) -> str:
+        """Get the unit for this metric."""
+        if self == HistogramMetricName.MEMORY_PROFILE_COUNT:
+            return "1"
+        return "ms"
 
     def get_metric_name(self) -> str:
         """Get the full metric name with prefix."""
@@ -111,9 +137,10 @@ class TelemetryManager:
             Counter | Histogram | Gauge,
         ] = None
         self._meter = None
+        self._tracer_provider = None
 
     def setup_telemetry(self) -> None:
-        """Initialize OpenTelemetry with Prometheus exporter."""
+        """Initialize OpenTelemetry with Prometheus exporter and optional OTLP tracing."""
         resource = Resource(
             attributes={
                 SERVICE_NAME: self._service_name,
@@ -137,6 +164,22 @@ class TelemetryManager:
 
         # Initialize meter
         self._meter = metrics.get_meter(self._service_name)
+
+        # Setup OTLP tracing if endpoint is configured
+        otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+        if otlp_endpoint:
+            try:
+                from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+                tracer_provider = TracerProvider(resource=resource)
+                otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
+                tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+                trace.set_tracer_provider(tracer_provider)
+                self._tracer_provider = tracer_provider
+                LOG.info(f"OTLP tracing enabled, exporting to {otlp_endpoint}")
+            except Exception as e:
+                LOG.warning(f"Failed to setup OTLP tracing: {e}. Tracing will be disabled.")
+        else:
+            LOG.info("OTEL_EXPORTER_OTLP_ENDPOINT not set, tracing disabled (using NoOp tracer)")
 
     def _construct_attributes(self, **kwargs) -> Dict[str, str]:
 
@@ -174,7 +217,7 @@ class TelemetryManager:
         for metric in HistogramMetricName:
             self._metrics[metric] = self._meter.create_histogram(
                 metric.get_metric_name(),
-                unit="ms",
+                unit=metric.get_unit(),
                 description=metric.get_description(),
             )
 
@@ -221,6 +264,10 @@ class TelemetryManager:
         self._validate_metric(metric)
         complete_attributes = self._construct_attributes(**(attributes or {}))
         self._metrics[metric].set(value, complete_attributes)
+
+    def get_tracer(self, name: str):
+        """Get a tracer. Returns a NoOp tracer if tracing is not configured."""
+        return trace.get_tracer(name)
 
     def _validate_metric(self, metric) -> None:
         """Validate if the metric is initialized."""

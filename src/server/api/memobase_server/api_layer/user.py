@@ -5,6 +5,8 @@ from ..models.blob import BlobType
 from ..models import response as res
 from fastapi import Request
 from fastapi import Path, Query, Body
+from ..telemetry.tracing import memory_span
+from ..telemetry.open_telemetry import telemetry_manager, CounterMetricName
 
 
 async def create_user(
@@ -15,7 +17,10 @@ async def create_user(
 ) -> res.IdResponse:
     """Create a new user with additional data"""
     project_id = request.state.memobase_project_id
-    p = await controllers.user.create_user(user_data, project_id)
+    with memory_span("memory.user.create", attributes={"project.id": str(project_id)}):
+        p = await controllers.user.create_user(user_data, project_id)
+    if p.ok():
+        telemetry_manager.increment_counter_metric(CounterMetricName.MEMORY_USERS_CREATED)
     return p.to_response(res.IdResponse)
 
 
@@ -24,7 +29,8 @@ async def get_user(
     user_id: UUID = Path(..., description="The ID of the user to retrieve"),
 ) -> res.UserDataResponse:
     project_id = request.state.memobase_project_id
-    p = await controllers.user.get_user(user_id, project_id)
+    with memory_span("memory.user.get", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.user.get_user(user_id, project_id)
     return p.to_response(res.UserDataResponse)
 
 
@@ -34,7 +40,8 @@ async def update_user(
     user_data: dict = Body(..., description="Updated user data"),
 ) -> res.IdResponse:
     project_id = request.state.memobase_project_id
-    p = await controllers.user.update_user(user_id, project_id, user_data)
+    with memory_span("memory.user.update", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.user.update_user(user_id, project_id, user_data)
     return p.to_response(res.IdResponse)
 
 
@@ -43,7 +50,10 @@ async def delete_user(
     user_id: UUID = Path(..., description="The ID of the user to delete"),
 ) -> BaseResponse:
     project_id = request.state.memobase_project_id
-    p = await controllers.user.delete_user(user_id, project_id)
+    with memory_span("memory.user.delete", attributes={"user.id": str(user_id), "project.id": str(project_id)}):
+        p = await controllers.user.delete_user(user_id, project_id)
+    if p.ok():
+        telemetry_manager.increment_counter_metric(CounterMetricName.MEMORY_USERS_DELETED)
     return p.to_response(BaseResponse)
 
 
