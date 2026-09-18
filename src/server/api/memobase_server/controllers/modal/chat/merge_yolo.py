@@ -90,6 +90,7 @@ async def merge_or_valid_new_memos(
         PROMPTS[USE_LANGUAGE]["merge_yolo"].get_input(new_memos_input),
         system_prompt=PROMPTS[USE_LANGUAGE]["merge_yolo"].get_prompt(),
         temperature=0.2,  # precise
+        max_tokens=4096,
         **PROMPTS[USE_LANGUAGE]["merge_yolo"].get_kwargs(),
     )
     oneline_response = r.data().replace("\n", "<br/>")
@@ -101,6 +102,13 @@ async def merge_or_valid_new_memos(
         )
         return r
     memo_actions = parse_string_into_merge_yolo_action(r.data())
+
+    if not memo_actions and new_memos:
+        TRACE_LOG.error(
+            project_id,
+            user_id,
+            f"MERGE_YOLO_ZERO_ACTIONS: parsed 0 actions for {len(new_memos)} memos, <raw_response> {oneline_response} </raw_response>",
+        )
 
     abort_infos = []
     for i, m in enumerate(new_memos):

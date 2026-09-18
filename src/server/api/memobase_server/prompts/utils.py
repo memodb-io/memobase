@@ -169,14 +169,20 @@ def parse_string_into_merge_yolo_action(results: str) -> dict[int, UpdateRespons
     action_section = results
     memo_results = {}
     lines = [l.strip() for l in action_section.split("\n") if l.strip()]
+    action_prefix = "ACTION" + CONFIG.llm_tab_separator
     for l in lines:
         m = re.match(ORDER_LIST_PATTERN, l)
         if not m:
             continue
         order = int(m.group(1))
         clean_line = m.group(2).strip()
+        if clean_line.startswith(action_prefix):
+            clean_line = clean_line[len(action_prefix):].strip()
         parse_line = clean_line.split(CONFIG.llm_tab_separator)
         if len(parse_line) < 2:
+            bare = parse_line[0].upper().strip()
+            if bare in ("APPEND", "ABORT"):
+                memo_results[order] = UpdateResponse(action=bare, memo=bare)
             continue
         action = parse_line[0].upper().strip()
         memo = CONFIG.llm_tab_separator.join(parse_line[1:]).strip()

@@ -50,7 +50,7 @@ Assuming you are processing the Nth piece of supplementary information (memo_id=
 ```
 N. APPEND{tab}APPEND
 ```
-If choosing to add directly, simply output the word `APPEND`, no need to restate the content
+If choosing to add directly, output in `N. APPEND{tab}APPEND` format, no need to restate the content
 ### Update Memo
 ```
 N. UPDATE{tab}[UPDATED_MEMO]
@@ -60,20 +60,22 @@ In `[UPDATED_MEMO]`, you need to rewrite the complete updated current memo
 ```
 N. ABORT{tab}ABORT
 ```
-If choosing to discard the merge, simply output the word `ABORT`, no need to restate the content
+If choosing to discard the merge, output in `N. ABORT{tab}ABORT` format, no need to restate the content
 
 ## Output Template
 Based on the above instructions, your output should follow this template:
 
 THOUGHT
 ---
-1. ACTION{tab}...
-2. ACTION{tab}...
+1. APPEND{tab}APPEND
+2. UPDATE{tab}[UPDATED_MEMO]
+3. ABORT{tab}ABORT
 ...
 
 Where:
 - `THOUGHT` is your reasoning process
-- `N. ACTION{tab}...` is your operation for the Nth piece of supplementary information (memo_id=N)
+- Separate reasoning and action with `---`
+- Output action must be one of APPEND/UPDATE/ABORT, formatted strictly as `N. <ACTION>{tab}CONTENT` (i.e. `N. APPEND{tab}...`, `N. UPDATE{tab}...`, `N. ABORT{tab}...`), and any other prefix is forbidden
 
 ## Examples
 ### Input Example
@@ -106,7 +108,7 @@ The supplementary information mentions that the user's current study goal is to 
 Additionally, the user mentioned they are using Duolingo for language learning, which meets the software usage requirement. Since memo ID 2 has an empty current memo, we can add it directly.
 Liking hot pot doesn't belong to sports interests, and we cannot derive potential interests from this information, so we discard the merge.
 ---
-1. UPDATE{tab}Preparing for final exams [mentioned on 2025/06/01];
+1. UPDATE{tab}Preparing for final exams [mentioned on 2025/06/01]
 2. APPEND{tab}APPEND
 3. ABORT{tab}ABORT
 ```

@@ -50,7 +50,7 @@ MERGE_FACTS_PROMPT = """你负责用户的备忘录的维护。
 ```
 N. APPEND{tab}APPEND
 ```
-如果选择直接添加，直接输出`APPEND`单词即可，不需要复述内容
+如果选择直接添加，按 `N. APPEND{tab}APPEND` 格式输出即可，不需要复述内容
 ### 更新备忘录
 ```
 N. UPDATE{tab}[UPDATED_MEMO]
@@ -60,21 +60,22 @@ N. UPDATE{tab}[UPDATED_MEMO]
 ```
 N. ABORT{tab}ABORT
 ```
-如果选择放弃合并，直接输出`ABORT`单词即可，不需要复述内容
+如果选择放弃合并，按 `N. ABORT{tab}ABORT` 格式输出即可，不需要复述内容
 
 ## 输出模版
 根据上述说明，你的输出应该是如下的模版
 
 THOUGHT
 ---
-1. ACTION{tab}...
-2. ACTION{tab}...
+1. APPEND{tab}APPEND
+2. UPDATE{tab}[UPDATED_MEMO]
+3. ABORT{tab}ABORT
 ...
 
 其中:
 - `THOUGHT`是你的思考过程
 - 思考和Action之间使用`---`隔开
-- `N. ACTION{tab}...`是你对于第N个补充信息的操作(memo_id=N)
+- 输出动作只能是 APPEND/UPDATE/ABORT 三者之一，格式固定为 `N. 动作{tab}内容`，禁止任何其他前缀
 
 
 
@@ -109,7 +110,7 @@ THOUGHT
 同时用户提到了他正在使用多邻国进行语言的学习，符合学习软件的需求，由于id为2的补充信息中当前备忘录为空，直接添加即可。
 喜欢吃火锅并不属于兴趣/学习的爱好，也无法从这个信息中得到他潜在的爱好，所以放弃合并。
 ---
-1. UPDATE{tab}准备期末考试中[提及于2025/06/01];
+1. UPDATE{tab}准备期末考试中[提及于2025/06/01]
 2. APPEND{tab}APPEND
 3. ABORT{tab}ABORT
 ```
