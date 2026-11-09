@@ -36,11 +36,18 @@ class Blob(BaseModel):
         return self.model_dump(exclude={"type", "fields", "created_at"})
 
     def to_request(self):
-        return {
+        req = {
             "blob_type": self.type,
             "fields": self.fields,
             "blob_data": self.get_blob_data(),
         }
+        if self.created_at is not None:
+            req["created_at"] = (
+                self.created_at.isoformat()
+                if isinstance(self.created_at, datetime)
+                else self.created_at
+            )
+        return req
 
 
 class ChatBlob(Blob):

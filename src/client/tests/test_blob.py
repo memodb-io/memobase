@@ -63,3 +63,21 @@ def test_flush_curd_client(api_client):
     print(u.event())
     mb.delete_user(uid)
     print("Deleted user")
+
+
+def test_blob_to_request_created_at():
+    from datetime import datetime
+
+    timestamp = datetime(2025, 9, 1, 12, 0, 0)
+    blob_with_time = ChatBlob(
+        messages=[{"role": "user", "content": "Hi"}],
+        created_at=timestamp,
+    )
+    req = blob_with_time.to_request()
+    assert req["created_at"] == timestamp.isoformat()
+    assert req["blob_type"] == BlobType.chat
+
+    blob_without_time = DocBlob(content="Hello world")
+    req_without = blob_without_time.to_request()
+    assert "created_at" not in req_without
+    assert req_without["blob_type"] == BlobType.doc
