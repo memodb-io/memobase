@@ -145,7 +145,7 @@ def get_blob_str(blob: Blob):
         case BlobType.summary:
             time_created = cast(SummaryBlob, blob).created_at or datetime.now()
             clean_summary = cast(SummaryBlob, blob).summary.replace("\n", " ")
-            return f"- {clean_summary}[{time_created.strftime("%Y/%m/%d")}]"
+            return f"- {clean_summary}[{time_created.strftime('%Y/%m/%d')}]"
         case _:
             raise ValueError(f"Unsupported Blob Type: {blob.type}")
 
