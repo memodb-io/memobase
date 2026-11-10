@@ -124,6 +124,15 @@ def test_user_api_curd(client, db_env):
     d = response.json()
     assert d["data"]["data"]["test"] == 2
 
+    response = client.put(f"{PREFIX}/users/{u_id}", json={"data": {"test": 3}})
+    d = response.json()
+    assert response.status_code == 200
+    assert d["errno"] == 0
+
+    response = client.get(f"{PREFIX}/users/{u_id}")
+    d = response.json()
+    assert d["data"]["data"]["test"] == 3
+
     response = client.delete(f"{PREFIX}/users/{u_id}")
     d = response.json()
     assert response.status_code == 200

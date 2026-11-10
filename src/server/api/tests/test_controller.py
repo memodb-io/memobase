@@ -41,6 +41,13 @@ async def test_user_curd(db_env):
     p = await controllers.user.get_user(u_id, DEFAULT_PROJECT_ID)
     assert p.data().data["test"] == 2
 
+    p = await controllers.user.update_user(
+        u_id, DEFAULT_PROJECT_ID, {"data": {"test": 3}}
+    )
+    assert p.ok()
+    p = await controllers.user.get_user(u_id, DEFAULT_PROJECT_ID)
+    assert p.data().data["test"] == 3
+
     p = await controllers.user.delete_user(u_id, DEFAULT_PROJECT_ID)
     assert p.ok()
     p = await controllers.user.get_user(u_id, DEFAULT_PROJECT_ID)

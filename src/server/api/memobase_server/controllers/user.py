@@ -34,7 +34,9 @@ async def get_user(user_id: str, project_id: str) -> Promise[UserData]:
         )
 
 
-async def update_user(user_id: str, project_id: str, data: dict) -> Promise[IdData]:
+async def update_user(
+    user_id: str, project_id: str, data: UserData | dict | None
+) -> Promise[IdData]:
     with Session() as session:
         db_user = (
             session.query(User)
@@ -43,6 +45,16 @@ async def update_user(user_id: str, project_id: str, data: dict) -> Promise[IdDa
         )
         if db_user is None:
             return Promise.reject(CODE.NOT_FOUND, f"User {user_id} not found")
+        if isinstance(data, UserData):
+            data = data.data
+        elif (
+            data is not None
+            and isinstance(data, dict)
+            and "data" in data
+            and len(data) == 1
+            and isinstance(data["data"], dict)
+        ):
+            data = data["data"]
         db_user.additional_fields = data
         session.commit()
         return Promise.resolve(IdData(id=db_user.id))
