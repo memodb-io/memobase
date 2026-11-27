@@ -90,6 +90,7 @@ async def merge_or_valid_new_memos(
         PROMPTS[USE_LANGUAGE]["merge_yolo"].get_input(new_memos_input),
         system_prompt=PROMPTS[USE_LANGUAGE]["merge_yolo"].get_prompt(),
         temperature=0.2,  # precise
+        max_tokens=4096,  # higher budget for batches of memos
         **PROMPTS[USE_LANGUAGE]["merge_yolo"].get_kwargs(),
     )
     oneline_response = r.data().replace("\n", "<br/>")

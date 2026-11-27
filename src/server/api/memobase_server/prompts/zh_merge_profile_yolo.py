@@ -67,14 +67,15 @@ N. ABORT{tab}ABORT
 
 THOUGHT
 ---
-1. ACTION{tab}...
-2. ACTION{tab}...
+1. APPEND{tab}APPEND
+2. UPDATE{tab}[更新后的备忘录]
+3. ABORT{tab}ABORT
 ...
 
 其中:
 - `THOUGHT`是你的思考过程
 - 思考和Action之间使用`---`隔开
-- `N. ACTION{tab}...`是你对于第N个补充信息的操作(memo_id=N)
+- `N. ACTION{tab}...` 请替换为具体的操作 (APPEND / UPDATE / ABORT)，对应第N个补充信息(memo_id=N)
 
 
 
