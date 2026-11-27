@@ -67,13 +67,14 @@ Based on the above instructions, your output should follow this template:
 
 THOUGHT
 ---
-1. ACTION{tab}...
-2. ACTION{tab}...
+1. APPEND{tab}APPEND
+2. UPDATE{tab}[UPDATED_MEMO]
+3. ABORT{tab}ABORT
 ...
 
 Where:
 - `THOUGHT` is your reasoning process
-- `N. ACTION{tab}...` is your operation for the Nth piece of supplementary information (memo_id=N)
+- `N. ACTION{tab}...` is replaced by the concrete action (APPEND / UPDATE / ABORT) for the Nth piece of supplementary information (memo_id=N)
 
 ## Examples
 ### Input Example

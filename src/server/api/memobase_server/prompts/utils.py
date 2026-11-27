@@ -176,10 +176,22 @@ def parse_string_into_merge_yolo_action(results: str) -> dict[int, UpdateRespons
         order = int(m.group(1))
         clean_line = m.group(2).strip()
         parse_line = clean_line.split(CONFIG.llm_tab_separator)
-        if len(parse_line) < 2:
+        if not parse_line:
             continue
         action = parse_line[0].upper().strip()
-        memo = CONFIG.llm_tab_separator.join(parse_line[1:]).strip()
+        # Tolerate models that copy the template placeholder literally: "ACTION::APPEND"
+        if action == "ACTION" and len(parse_line) > 1:
+            action = parse_line[1].upper().strip()
+            memo = CONFIG.llm_tab_separator.join(parse_line[2:]).strip()
+        else:
+            if len(parse_line) < 2:
+                # Bare action (e.g. "1. APPEND") — valid for APPEND/ABORT
+                if action in {"APPEND", "ABORT"}:
+                    memo = ""
+                else:
+                    continue
+            else:
+                memo = CONFIG.llm_tab_separator.join(parse_line[1:]).strip()
         if action not in MERGE_ACTION_SPACE:
             continue
         memo_results[order] = UpdateResponse(action=action, memo=memo)
